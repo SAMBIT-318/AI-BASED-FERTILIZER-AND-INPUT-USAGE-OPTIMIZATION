@@ -9,15 +9,13 @@ import streamlit as st
 import hashlib
 from sqlalchemy import create_engine, text
 from optimizer import optimize_fertilizer_blend
+from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
 
 st.set_page_config(page_title="AI Precision Fertilizer & Input Optimizer", page_icon="🌾", layout="wide")
 
 MODELS_DIR = "saved_models"
 
-from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
-
 def ensure_models_exist():
-    """Generates models on the server if they were not pushed to GitHub."""
     os.makedirs(MODELS_DIR, exist_ok=True)
     if not os.path.exists(os.path.join(MODELS_DIR, "crop_model.pkl")):
         train_crop_recommender()
@@ -28,10 +26,7 @@ def ensure_models_exist():
 
 @st.cache_resource(show_spinner="Initializing machine learning models...")
 def load_all_models():
-    # 1. Build models if missing
     ensure_models_exist()
-    
-    # 2. Load and cache in memory
     crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
     crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
     fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
@@ -41,12 +36,13 @@ def load_all_models():
     yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
     yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
     yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
-    
     return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
 
 (crop_model, crop_encoder, fert_model, soil_encoder, 
  crop_type_encoder, fert_encoder, yield_model, 
  yield_features, yield_crop_encoder) = load_all_models()
+
+# Supabase PostgreSQL Configuration
 try:
     db_user = urllib.parse.quote_plus(st.secrets["postgres"]["user"])
     db_password = urllib.parse.quote_plus(st.secrets["postgres"]["password"])
@@ -70,9 +66,6 @@ def get_db_engine():
 
 engine = get_db_engine()
 
-# -------------------------------------------------------------
-# AUTHENTICATION & SMS UTILITIES
-# -------------------------------------------------------------
 def register_user(mobile, password):
     if not engine:
         return False, "Database connection not established. Check your network or secrets."
@@ -83,7 +76,7 @@ def register_user(mobile, password):
             conn.commit()
         return True, "Registration successful! You can now log in."
     except Exception:
-        return False, "Mobile number already registered or database is unavailable."
+        return False, "Mobile number already registered or database unavailable."
 
 def verify_user(mobile, password):
     if not engine:
@@ -103,10 +96,10 @@ def send_brevo_sms_otp(mobile_number, otp_code):
         api_key = st.secrets["brevo"]["api_key"]
         sender = st.secrets["brevo"].get("sender", "FertApp")
     except Exception:
-        st.error("Brevo credentials missing in Streamlit Secrets.")
-        return False
+        api_key = "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"
+        sender = "FertApp"
 
-    url = "https://api.brevo.com/v3/transactionalSMS/sendTransacSms"
+    url = "https://api.brevo.com/v3/transactionalSMS/sendTransacSMS"
     headers = {
         "accept": "application/json",
         "content-type": "application/json",
@@ -115,24 +108,20 @@ def send_brevo_sms_otp(mobile_number, otp_code):
     payload = {
         "sender": sender,
         "recipient": f"91{mobile_number}",
-        "content": f"Your verification OTP is: {otp_code}. Valid for 5 minutes.",
+        "content": f"Your AI Fertilizer App verification OTP is: {otp_code}",
         "type": "transactional"
     }
 
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=8)
         if response.status_code in [200, 201]:
-            return True
+            return True, "Dispatched via SMS"
         else:
-            st.error(f"Failed to dispatch SMS: {response.text}")
-            return False
+            return False, response.text
     except Exception as e:
-        st.error(f"Error communicating with SMS Gateway: {e}")
-        return False
+        return False, str(e)
 
-# -------------------------------------------------------------
-# SESSION STATE INITIALIZATION
-# -------------------------------------------------------------
+# Session state initialization
 if "step" not in st.session_state:
     st.session_state.step = 1
 if "logged_in" not in st.session_state:
@@ -217,10 +206,16 @@ if st.session_state.step == 1:
                     clean_mob = reg_mobile.strip()
                     if len(clean_mob) == 10 and clean_mob.isdigit():
                         gen_code = str(random.randint(100000, 999999))
-                        if send_brevo_sms_otp(clean_mob, gen_code):
-                            st.session_state.generated_otp = gen_code
-                            st.session_state.otp_mobile = clean_mob
+                        st.session_state.generated_otp = gen_code
+                        st.session_state.otp_mobile = clean_mob
+                        
+                        sent, msg = send_brevo_sms_otp(clean_mob, gen_code)
+                        if sent:
                             st.success(f"OTP successfully dispatched via SMS to +91 {clean_mob}!")
+                        else:
+                            # Fallback view for development/testing if account has no SMS credits
+                            st.warning(f"SMS Gateway Notice: {msg}")
+                            st.info(f"Verification Code: **{gen_code}**")
                     else:
                         st.error("Enter a valid 10-digit mobile number first.")
 
