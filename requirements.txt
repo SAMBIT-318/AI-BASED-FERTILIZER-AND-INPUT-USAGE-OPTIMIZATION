@@ -1,0 +1,8 @@
+streamlit>=1.35.0
+pandas>=2.1.0
+numpy>=1.26.0
+scikit-learn>=1.4.0
+xgboost>=2.0.0
+pulp>=2.8.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
