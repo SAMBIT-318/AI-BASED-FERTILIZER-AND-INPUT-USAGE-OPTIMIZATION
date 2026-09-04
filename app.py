@@ -23,7 +23,7 @@ def ensure_models():
 
 ensure_models()
 
-# PostgreSQL Database Configuration with automatic URL-encoding
+# PostgreSQL Database Configuration using the updated password without special characters
 try:
     db_user = urllib.parse.quote_plus(st.secrets["postgres"]["user"])
     db_password = urllib.parse.quote_plus(st.secrets["postgres"]["password"])
@@ -32,7 +32,7 @@ try:
     db_name = st.secrets["postgres"]["database"]
     DB_URI = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 except Exception:
-    DB_URI = "postgresql://postgres:Sambit%40318@127.0.0.1:5432/fertilizer_optimizer_db"
+    DB_URI = "postgresql://postgres:Sambit318@127.0.0.1:5432/fertilizer_optimizer_db"
 
 @st.cache_resource
 def get_db_engine():
@@ -190,11 +190,11 @@ elif st.session_state.step == 2:
         st.session_state.budget_cap = st.number_input("Budget Cap (INR)", 1000.0, 500000.0, float(st.session_state.budget_cap), 500.0)
 
     with col2:
-        up_crop = st.file_uploader("Upload Crop Recommendation CSV", type=["csv"], key="crop_csv")
+        up_crop = st.file_uploader("Upload Crop CSV", type=["csv"], key="crop_csv")
         if up_crop is not None:
             st.session_state.uploaded_crop_df = pd.read_csv(up_crop)
             st.success(f"Loaded {st.session_state.uploaded_crop_df.shape[0]} records.")
-        up_fert = st.file_uploader("Upload Fertilizer Prediction CSV", type=["csv"], key="fert_csv")
+        up_fert = st.file_uploader("Upload Fertilizer CSV", type=["csv"], key="fert_csv")
         if up_fert is not None:
             st.session_state.uploaded_fert_df = pd.read_csv(up_fert)
             st.session_state.uploaded_fert_df.columns = [c.strip() for c in st.session_state.uploaded_fert_df.columns]
@@ -281,7 +281,7 @@ elif st.session_state.step == 4:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 5: Problem Prediction & Crop Recommendation
+# SCREEN 5: Problem Diagnostics & Deficit Calculation
 # -------------------------------------------------------------
 elif st.session_state.step == 5:
     st.subheader("5. ⚠️ Soil Deficiency Diagnostics & Crop Matching")
@@ -312,7 +312,7 @@ elif st.session_state.step == 5:
         st.warning(f"Potassium Deficit: **{def_k:.1f} kg/ha**")
     with col2:
         st.success(f"Best Suited Crop: **{pred_c.capitalize()}**")
-        st.success(f"Primary Fertilizer Category: **{pred_f}**")
+        st.success(f"Primary Fertilizer: **{pred_f}**")
 
     st.markdown("---")
     nav1, nav2 = st.columns(2)
@@ -326,7 +326,7 @@ elif st.session_state.step == 5:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 6: Final Solution Interface
+# SCREEN 6: Final Prescriptive Optimization
 # -------------------------------------------------------------
 elif st.session_state.step == 6:
     st.subheader("6. 🚀 Optimized Fertilizer Dosage & Cost Impact")
@@ -375,7 +375,7 @@ elif st.session_state.step == 6:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 7: Exit Panel
+# SCREEN 7: Exit Panel & Cache Flush
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
     st.subheader("7. 🚪 Exit Panel")
