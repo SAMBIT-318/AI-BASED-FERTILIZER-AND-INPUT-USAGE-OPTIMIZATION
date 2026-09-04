@@ -211,11 +211,9 @@ if st.session_state.step == 1:
                         
                         sent, msg = send_brevo_sms_otp(clean_mob, gen_code)
                         if sent:
-                            st.success(f"OTP successfully dispatched via SMS to +91 {clean_mob}!")
+                            st.success(f"OTP successfully sent via SMS to +91 {clean_mob}!")
                         else:
-                            # Fallback view for development/testing if account has no SMS credits
-                            st.warning(f"SMS Gateway Notice: {msg}")
-                            st.info(f"Verification Code: **{gen_code}**")
+                            st.error("Failed to deliver SMS. Please verify your Brevo SMS account activation and credits.")
                     else:
                         st.error("Enter a valid 10-digit mobile number first.")
 
