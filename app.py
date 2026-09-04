@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 import joblib
 import numpy as np
 import pandas as pd
@@ -22,16 +23,16 @@ def ensure_models():
 
 ensure_models()
 
-# PostgreSQL Database Configuration with proper password encoding (%40 for @)
+# PostgreSQL Database Configuration with automatic URL-encoding
 try:
-    db_user = st.secrets["postgres"]["user"]
-    db_password = st.secrets["postgres"]["password"]
+    db_user = urllib.parse.quote_plus(st.secrets["postgres"]["user"])
+    db_password = urllib.parse.quote_plus(st.secrets["postgres"]["password"])
     db_host = st.secrets["postgres"]["host"]
     db_port = st.secrets["postgres"]["port"]
     db_name = st.secrets["postgres"]["database"]
     DB_URI = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 except Exception:
-    DB_URI = "postgresql://postgres:Sambit%40318@localhost:5432/fertilizer_optimizer_db"
+    DB_URI = "postgresql://postgres:Sambit%40318@127.0.0.1:5432/fertilizer_optimizer_db"
 
 @st.cache_resource
 def get_db_engine():
@@ -85,7 +86,7 @@ yield_model = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
 yield_features = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
 yield_crop_encoder = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
 
-# Session state initialization
+# Session state initialization for sequential screen flow
 if "step" not in st.session_state:
     st.session_state.step = 1
 if "logged_in" not in st.session_state:
@@ -123,10 +124,12 @@ if "budget_cap" not in st.session_state:
     st.session_state.budget_cap = 15000.0
 
 st.title("🌾 AI Based Fertilizer and Input Usage Optimization")
-st.markdown(f"**Step {st.session_state.step} of 7**")
+st.markdown(f"**Screen {st.session_state.step} of 7**")
 st.progress(st.session_state.step / 7.0)
 
-# STEP 1: Login / Register
+# -------------------------------------------------------------
+# SCREEN 1: User Authentication
+# -------------------------------------------------------------
 if st.session_state.step == 1:
     st.subheader("1. 🔐 User Authentication & Registry")
     if not st.session_state.logged_in:
@@ -156,14 +159,16 @@ if st.session_state.step == 1:
                     else:
                         st.error("Invalid username or password.")
         with col2:
-            st.info("Permanent database-backed credentials.")
+            st.info("Permanent user credentials secured with SHA-256 in PostgreSQL.")
     else:
         st.success(f"Logged in as **{st.session_state.username}**")
         if st.button("Continue to Field Telemetry ➔"):
             st.session_state.step = 2
             st.rerun()
 
-# STEP 2: Data Input
+# -------------------------------------------------------------
+# SCREEN 2: Field Inputs & Uploads
+# -------------------------------------------------------------
 elif st.session_state.step == 2:
     st.subheader("2. 📍 Farm Soil Telemetry & Dataset Uploads")
     col1, col2 = st.columns(2)
@@ -185,11 +190,11 @@ elif st.session_state.step == 2:
         st.session_state.budget_cap = st.number_input("Budget Cap (INR)", 1000.0, 500000.0, float(st.session_state.budget_cap), 500.0)
 
     with col2:
-        up_crop = st.file_uploader("Upload Crop CSV", type=["csv"], key="crop_csv")
+        up_crop = st.file_uploader("Upload Crop Recommendation CSV", type=["csv"], key="crop_csv")
         if up_crop is not None:
             st.session_state.uploaded_crop_df = pd.read_csv(up_crop)
             st.success(f"Loaded {st.session_state.uploaded_crop_df.shape[0]} records.")
-        up_fert = st.file_uploader("Upload Fertilizer CSV", type=["csv"], key="fert_csv")
+        up_fert = st.file_uploader("Upload Fertilizer Prediction CSV", type=["csv"], key="fert_csv")
         if up_fert is not None:
             st.session_state.uploaded_fert_df = pd.read_csv(up_fert)
             st.session_state.uploaded_fert_df.columns = [c.strip() for c in st.session_state.uploaded_fert_df.columns]
@@ -206,7 +211,9 @@ elif st.session_state.step == 2:
             st.session_state.step = 3
             st.rerun()
 
-# STEP 3: Data Processing View
+# -------------------------------------------------------------
+# SCREEN 3: Data Processing View
+# -------------------------------------------------------------
 elif st.session_state.step == 3:
     st.subheader("3. ⚙️ Telemetry Normalization & Standardization")
     c1, c2, c3 = st.columns(3)
@@ -234,7 +241,9 @@ elif st.session_state.step == 3:
             st.session_state.step = 4
             st.rerun()
 
-# STEP 4: Visualization Dashboard
+# -------------------------------------------------------------
+# SCREEN 4: Visualization Dashboard
+# -------------------------------------------------------------
 elif st.session_state.step == 4:
     st.subheader("4. 📊 Data Visualization")
     choice = st.radio("Select View", ["Fertilizer Category Breakdown", "Dataset Records"])
@@ -271,11 +280,12 @@ elif st.session_state.step == 4:
             st.session_state.step = 5
             st.rerun()
 
-# STEP 5: Problem Diagnostics
+# -------------------------------------------------------------
+# SCREEN 5: Problem Prediction & Crop Recommendation
+# -------------------------------------------------------------
 elif st.session_state.step == 5:
     st.subheader("5. ⚠️ Soil Deficiency Diagnostics & Crop Matching")
     
-    # Run model inferences
     crop_in = pd.DataFrame([{
         'N': st.session_state.soil_n, 'P': st.session_state.soil_p, 'K': st.session_state.soil_k,
         'temperature': st.session_state.temp, 'humidity': st.session_state.humidity,
@@ -302,7 +312,7 @@ elif st.session_state.step == 5:
         st.warning(f"Potassium Deficit: **{def_k:.1f} kg/ha**")
     with col2:
         st.success(f"Best Suited Crop: **{pred_c.capitalize()}**")
-        st.success(f"Primary Fertilizer: **{pred_f}**")
+        st.success(f"Primary Fertilizer Category: **{pred_f}**")
 
     st.markdown("---")
     nav1, nav2 = st.columns(2)
@@ -315,7 +325,9 @@ elif st.session_state.step == 5:
             st.session_state.step = 6
             st.rerun()
 
-# STEP 6: Final Solution
+# -------------------------------------------------------------
+# SCREEN 6: Final Solution Interface
+# -------------------------------------------------------------
 elif st.session_state.step == 6:
     st.subheader("6. 🚀 Optimized Fertilizer Dosage & Cost Impact")
     
@@ -362,7 +374,9 @@ elif st.session_state.step == 6:
             st.session_state.step = 7
             st.rerun()
 
-# STEP 7: Exit Phase
+# -------------------------------------------------------------
+# SCREEN 7: Exit Panel
+# -------------------------------------------------------------
 elif st.session_state.step == 7:
     st.subheader("7. 🚪 Exit Panel")
     st.write("Session termination and memory clearance.")
