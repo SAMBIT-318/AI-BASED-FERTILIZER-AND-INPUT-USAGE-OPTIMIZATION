@@ -9,21 +9,31 @@ import streamlit as st
 import hashlib
 from sqlalchemy import create_engine, text
 from optimizer import optimize_fertilizer_blend
-from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
 
 st.set_page_config(page_title="AI Precision Fertilizer & Input Optimizer", page_icon="🌾", layout="wide")
 
 MODELS_DIR = "saved_models"
 
-def ensure_models():
-    if not os.path.exists(os.path.join(MODELS_DIR, "crop_model.pkl")):
-        train_crop_recommender()
-    if not os.path.exists(os.path.join(MODELS_DIR, "fert_model.pkl")):
-        train_fertilizer_classifier()
-    if not os.path.exists(os.path.join(MODELS_DIR, "yield_model.pkl")):
-        train_yield_regressor()
+# -------------------------------------------------------------
+# RESOURCE CACHING: Models & Database Engine
+# -------------------------------------------------------------
+@st.cache_resource(show_spinner="Loading machine learning models...")
+def load_all_models():
+    """Loads all models and encoders into memory once to prevent disk I/O CPU spikes."""
+    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
+    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
+    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
+    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
+    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
+    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
+    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
+    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
+    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
+    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
 
-ensure_models()
+(crop_model, crop_encoder, fert_model, soil_encoder, 
+ crop_type_encoder, fert_encoder, yield_model, 
+ yield_features, yield_crop_encoder) = load_all_models()
 
 # Supabase PostgreSQL Configuration
 try:
@@ -39,7 +49,7 @@ except Exception:
 @st.cache_resource
 def get_db_engine():
     try:
-        engine = create_engine(DB_URI, pool_pre_ping=True, connect_args={"connect_timeout": 10})
+        engine = create_engine(DB_URI, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 10})
         with engine.connect() as conn:
             conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
             conn.commit()
@@ -49,6 +59,9 @@ def get_db_engine():
 
 engine = get_db_engine()
 
+# -------------------------------------------------------------
+# AUTHENTICATION & SMS UTILITIES
+# -------------------------------------------------------------
 def register_user(mobile, password):
     if not engine:
         return False, "Database connection not established. Check your network or secrets."
@@ -79,7 +92,7 @@ def send_brevo_sms_otp(mobile_number, otp_code):
         api_key = st.secrets["brevo"]["api_key"]
         sender = st.secrets["brevo"].get("sender", "FertApp")
     except Exception:
-        st.error("Brevo credentials missing in Streamlit Secrets. Please check your secrets.toml.")
+        st.error("Brevo credentials missing in Streamlit Secrets.")
         return False
 
     url = "https://api.brevo.com/v3/transactionalSMS/sendTransacSms"
@@ -91,12 +104,12 @@ def send_brevo_sms_otp(mobile_number, otp_code):
     payload = {
         "sender": sender,
         "recipient": f"91{mobile_number}",
-        "content": f"Your AI Fertilizer App verification OTP is: {otp_code}. Valid for 5 minutes.",
+        "content": f"Your verification OTP is: {otp_code}. Valid for 5 minutes.",
         "type": "transactional"
     }
 
     try:
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response = requests.post(url, json=payload, headers=headers, timeout=8)
         if response.status_code in [200, 201]:
             return True
         else:
@@ -106,20 +119,9 @@ def send_brevo_sms_otp(mobile_number, otp_code):
         st.error(f"Error communicating with SMS Gateway: {e}")
         return False
 
-# Load models and encoders
-crop_model = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
-crop_encoder = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
-
-fert_model = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
-soil_encoder = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
-crop_type_encoder = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
-fert_encoder = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
-
-yield_model = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
-yield_features = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
-yield_crop_encoder = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
-
-# Session state initialization
+# -------------------------------------------------------------
+# SESSION STATE INITIALIZATION
+# -------------------------------------------------------------
 if "step" not in st.session_state:
     st.session_state.step = 1
 if "logged_in" not in st.session_state:
@@ -454,7 +456,6 @@ elif st.session_state.step == 7:
         st.session_state.user_mobile = ""
         st.session_state.step = 1
         st.cache_data.clear()
-        st.cache_resource.clear()
         st.success("Session completed. Returning to start.")
         st.rerun()
 
