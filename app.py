@@ -41,7 +41,7 @@ def load_all_models():
  yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
-# Database Engine Initialization
+# Database Engine Initialization (Tokyo Pooler)
 # -------------------------------------------------------------
 @st.cache_resource
 def get_db_engine():
@@ -53,7 +53,11 @@ def get_db_engine():
         cfg_db = str(st.secrets["postgres"]["database"]).strip()
         
         db_uri = f"postgresql://{cfg_user}:{cfg_password}@{cfg_host}:{cfg_port}/{cfg_db}?sslmode=require"
-        
+    except Exception:
+        # Direct fallback targeting your exact Tokyo pooler
+        db_uri = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
+
+    try:
         engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 10})
         with engine.connect() as conn:
             conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
