@@ -57,7 +57,7 @@ sel_crop = st.sidebar.selectbox("Current Cultivated Crop", crop_type_list)
 land_area = st.sidebar.number_input("Field Acreage / Area (Hectares)", 0.5, 50.0, 2.0, 0.5)
 budget_cap = st.sidebar.number_input("Farmer Budget / Wallet Cap (INR / $)", 1000.0, 500000.0, 15000.0, 500.0)
 
-tab1, tab2, tab3 = st.tabs(["🚀 Complete Advisory & Optimization", "📊 Dataset Analytics", "📑 Architecture & References"])
+tab1, tab2 = st.tabs(["🚀 Complete Advisory & Optimization", "📊 Dataset Analytics & Farmer Predictor"])
 
 with tab1:
     col1, col2 = st.columns([1, 1])
@@ -142,21 +142,60 @@ with tab1:
         st.info("✅ Full nutrient requirement satisfied within budget limits without excess chemical leaching.")
 
 with tab2:
-    st.subheader("Dataset Exploratory Insights")
-    data_sel = st.radio("Select dataset to view", ["Crop Recommendation Data", "Fertilizer Data"])
-    if data_sel == "Crop Recommendation Data" and os.path.exists("Crop_recommendation.csv"):
-        st.dataframe(pd.read_csv("Crop_recommendation.csv").head(15), use_container_width=True)
-    elif data_sel == "Fertilizer Data" and os.path.exists("Fertilizer Prediction.csv"):
-        st.dataframe(pd.read_csv("Fertilizer Prediction.csv").head(15), use_container_width=True)
-    else:
-        st.info("Upload dataset files to the directory to explore full records.")
+    st.subheader("Dataset Analytics & Custom Farmer Predictions")
+    data_sel = st.radio("Select dataset category to upload and analyze", ["Crop Recommendation Data", "Fertilizer Data"])
+    
+    if data_sel == "Crop Recommendation Data":
+        uploaded_crop_file = st.file_uploader("Choose a CSV file for Crop Recommendation", type=["csv"], key="crop_uploader")
+        if uploaded_crop_file is not None:
+            crop_df = pd.read_csv(uploaded_crop_file)
+            st.success(f"Successfully loaded Crop dataset with {crop_df.shape[0]} rows and {crop_df.shape[1]} columns.")
+            st.dataframe(crop_df.head(10), use_container_width=True)
+            
+            st.markdown("### 🌾 Farmer Field Analyzer & Predictor")
+            st.write("Select a sample record or row index from your uploaded dataset to predict what crop the farmer needs:")
+            
+            if 'N' in crop_df.columns and 'P' in crop_df.columns and 'K' in crop_df.columns:
+                sample_idx = st.slider("Select Row Index from Dataset", 0, len(crop_df)-1, 0)
+                row_data = crop_df.iloc[sample_idx]
+                st.write(f"**Analyzing Data Row {sample_idx}:**", row_data.to_dict())
+                
+                try:
+                    feat_vals = [[row_data.get('N', 50), row_data.get('P', 30), row_data.get('K', 35), 
+                                  row_data.get('temperature', 25), row_data.get('humidity', 60), 
+                                  row_data.get('ph', 6.5), row_data.get('rainfall', 100)]]
+                    pred_idx = crop_model.predict(feat_vals)[0]
+                    predicted_crop = crop_encoder.inverse_transform([pred_idx])[0]
+                    st.info(f"💡 **AI Prediction for this Farmer:** Optimum crop needed is **{predicted_crop.capitalize()}**.")
+                except Exception as e:
+                    st.warning(f"Could not auto-predict using row features: {e}")
+        else:
+            local_path = os.path.join("data", "Crop_recommendation.csv")
+            if os.path.exists(local_path):
+                local_df = pd.read_csv(local_path)
+                st.info("Displaying default repository Crop dataset (Upload your custom CSV file above to override):")
+                st.dataframe(local_df.head(10), use_container_width=True)
+            else:
+                st.warning("Please upload a Crop Recommendation CSV file using the file picker above.")
 
-with tab3:
-    st.markdown("""
-    ### Project Architecture
-    - **Data Pipeline**: Preprocessing, categorical encoding, and feature scaling from Indian agronomic datasets.
-    - **Machine Learning**: Random Forest and XGBoost classifiers for crop and fertilizer prediction.
-    - **Optimization**: PuLP linear programming modeling bounded multi-nutrient allocation within economic constraints.
-    - **Institution**: Centurion University of Technology and Management
-    - **Guide**: Dr. Sujata Chakravarty
-    """)
+    elif data_sel == "Fertilizer Data":
+        uploaded_fert_file = st.file_uploader("Choose a CSV file for Fertilizer Prediction", type=["csv"], key="fert_uploader")
+        if uploaded_fert_file is not None:
+            fert_df = pd.read_csv(uploaded_fert_file)
+            fert_df.columns = [c.strip() for c in fert_df.columns]
+            st.success(f"Successfully loaded Fertilizer dataset with {fert_df.shape[0]} rows and {fert_df.shape[1]} columns.")
+            st.dataframe(fert_df.head(10), use_container_width=True)
+            
+            st.markdown("### 🧪 Fertilizer Requirement Insights & Predictor")
+            if 'Fertilizer Name' in fert_df.columns:
+                fert_counts = fert_df['Fertilizer Name'].value_counts()
+                st.bar_chart(fert_counts)
+        else:
+            local_path = os.path.join("data", "Fertilizer Prediction.csv")
+            if os.path.exists(local_path):
+                local_fert_df = pd.read_csv(local_path)
+                local_fert_df.columns = [c.strip() for c in local_fert_df.columns]
+                st.info("Displaying default repository Fertilizer dataset (Upload your custom CSV file above to override):")
+                st.dataframe(local_fert_df.head(10), use_container_width=True)
+            else:
+                st.warning("Please upload a Fertilizer Prediction CSV file using the file picker above.")
