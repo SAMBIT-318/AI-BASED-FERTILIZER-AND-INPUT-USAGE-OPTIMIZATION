@@ -14,12 +14,24 @@ st.set_page_config(page_title="AI Precision Fertilizer & Input Optimizer", page_
 
 MODELS_DIR = "saved_models"
 
-# -------------------------------------------------------------
-# RESOURCE CACHING: Models & Database Engine
-# -------------------------------------------------------------
-@st.cache_resource(show_spinner="Loading machine learning models...")
+from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
+
+def ensure_models_exist():
+    """Generates models on the server if they were not pushed to GitHub."""
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    if not os.path.exists(os.path.join(MODELS_DIR, "crop_model.pkl")):
+        train_crop_recommender()
+    if not os.path.exists(os.path.join(MODELS_DIR, "fert_model.pkl")):
+        train_fertilizer_classifier()
+    if not os.path.exists(os.path.join(MODELS_DIR, "yield_model.pkl")):
+        train_yield_regressor()
+
+@st.cache_resource(show_spinner="Initializing machine learning models...")
 def load_all_models():
-    """Loads all models and encoders into memory once to prevent disk I/O CPU spikes."""
+    # 1. Build models if missing
+    ensure_models_exist()
+    
+    # 2. Load and cache in memory
     crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
     crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
     fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
@@ -29,13 +41,12 @@ def load_all_models():
     yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
     yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
     yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
+    
     return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
 
 (crop_model, crop_encoder, fert_model, soil_encoder, 
  crop_type_encoder, fert_encoder, yield_model, 
  yield_features, yield_crop_encoder) = load_all_models()
-
-# Supabase PostgreSQL Configuration
 try:
     db_user = urllib.parse.quote_plus(st.secrets["postgres"]["user"])
     db_password = urllib.parse.quote_plus(st.secrets["postgres"]["password"])
