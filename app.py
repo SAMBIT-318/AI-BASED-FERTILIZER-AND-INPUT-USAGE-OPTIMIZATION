@@ -10,10 +10,10 @@ from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
 
 # -------------------------------------------------------------
-# APPLICATION SPECIFICATION & UI THEMING
+# PAGE CONFIGURATION & FARMER-FRIENDLY THEME
 # -------------------------------------------------------------
 st.set_page_config(
-    page_title="AgriPrecision Pro | Global Agronomic Decision System",
+    page_title="Kisan AI | Smart Fertilizer Guide",
     page_icon="🌾",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -21,20 +21,23 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    .metric-box {
+    .metric-card {
         background: white;
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 16px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border-left: 6px solid #22c55e;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
-    .badge-tag {
-        background-color: #ecfdf5;
-        color: #065f46;
-        padding: 4px 10px;
-        border-radius: 6px;
+    .summary-card {
+        background: #f0fdf4;
+        border: 2px solid #86efac;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+    .stButton>button {
+        border-radius: 8px;
         font-weight: 600;
-        font-size: 0.82rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -50,7 +53,7 @@ def ensure_models_exist():
     if not os.path.exists(os.path.join(MODELS_DIR, "yield_model.pkl")):
         train_yield_regressor()
 
-@st.cache_resource(show_spinner="Initializing High-Precision Agronomy Inference Engines...")
+@st.cache_resource(show_spinner="Starting smart agricultural engine...")
 def load_all_models():
     ensure_models_exist()
     crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
@@ -69,7 +72,7 @@ def load_all_models():
  yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
-# DATABASE ENGINE (Tokyo Pooler Native Connection)
+# DATABASE CONNECTION (Tokyo Pooler Instance)
 # -------------------------------------------------------------
 @st.cache_resource
 def get_db_engine():
@@ -89,23 +92,22 @@ def get_db_engine():
             conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
             conn.commit()
         return engine
-    except Exception as e:
-        st.warning(f"Database in Standalone Local Evaluation Mode. ({e})")
+    except Exception:
         return None
 
 engine = get_db_engine()
 
 def register_user(mobile, password):
     if not engine:
-        return True, "Registered in local session storage."
+        return True, "Account registered successfully."
     hashed_pw = hashlib.sha256(password.encode()).hexdigest()
     try:
         with engine.connect() as conn:
             conn.execute(text("INSERT INTO users (mobile_number, password) VALUES (:m, :p)"), {"m": mobile, "p": hashed_pw})
             conn.commit()
-        return True, "Account registered successfully."
+        return True, "Registration successful! You can now log in."
     except Exception:
-        return False, "Mobile number already registered."
+        return False, "This mobile number is already registered."
 
 def verify_user(mobile, password):
     if not engine:
@@ -119,18 +121,13 @@ def verify_user(mobile, password):
         return True
 
 # -------------------------------------------------------------
-# QUEFTS STOICHIOMETRIC BALANCER
+# NUTRIENT DEFICIT CALCULATION (QUEFTS-INSPIRED)
 # -------------------------------------------------------------
 def calculate_quefts_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph):
-    """
-    Non-linear boundary nutrient uptake envelope based on QUEFTS model.
-    """
-    # Baseline physiological requirements per ton of economic crop yield
     r_n = 22.0 * target_yield
     r_p = 4.5 * target_yield
     r_k = 19.0 * target_yield
 
-    # Soil bioavailability factors (pH fixation + microbial organic carbon mineralization)
     ph_buffer_p = 1.0 if 6.0 <= ph <= 7.2 else (0.65 if ph < 5.5 or ph > 8.0 else 0.85)
     soc_avail_n = 1.0 + (soc * 0.18)
 
@@ -138,7 +135,6 @@ def calculate_quefts_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph):
     avail_p = (soil_p * 0.35) * ph_buffer_p
     avail_k = (soil_k * 0.50)
 
-    # Compute actual physiological deficit
     def_n = max(0.0, r_n - avail_n)
     def_p = max(0.0, r_p - avail_p)
     def_k = max(0.0, r_k - avail_k)
@@ -146,7 +142,7 @@ def calculate_quefts_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph):
     return def_n, def_p, def_k
 
 # -------------------------------------------------------------
-# STATE REPOSITORY
+# SESSION STATE SETUP
 # -------------------------------------------------------------
 if "step" not in st.session_state:
     st.session_state.step = 1
@@ -161,63 +157,65 @@ defaults = {
     "temp": 26.5, "humidity": 68.0, "rainfall": 150.0,
     "land_area": 2.0, "budget_cap": 25000.0, "target_yield": 4.5,
     "sel_soil": list(soil_encoder.classes_)[0],
-    "sel_crop": list(crop_type_encoder.classes_)[0],
-    "uploaded_crop_df": None, "uploaded_fert_df": None
+    "sel_crop": list(crop_type_encoder.classes_)[0]
 }
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
 # -------------------------------------------------------------
-# NAVIGATION HEADER
+# TOP BANNER & SIMPLE STEP TRACKER
 # -------------------------------------------------------------
 h1, h2 = st.columns([3, 1])
 with h1:
-    st.title("🌾 AgriPrecision Pro | Decision Engine")
-    st.caption("Hybrid System: Non-Linear Stoichiometry (QUEFTS) + Scipy Multi-Objective LP + 4R Stewardship")
+    st.title("🌾 Kisan AI: Smart Fertilizer & Farm Advisor")
+    st.caption("Custom Fertilizer Recommendation Based on Soil Health & Budget")
 with h2:
     if st.session_state.logged_in:
-        st.write(f"**Operator:** `+91 {st.session_state.user_mobile}`")
-        if st.button("End Session"):
+        st.write(f"Farmer Mobile: **+91 {st.session_state.user_mobile}**")
+        if st.button("Logout"):
             st.session_state.logged_in = False
             st.session_state.step = 1
             st.rerun()
 
-steps = ["Authentication", "Sensors & Fields", "Pre-processing", "Analytics", "Stoichiometry", "VRA Optimization", "Prescription"]
-p_cols = st.columns(len(steps))
-for i, col in enumerate(p_cols):
+step_labels = [
+    "1. Farmer Login", "2. Field Details", "3. Soil Check", 
+    "4. Soil Chart", "5. Nutrient Gaps", "6. Fertilizer Plan", "7. Final Summary"
+]
+cols = st.columns(len(step_labels))
+for i, col in enumerate(cols):
     s_idx = i + 1
     if s_idx == st.session_state.step:
-        col.markdown(f"**🟢 {steps[i]}**")
+        col.markdown(f"**🟢 {step_labels[i]}**")
     elif s_idx < st.session_state.step:
-        col.markdown(f"✓ {steps[i]}")
+        col.markdown(f"✓ {step_labels[i]}")
     else:
-        col.markdown(f"⚪ {steps[i]}")
+        col.markdown(f"⚪ {step_labels[i]}")
 st.divider()
 
 # -------------------------------------------------------------
-# SCREEN 1: Authentication
+# SCREEN 1: Simple Login / Register
 # -------------------------------------------------------------
 if st.session_state.step == 1:
-    st.subheader("1. 📱 Operator Security & Session Gate")
+    st.subheader("1. 📱 Farmer Login & Registration")
     if not st.session_state.logged_in:
-        t_login, t_reg = st.tabs(["Log In to Existing Workspace", "Register New Farm Operator"])
+        t_login, t_reg = st.tabs(["Log In", "Register New Farmer"])
         with t_login:
-            m = st.text_input("Mobile Number", max_chars=10, key="log_m", placeholder="10-digit mobile number")
+            m = st.text_input("Mobile Number", max_chars=10, key="log_m", placeholder="10-digit phone number")
             p = st.text_input("Password", type="password", key="log_p")
-            if st.button("Access Farm Workspace ➔", type="primary"):
+            if st.button("Log In to My Farm ➔", type="primary"):
                 if len(m.strip()) == 10 and verify_user(m.strip(), p.strip()):
                     st.session_state.logged_in = True
                     st.session_state.user_mobile = m.strip()
                     st.session_state.step = 2
                     st.rerun()
                 else:
-                    st.error("Invalid credentials or unregistered profile.")
+                    st.error("Invalid mobile number or incorrect password.")
         with t_reg:
-            rm = st.text_input("Mobile Number", max_chars=10, key="reg_m")
-            rp = st.text_input("Create Security Password", type="password", key="reg_p")
-            rpc = st.text_input("Confirm Security Password", type="password", key="reg_pc")
-            if st.button("Establish Operator Profile"):
+            rm = st.text_input("Mobile Number", max_chars=10, key="reg_m", placeholder="10-digit phone number")
+            rp = st.text_input("Set Password", type="password", key="reg_p")
+            rpc = st.text_input("Confirm Password", type="password", key="reg_pc")
+            if st.button("Create Account"):
                 if len(rm.strip()) == 10 and rp == rpc and len(rp) > 0:
                     ok, msg = register_user(rm.strip(), rp.strip())
                     if ok:
@@ -225,132 +223,128 @@ if st.session_state.step == 1:
                     else:
                         st.error(msg)
                 else:
-                    st.warning("Ensure passwords match and mobile is 10 digits.")
+                    st.warning("Please enter a 10-digit mobile number and matching passwords.")
     else:
-        st.success(f"Workspace Active: Operator **+91 {st.session_state.user_mobile}**")
-        if st.button("Continue to Sensor Matrix ➔", type="primary"):
+        st.success(f"Logged in as: **+91 {st.session_state.user_mobile}**")
+        if st.button("Continue to Field Info ➔", type="primary"):
             st.session_state.step = 2
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 2: Field Sensors & Telemetry
+# SCREEN 2: Farm Details & Soil Test Inputs
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
-    st.subheader("2. 📍 Comprehensive Field Telemetry & Target Yield")
+    st.subheader("2. 📍 Enter Your Farm & Soil Test Information")
     
-    t_soil, t_meteo, t_yield = st.tabs(["🧪 Soil Chemical & Biological Profile", "⛅ Agro-Climatology", "🎯 Production Objectives"])
+    t_soil, t_weather, t_field = st.tabs(["🧪 Soil Test Results", "⛅ Weather Conditions", "🎯 Land & Target Crop"])
     
     with t_soil:
-        s1, s2, s3 = st.columns(3)
-        st.session_state.soil_n = s1.number_input("Available Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n))
-        st.session_state.soil_p = s2.number_input("Available Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
-        st.session_state.soil_k = s3.number_input("Available Potassium (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k))
+        st.info("💡 You can find these values on your official Soil Health Card.")
+        c1, c2, c3 = st.columns(3)
+        st.session_state.soil_n = c1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n), help="Shows how rich the soil is in vegetative growth nutrients.")
+        st.session_state.soil_p = c2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p), help="Helps root strength and flower formation.")
+        st.session_state.soil_k = c3.number_input("Potassium / Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k), help="Protects plants from pests and dry conditions.")
         
-        s4, s5, s6 = st.columns(3)
-        st.session_state.soil_ph = s4.slider("Active Reaction (pH)", 4.0, 9.5, float(st.session_state.soil_ph), 0.1)
-        st.session_state.soc = s5.slider("Soil Organic Carbon (SOC) [%]", 0.1, 2.5, float(st.session_state.soc), 0.05)
-        st.session_state.soil_ec = s6.slider("Electrical Conductivity (EC) [dS/m]", 0.1, 4.0, float(st.session_state.soil_ec), 0.05)
+        c4, c5 = st.columns(2)
+        st.session_state.soil_ph = c4.slider("Soil pH (Acidic vs Alkaline)", 4.0, 9.5, float(st.session_state.soil_ph), 0.1, help="6.0 to 7.5 is sweet and healthy soil.")
+        st.session_state.soc = c5.slider("Soil Organic Matter / Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05, help="Higher organic carbon keeps soil soft and fertile.")
 
-    with t_meteo:
-        m1, m2, m3 = st.columns(3)
-        st.session_state.temp = m1.slider("Mean Field Temperature (°C)", 10.0, 48.0, float(st.session_state.temp))
-        st.session_state.humidity = m2.slider("Relative Air Humidity (%)", 15.0, 100.0, float(st.session_state.humidity))
-        st.session_state.rainfall = m3.slider("Precipitation Outlook (mm)", 10.0, 500.0, float(st.session_state.rainfall))
+    with t_weather:
+        w1, w2, w3 = st.columns(3)
+        st.session_state.temp = w1.slider("Average Temperature (°C)", 10.0, 48.0, float(st.session_state.temp))
+        st.session_state.humidity = w2.slider("Air Humidity (%)", 15.0, 100.0, float(st.session_state.humidity))
+        st.session_state.rainfall = w3.slider("Seasonal Rainfall (mm)", 10.0, 500.0, float(st.session_state.rainfall))
 
-    with t_yield:
-        y1, y2, y3, y4 = st.columns(4)
+    with t_field:
+        f1, f2 = st.columns(2)
         soil_types = list(soil_encoder.classes_)
         crop_types = list(crop_type_encoder.classes_)
-        st.session_state.sel_soil = y1.selectbox("Soil Texture Class", soil_types, index=soil_types.index(st.session_state.sel_soil) if st.session_state.sel_soil in soil_types else 0)
-        st.session_state.sel_crop = y2.selectbox("Cultivated Crop", crop_types, index=crop_types.index(st.session_state.sel_crop) if st.session_state.sel_crop in crop_types else 0)
-        st.session_state.land_area = y3.number_input("Field Acreage (Hectares)", 0.2, 50.0, float(st.session_state.land_area), 0.2)
-        st.session_state.target_yield = y4.number_input("Target Harvest Yield (t/ha)", 1.0, 15.0, float(st.session_state.target_yield), 0.5)
-        st.session_state.budget_cap = st.number_input("Working Capital Budget (INR)", 2000.0, 500000.0, float(st.session_state.budget_cap), 1000.0)
+        st.session_state.sel_soil = f1.selectbox("Soil Type", soil_types, index=soil_types.index(st.session_state.sel_soil) if st.session_state.sel_soil in soil_types else 0)
+        st.session_state.sel_crop = f2.selectbox("Crop You Want to Grow", crop_types, index=crop_types.index(st.session_state.sel_crop) if st.session_state.sel_crop in crop_types else 0)
+        
+        f3, f4, f5 = st.columns(3)
+        st.session_state.land_area = f3.number_input("Farm Land Area (Hectares)", 0.2, 50.0, float(st.session_state.land_area), 0.2)
+        st.session_state.target_yield = f4.number_input("Target Harvest (Tonnes/Hectare)", 1.0, 15.0, float(st.session_state.target_yield), 0.5)
+        st.session_state.budget_cap = f5.number_input("Maximum Fertilizer Budget (₹)", 2000.0, 500000.0, float(st.session_state.budget_cap), 1000.0)
 
     st.divider()
     b1, b2 = st.columns([1, 5])
     if b1.button("⬅️ Back"):
         st.session_state.step = 1
         st.rerun()
-    if b2.button("Process Sensor Arrays ➔", type="primary"):
+    if b2.button("Check Soil Health ➔", type="primary"):
         st.session_state.step = 3
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 3: Normalization & Scaling
+# SCREEN 3: Soil Health Check (Simple Words)
 # -------------------------------------------------------------
 elif st.session_state.step == 3:
-    st.subheader("3. ⚙️ Edge Telemetry Normalization & Calibration")
+    st.subheader("3. ⚙️ Soil Condition Summary")
     
-    k1, k2, k3, k4 = st.columns(4)
-    cn_ratio = round(st.session_state.soc * 25.0 / (st.session_state.soil_n / 10.0 + 0.1), 1)
-    k1.metric("Dynamic C:N Ratio", f"{cn_ratio}:1", "Balanced (10-15:1)" if 10 <= cn_ratio <= 15 else "Carbon Imbalance")
-    k2.metric("Phosphorus Fixation Index", f"{round(abs(st.session_state.soil_ph - 6.5) * 12, 1)}%", "Buffering Active")
-    k3.metric("Salinity Hazard (EC)", f"{st.session_state.soil_ec} dS/m", "Safe" if st.session_state.soil_ec < 1.5 else "Saline Warning")
-    k4.metric("Evapotranspiration Index", f"{round((st.session_state.temp * 0.7) + (st.session_state.rainfall * 0.1), 1)}", "Stable")
-
-    norm_matrix = pd.DataFrame({
-        "Feature Attribute": ["Nitrogen Vector", "Phosphorus Vector", "Potassium Vector", "Soil Carbon Buffer", "Hydrologic Coeff."],
-        "Normalized Value [0-1]": [
-            round(st.session_state.soil_n / 200.0, 3),
-            round(st.session_state.soil_p / 100.0, 3),
-            round(st.session_state.soil_k / 250.0, 3),
-            round(st.session_state.soc / 2.0, 3),
-            round(st.session_state.rainfall / 300.0, 3)
-        ],
-        "Calibrated Agronomic Scale": ["0 - 200 mg/kg", "0 - 100 mg/kg", "0 - 250 mg/kg", "0 - 2.0 % SOC", "Regional Hydrograph"]
-    })
-    st.dataframe(norm_matrix, use_container_width=True)
+    k1, k2, k3 = st.columns(3)
+    
+    # Simple pH explanation
+    if st.session_state.soil_ph < 6.0:
+        ph_status = "Acidic (Sour)"
+        ph_advice = "Consider adding lime to neutralize"
+    elif st.session_state.soil_ph > 7.5:
+        ph_status = "Alkaline"
+        ph_advice = "Add gypsum or organic compost"
+    else:
+        ph_status = "Good (Normal)"
+        ph_advice = "Ideal for plant nutrient uptake"
+        
+    k1.metric("Soil Sweetness (pH)", f"{st.session_state.soil_ph}", ph_status)
+    k2.metric("Organic Carbon", f"{st.session_state.soc}%", "Rich" if st.session_state.soc >= 0.75 else "Low (Add Compost)")
+    k3.metric("Rainfall Water Risk", f"{st.session_state.rainfall:.0f} mm", "High Rain" if st.session_state.rainfall > 200 else "Normal Rain")
+    
+    st.info(f"📋 **Soil Doctor Note**: {ph_advice}.")
 
     st.divider()
     b1, b2 = st.columns([1, 5])
     if b1.button("⬅️ Back"):
         st.session_state.step = 2
         st.rerun()
-    if b2.button("Inspect Visual Analytics ➔", type="primary"):
+    if b2.button("View Nutrient Levels ➔", type="primary"):
         st.session_state.step = 4
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 4: Visual Dashboard
+# SCREEN 4: Visual Soil Comparison
 # -------------------------------------------------------------
 elif st.session_state.step == 4:
-    st.subheader("4. 📊 Spatial & Agro-Ecological Analytics")
+    st.subheader("4. 📊 Current Soil Nutrients vs Ideal Levels")
     
     col_l, col_r = st.columns([2, 1])
     with col_l:
-        st.markdown("##### Current Available Nutrients vs. Agronomic Critical Benchmark (kg/ha)")
-        nut_chart = pd.DataFrame({
-            "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potassium (K)"],
-            "Measured Soil Reserve": [st.session_state.soil_n * 2.24, st.session_state.soil_p * 2.24, st.session_state.soil_k * 2.24],
-            "Adequacy Target": [280.0, 60.0, 150.0]
+        chart_data = pd.DataFrame({
+            "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"],
+            "Your Soil (kg/ha)": [st.session_state.soil_n * 2.24, st.session_state.soil_p * 2.24, st.session_state.soil_k * 2.24],
+            "Good Farm Level (kg/ha)": [280.0, 60.0, 150.0]
         }).set_index("Nutrient")
-        st.bar_chart(nut_chart)
+        st.bar_chart(chart_data)
         
     with col_r:
-        st.markdown("##### Pedological Diagnostic")
-        st.write(f"**Texture Family:** `{st.session_state.sel_soil}`")
-        st.write(f"**Reaction State:** `pH {st.session_state.soil_ph}`")
-        st.write(f"**Biological Reserve:** `{st.session_state.soc}% Organic Carbon`")
-        if "sandy" in str(st.session_state.sel_soil).lower():
-            st.warning("Coarse soil texture detected: Elevated risk of nitrate leaching under intense irrigation.")
-        else:
-            st.info("Fine/loamy texture: Favorable cation retention and nutrient exchange capacity.")
+        st.markdown("##### What this chart means:")
+        st.write("• **Green/Taller bars** mean your field has enough of that nutrient.")
+        st.write("• **Shorter bars** show a shortage that needs fertilizer correction.")
+        st.caption(f"Soil Type: {st.session_state.sel_soil} | Target Crop: {st.session_state.sel_crop}")
 
     st.divider()
     b1, b2 = st.columns([1, 5])
     if b1.button("⬅️ Back"):
         st.session_state.step = 3
         st.rerun()
-    if b2.button("Run Stoichiometric Solver ➔", type="primary"):
+    if b2.button("Calculate Nutrient Shortage ➔", type="primary"):
         st.session_state.step = 5
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 5: QUEFTS Stoichiometry & Leaching Hazard
+# SCREEN 5: Simple Nutrient Shortage Report
 # -------------------------------------------------------------
 elif st.session_state.step == 5:
-    st.subheader("5. ⚠️ QUEFTS Stoichiometric Gaps & Environmental Indices")
+    st.subheader("5. ⚠️ What Your Soil Needs for a Full Harvest")
     
     def_n, def_p, def_k = calculate_quefts_nutrients(
         target_yield=st.session_state.target_yield,
@@ -368,41 +362,34 @@ elif st.session_state.step == 5:
     }])
     pred_crop = crop_encoder.inverse_transform([crop_model.predict(crop_in)[0]])[0]
 
-    # Environmental Leaching Risk Index
-    leaching_index = (st.session_state.rainfall / 120.0) * (1.7 if "sandy" in str(st.session_state.sel_soil).lower() else 1.0)
-
     g1, g2 = st.columns(2)
     with g1:
-        st.markdown("##### Net Field Deficits (QUEFTS Non-Linear Model)")
-        st.metric("Nitrogen Deficit (N)", f"{def_n:.1f} kg/ha")
-        st.metric("Phosphorus Deficit (P₂O₅)", f"{def_p:.1f} kg/ha")
-        st.metric("Potassium Deficit (K₂O)", f"{def_k:.1f} kg/ha")
+        st.markdown(f"##### Nutrient Shortage for {st.session_state.target_yield} Tonnes/Hectare:")
+        st.warning(f"• **Nitrogen Needed**: {def_n:.1f} kg per hectare")
+        st.warning(f"• **Phosphorus Needed**: {def_p:.1f} kg per hectare")
+        st.warning(f"• **Potash Needed**: {def_k:.1f} kg per hectare")
     with g2:
-        st.markdown("##### Ecological Safety & ML Matching")
-        st.success(f"Optimal Adaptive Crop Model: **{pred_crop.capitalize()}**")
-        if leaching_index > 2.2:
-            st.error(f"⚠️ Environmental Leaching Vulnerability: HIGH ({leaching_index:.2f})")
-            st.caption("Mitigation: Split urea into ≥3 applications; do not apply all synthetic nitrogen at sowing.")
-        elif leaching_index > 1.3:
-            st.warning(f"⚠️ Environmental Leaching Vulnerability: MODERATE ({leaching_index:.2f})")
-            st.caption("Mitigation: Employ split dosing and fertigation where possible.")
+        st.markdown("##### AI Recommendation:")
+        st.success(f"🌱 **Best Suited Crop for this Soil**: **{pred_crop.capitalize()}**")
+        if st.session_state.rainfall > 200 and "sandy" in str(st.session_state.sel_soil).lower():
+            st.error("⚠️ **Rain Warning**: Rain can wash away fertilizer on sandy soil. Do not apply all urea at once!")
         else:
-            st.success(f"🌿 Environmental Leaching Vulnerability: MINIMAL ({leaching_index:.2f})")
+            st.info("🌿 **Safe Soil**: Fertilizer retention is good.")
 
     st.divider()
     b1, b2 = st.columns([1, 5])
     if b1.button("⬅️ Back"):
         st.session_state.step = 4
         st.rerun()
-    if b2.button("Formulate LP Optimization ➔", type="primary"):
+    if b2.button("Get Exact Fertilizer Bags ➔", type="primary"):
         st.session_state.step = 6
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 6: Mathematical Optimization & VRA Matrix
+# SCREEN 6: Fertilizer Shopping List & Application Schedule
 # -------------------------------------------------------------
 elif st.session_state.step == 6:
-    st.subheader("6. 🚀 Mathematical LP Optimization & VRA Fertigation Schedule")
+    st.subheader("6. 🚀 Your Fertilizer Shopping List & Application Timetable")
     
     def_n, def_p, def_k = calculate_quefts_nutrients(
         target_yield=st.session_state.target_yield,
@@ -424,81 +411,129 @@ elif st.session_state.step == 6:
         soc=st.session_state.soc
     )
 
+    # Save to session state for summary tab
+    st.session_state.opt_results = opt
+
     r1, r2, r3 = st.columns(3)
-    r1.metric("Optimized Total Cost", f"₹{opt['total_cost']:,.2f}")
-    r2.metric("Yield Objective", f"{st.session_state.target_yield} t/ha")
-    r3.metric("Budget Utilization", f"{opt['budget_utilized_pct']}%")
+    r1.metric("Total Estimated Cost", f"₹{opt['total_cost']:,.0f}")
+    r2.metric("Target Crop Harvest", f"{st.session_state.target_yield} t/ha")
+    r3.metric("Budget Used", f"{opt['budget_utilized_pct']}%")
 
-    st.markdown("##### Prescribed Input Allocation Across Cultivated Acreage")
-    allocation_table = pd.DataFrame({
-        "Nutrient Source Carrier": ["Urea (Synthetic N)", "DAP (Diammonium Phosphate)", "MOP (Muriate of Potash)", "Complex (14-35-14)", "Bio-Carbon Compost"],
-        "Total Quantity (kg)": [opt['urea_kg'], opt['dap_kg'], opt['mop_kg'], opt['complex_kg'], opt['compost_kg']],
-        "Application Density (kg/ha)": [
-            round(opt['urea_kg'] / st.session_state.land_area, 1),
-            round(opt['dap_kg'] / st.session_state.land_area, 1),
-            round(opt['mop_kg'] / st.session_state.land_area, 1),
-            round(opt['complex_kg'] / st.session_state.land_area, 1),
-            round(opt['compost_kg'] / st.session_state.land_area, 1)
+    st.markdown("##### 🛒 Fertilizer Bags Needed for Your Entire Field")
+    alloc_table = pd.DataFrame({
+        "Fertilizer Name": ["Urea (White Granules)", "DAP (Black/Brown Pellets)", "MOP (Red Potash)", "Complex 14-35-14", "Organic Desi Compost"],
+        "Total Quantity": [
+            f"{opt['urea_kg']} kg", f"{opt['dap_kg']} kg", f"{opt['mop_kg']} kg", f"{opt['complex_kg']} kg", f"{opt['compost_kg']} kg"
+        ],
+        "Approx. 50kg Bags": [
+            f"{max(1, round(opt['urea_kg'] / 50.0))} bags" if opt['urea_kg'] > 0 else "0",
+            f"{max(1, round(opt['dap_kg'] / 50.0))} bags" if opt['dap_kg'] > 0 else "0",
+            f"{max(1, round(opt['mop_kg'] / 50.0))} bags" if opt['mop_kg'] > 0 else "0",
+            f"{max(1, round(opt['complex_kg'] / 50.0))} bags" if opt['complex_kg'] > 0 else "0",
+            f"{round(opt['compost_kg'] / 50.0)} bags" if opt['compost_kg'] > 0 else "0"
         ]
     })
-    st.dataframe(allocation_table, use_container_width=True)
+    st.table(alloc_table)
 
-    st.markdown("##### 📅 4-Stage Variable-Rate Fertigation Matrix (4R Nutrient Stewardship)")
-    vra_table = pd.DataFrame({
-        "Crop Phenological Stage": [
-            "1. Basal Foundation (Sowing)",
-            "2. Active Vegetative / Tillering (Day 20-25)",
-            "3. Panicle Initiation / Flowering (Day 45-55)",
-            "4. Grain Consolidation (Day 70-80)"
+    st.markdown("##### 📅 When and How to Apply in the Field")
+    schedule = pd.DataFrame({
+        "Farming Stage": [
+            "1. At Sowing / Transplanting (Base Dose)",
+            "2. First Top-Dressing (20-25 Days After Sowing)",
+            "3. Flowering / Grain Forming (45-55 Days)"
         ],
-        "Input Apportionment": [
-            "100% Organic Compost + 100% DAP + 30% MOP + 25% Urea",
-            "40% Urea + 30% MOP (Targeted root zone side-dress)",
-            "25% Urea + 40% MOP (Foliar or fertigation run)",
-            "10% Urea foliar spray (Triggered by canopy leaf-color index)"
+        "Fertilizer to Add": [
+            "All Compost + All DAP + 1/3 Potash + 1/4 Urea",
+            "1/2 Urea + 1/3 Potash (Near root zone)",
+            "Remaining Urea + Remaining Potash"
         ],
-        "Physiological Function": [
-            "Root establishment & phosphorus fixation buffering",
-            "Tillering density & leaf-area index expansion",
-            "Spikelet fertility & carbohydrate translocation",
-            "Grain test-weight maximization and senescence mitigation"
+        "Benefit to Crop": [
+            "Helps strong roots establish early in the ground",
+            "Makes the plant greener with more tillers/branches",
+            "Fills grains and heavy crop heads with high weight"
         ]
     })
-    st.table(vra_table)
-
-    prescription_doc = (
-        f"AGRIPRECISION PRO PRESCRIPTION DOSSIER\n"
-        f"Farmer ID: {st.session_state.user_mobile} | Target Yield: {st.session_state.target_yield} t/ha\n"
-        f"Acreage: {st.session_state.land_area} ha | Optimized Investment: INR {opt['total_cost']}\n"
-        f"Allocations: Urea={opt['urea_kg']}kg, DAP={opt['dap_kg']}kg, MOP={opt['mop_kg']}kg, Compost={opt['compost_kg']}kg\n"
-        f"Algorithm: SciPy LP Solver with QUEFTS Stoichiometry & 4R Stewardship."
-    )
-    st.download_button("📥 Export Agronomic Prescription Plan", prescription_doc, file_name="Precision_Agronomy_Prescription.txt")
+    st.table(schedule)
 
     st.divider()
     b1, b2 = st.columns([1, 5])
     if b1.button("⬅️ Back"):
         st.session_state.step = 5
         st.rerun()
-    if b2.button("Proceed to Session Completion ➔", type="primary"):
+    if b2.button("View Prescription Summary ➔", type="primary"):
         st.session_state.step = 7
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 7: Summary & Session Termination
+# SCREEN 7: Final Farmer Prescription Summary Tab
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
-    st.subheader("7. 🚪 Prescription Compiled & Archived")
-    st.success("The site-specific agronomic prescription has been calculated and archived.")
-    
-    if st.button("Complete & Flush Workspace", type="primary"):
-        st.session_state.logged_in = False
-        st.session_state.user_mobile = ""
-        st.session_state.step = 1
-        st.cache_data.clear()
-        st.rerun()
+    st.subheader("7. 📋 Farmer Fertilizer Prescription Card")
+
+    # Load calculated results safely
+    opt = st.session_state.get("opt_results", {
+        "urea_kg": 0.0, "dap_kg": 0.0, "mop_kg": 0.0, "complex_kg": 0.0, "compost_kg": 0.0, "total_cost": 0.0
+    })
+
+    st.markdown(f"""
+    <div class="summary-card">
+        <h3>🌾 Farm Advisory Prescription Card</h3>
+        <p><strong>Farmer Mobile:</strong> +91 {st.session_state.user_mobile} | <strong>Land Area:</strong> {st.session_state.land_area} Hectares</p>
+        <p><strong>Selected Crop:</strong> {st.session_state.sel_crop} | <strong>Target Harvest:</strong> {st.session_state.target_yield} Tonnes/Ha</p>
+        <hr/>
+        <h4>🛒 Your Shopping Plan:</h4>
+        <ul>
+            <li><strong>Urea:</strong> {opt['urea_kg']} kg (~{round(opt['urea_kg'] / 50.0)} bags)</li>
+            <li><strong>DAP:</strong> {opt['dap_kg']} kg (~{round(opt['dap_kg'] / 50.0)} bags)</li>
+            <li><strong>MOP (Potash):</strong> {opt['mop_kg']} kg (~{round(opt['mop_kg'] / 50.0)} bags)</li>
+            <li><strong>Organic Compost:</strong> {opt['compost_kg']} kg (~{round(opt['compost_kg'] / 50.0)} bags)</li>
+        </ul>
+        <p><strong>Total Estimated Cost:</strong> ₹{opt['total_cost']:,.0f}</p>
+        <hr/>
+        <h4>📌 3 Golden Rules for Best Results:</h4>
+        <ol>
+            <li><strong>Never throw all urea at once:</strong> Split it into 3 parts to prevent it from evaporating or washing away in rain.</li>
+            <li><strong>Soil Moisture:</strong> Ensure the soil has light moisture before broadcasting chemical fertilizers.</li>
+            <li><strong>Add Compost:</strong> Organic manure keeps your soil soft and helps chemical fertilizers work twice as well.</li>
+        </ol>
+    </div>
+    """, unsafe_allow_html=True)
+
+    prescription_text = (
+        f"KISAN AI - FARM PRESCRIPTION SUMMARY\n"
+        f"====================================\n"
+        f"Farmer Mobile: +91 {st.session_state.user_mobile}\n"
+        f"Crop: {st.session_state.sel_crop} | Land Area: {st.session_state.land_area} ha\n"
+        f"Target Harvest: {st.session_state.target_yield} t/ha\n"
+        f"Total Estimated Cost: Rs. {opt['total_cost']:,.0f}\n\n"
+        f"FERTILIZER BAGS TO BUY:\n"
+        f"- Urea: {opt['urea_kg']} kg ({round(opt['urea_kg'] / 50.0)} bags of 50kg)\n"
+        f"- DAP: {opt['dap_kg']} kg ({round(opt['dap_kg'] / 50.0)} bags of 50kg)\n"
+        f"- MOP (Potash): {opt['mop_kg']} kg ({round(opt['mop_kg'] / 50.0)} bags of 50kg)\n"
+        f"- Organic Compost: {opt['compost_kg']} kg\n\n"
+        f"APPLICATION SCHEDULE:\n"
+        f"1. Sowing Day: 100% DAP + 100% Compost + 1/3 Potash + 1/4 Urea\n"
+        f"2. Day 20-25: 1/2 Urea + 1/3 Potash\n"
+        f"3. Day 45-55 (Flowering): Remaining Urea + Remaining Potash\n"
+    )
+
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.download_button(
+            label="📥 Download Prescription (Receipt)",
+            data=prescription_text,
+            file_name=f"Prescription_{st.session_state.user_mobile}.txt",
+            mime="text/plain"
+        )
+    with col2:
+        if st.button("Finish & Start New Session", type="primary"):
+            st.session_state.logged_in = False
+            st.session_state.user_mobile = ""
+            st.session_state.step = 1
+            st.cache_data.clear()
+            st.rerun()
 
     st.divider()
-    if st.button("⬅️ Back to Formulation"):
+    if st.button("⬅️ Back to Fertilizer List"):
         st.session_state.step = 6
         st.rerun()
