@@ -5,5 +5,5 @@ venv/
 env/
 .env
 .DS_Store
-*.csv
-model_weights.pkl
+*.pkl
+data/*.csv
