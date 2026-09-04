@@ -40,33 +40,52 @@ def load_all_models():
  crop_type_encoder, fert_encoder, yield_model, 
  yield_features, yield_crop_encoder) = load_all_models()
 
-# Supabase PostgreSQL Configuration
-try:
-    db_user = urllib.parse.quote_plus(st.secrets["postgres"]["user"])
-    db_password = urllib.parse.quote_plus(st.secrets["postgres"]["password"])
-    db_host = st.secrets["postgres"]["host"]
-    db_port = st.secrets["postgres"]["port"]
-    db_name = st.secrets["postgres"]["database"]
-    DB_URI = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=require"
-except Exception:
-    DB_URI = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require"
-
+# -------------------------------------------------------------
+# Database Engine Initialization with Auto-IPv4 Fallback
+# -------------------------------------------------------------
 @st.cache_resource
 def get_db_engine():
+    # Load user-provided secrets
     try:
-        engine = create_engine(DB_URI, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 10})
-        with engine.connect() as conn:
-            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
-            conn.commit()
-        return engine
+        cfg_user = st.secrets["postgres"]["user"]
+        cfg_password = st.secrets["postgres"]["password"]
+        cfg_host = st.secrets["postgres"]["host"]
+        cfg_port = st.secrets["postgres"]["port"]
+        cfg_db = st.secrets["postgres"]["database"]
     except Exception:
-        return None
+        cfg_user = "postgres.ivshypgnhsprrkhkzkkx"
+        cfg_password = "SambitSwain2005"
+        cfg_host = "db.ivshypgnhsprrkhkzkkx.supabase.co"
+        cfg_port = "5432"
+        cfg_db = "postgres"
+
+    # Strategy 1: User's provided connection string
+    u_user = urllib.parse.quote_plus(str(cfg_user))
+    u_pass = urllib.parse.quote_plus(str(cfg_password))
+    uri_primary = f"postgresql://{u_user}:{u_pass}@{cfg_host}:{cfg_port}/{cfg_db}?sslmode=require"
+
+    # Strategy 2: Dedicated IPv4 pooler fallback (solves cloud host translation limits)
+    uri_pooler = f"postgresql://{u_user}:{u_pass}@aws-0-ap-south-1.pooler.supabase.com:6543/{cfg_db}?sslmode=require"
+
+    last_error = None
+    for candidate_uri in [uri_primary, uri_pooler]:
+        try:
+            eng = create_engine(candidate_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 6})
+            with eng.connect() as conn:
+                conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
+                conn.commit()
+            return eng
+        except Exception as e:
+            last_error = e
+
+    st.error(f"Database Connection Failure: {last_error}")
+    return None
 
 engine = get_db_engine()
 
 def register_user(mobile, password):
     if not engine:
-        return False, "Database connection not established. Check your network or secrets."
+        return False, "Database connection not established. Check configuration."
     hashed_pw = hashlib.sha256(password.encode()).hexdigest()
     try:
         with engine.connect() as conn:
@@ -74,7 +93,7 @@ def register_user(mobile, password):
             conn.commit()
         return True, "Registration successful! You can now log in."
     except Exception:
-        return False, "Mobile number already registered or database unavailable."
+        return False, "Mobile number is already registered."
 
 def verify_user(mobile, password):
     if not engine:
@@ -89,7 +108,9 @@ def verify_user(mobile, password):
         pass
     return False
 
-# Session state initialization
+# -------------------------------------------------------------
+# Session State Initialization
+# -------------------------------------------------------------
 if "step" not in st.session_state:
     st.session_state.step = 1
 if "logged_in" not in st.session_state:
