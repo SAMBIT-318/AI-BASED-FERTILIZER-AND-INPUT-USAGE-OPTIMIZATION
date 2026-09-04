@@ -41,45 +41,27 @@ def load_all_models():
  yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
-# Database Engine Initialization with Auto-IPv4 Fallback
+# Database Engine Initialization
 # -------------------------------------------------------------
 @st.cache_resource
 def get_db_engine():
-    # Load user-provided secrets
     try:
-        cfg_user = st.secrets["postgres"]["user"]
-        cfg_password = st.secrets["postgres"]["password"]
-        cfg_host = st.secrets["postgres"]["host"]
+        cfg_user = urllib.parse.quote_plus(str(st.secrets["postgres"]["user"]))
+        cfg_password = urllib.parse.quote_plus(str(st.secrets["postgres"]["password"]))
+        cfg_host = str(st.secrets["postgres"]["host"]).strip()
         cfg_port = st.secrets["postgres"]["port"]
-        cfg_db = st.secrets["postgres"]["database"]
-    except Exception:
-        cfg_user = "postgres.ivshypgnhsprrkhkzkkx"
-        cfg_password = "SambitSwain2005"
-        cfg_host = "db.ivshypgnhsprrkhkzkkx.supabase.co"
-        cfg_port = "5432"
-        cfg_db = "postgres"
-
-    # Strategy 1: User's provided connection string
-    u_user = urllib.parse.quote_plus(str(cfg_user))
-    u_pass = urllib.parse.quote_plus(str(cfg_password))
-    uri_primary = f"postgresql://{u_user}:{u_pass}@{cfg_host}:{cfg_port}/{cfg_db}?sslmode=require"
-
-    # Strategy 2: Dedicated IPv4 pooler fallback (solves cloud host translation limits)
-    uri_pooler = f"postgresql://{u_user}:{u_pass}@aws-0-ap-south-1.pooler.supabase.com:6543/{cfg_db}?sslmode=require"
-
-    last_error = None
-    for candidate_uri in [uri_primary, uri_pooler]:
-        try:
-            eng = create_engine(candidate_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 6})
-            with eng.connect() as conn:
-                conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
-                conn.commit()
-            return eng
-        except Exception as e:
-            last_error = e
-
-    st.error(f"Database Connection Failure: {last_error}")
-    return None
+        cfg_db = str(st.secrets["postgres"]["database"]).strip()
+        
+        db_uri = f"postgresql://{cfg_user}:{cfg_password}@{cfg_host}:{cfg_port}/{cfg_db}?sslmode=require"
+        
+        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 10})
+        with engine.connect() as conn:
+            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
+            conn.commit()
+        return engine
+    except Exception as e:
+        st.error(f"Database Connection Failure: {e}")
+        return None
 
 engine = get_db_engine()
 
