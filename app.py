@@ -23,42 +23,42 @@ def ensure_models():
 
 ensure_models()
 
-# PostgreSQL Database Configuration using the updated password without special characters
+# Supabase PostgreSQL Configuration
 try:
     db_user = urllib.parse.quote_plus(st.secrets["postgres"]["user"])
     db_password = urllib.parse.quote_plus(st.secrets["postgres"]["password"])
     db_host = st.secrets["postgres"]["host"]
     db_port = st.secrets["postgres"]["port"]
     db_name = st.secrets["postgres"]["database"]
-    DB_URI = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    DB_URI = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=require"
 except Exception:
-    DB_URI = "postgresql://postgres:Sambit318@127.0.0.1:5432/fertilizer_optimizer_db"
+    # Direct fallback using connection pooler configuration
+    DB_URI = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require"
 
 @st.cache_resource
 def get_db_engine():
     try:
-        engine = create_engine(DB_URI)
+        engine = create_engine(DB_URI, pool_pre_ping=True, connect_args={"connect_timeout": 10})
         with engine.connect() as conn:
             conn.execute(text("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT)"))
             conn.commit()
         return engine
-    except Exception as e:
-        st.error(f"Database Connection Failed: {e}")
+    except Exception:
         return None
 
 engine = get_db_engine()
 
 def register_user(username, password):
     if not engine:
-        return False, "Database not connected"
+        return False, "Database connection not established. Check your network or secrets."
     hashed_pw = hashlib.sha256(password.encode()).hexdigest()
     try:
         with engine.connect() as conn:
             conn.execute(text("INSERT INTO users (username, password) VALUES (:u, :p)"), {"u": username, "p": hashed_pw})
             conn.commit()
-        return True, "Registration successful!"
+        return True, "Registration successful! You can now log in."
     except Exception:
-        return False, "Username already exists."
+        return False, "Username already exists or database is unavailable."
 
 def verify_user(username, password):
     if not engine:
@@ -133,33 +133,29 @@ st.progress(st.session_state.step / 7.0)
 if st.session_state.step == 1:
     st.subheader("1. 🔐 User Authentication & Registry")
     if not st.session_state.logged_in:
-        col1, col2 = st.columns(2)
-        with col1:
-            auth_mode = st.radio("Mode", ["Login", "Register New Account"])
-            input_user = st.text_input("Username")
-            input_pass = st.text_input("Password", type="password")
-            
-            if auth_mode == "Register New Account":
-                if st.button("Create Account"):
-                    if input_user.strip() and input_pass.strip():
-                        success, msg = register_user(input_user.strip(), input_pass.strip())
-                        if success:
-                            st.success(msg)
-                        else:
-                            st.error(msg)
+        auth_mode = st.radio("Mode", ["Login", "Register New Account"])
+        input_user = st.text_input("Username")
+        input_pass = st.text_input("Password", type="password")
+        
+        if auth_mode == "Register New Account":
+            if st.button("Create Account"):
+                if input_user.strip() and input_pass.strip():
+                    success, msg = register_user(input_user.strip(), input_pass.strip())
+                    if success:
+                        st.success(msg)
                     else:
-                        st.warning("Please fill out both fields.")
-            else:
-                if st.button("Login & Proceed"):
-                    if verify_user(input_user.strip(), input_pass.strip()):
-                        st.session_state.logged_in = True
-                        st.session_state.username = input_user.strip()
-                        st.session_state.step = 2
-                        st.rerun()
-                    else:
-                        st.error("Invalid username or password.")
-        with col2:
-            st.info("Permanent user credentials secured with SHA-256 in PostgreSQL.")
+                        st.error(msg)
+                else:
+                    st.warning("Please fill out both fields.")
+        else:
+            if st.button("Login & Proceed"):
+                if verify_user(input_user.strip(), input_pass.strip()):
+                    st.session_state.logged_in = True
+                    st.session_state.username = input_user.strip()
+                    st.session_state.step = 2
+                    st.rerun()
+                else:
+                    st.error("Invalid username or password.")
     else:
         st.success(f"Logged in as **{st.session_state.username}**")
         if st.button("Continue to Field Telemetry ➔"):
@@ -190,11 +186,11 @@ elif st.session_state.step == 2:
         st.session_state.budget_cap = st.number_input("Budget Cap (INR)", 1000.0, 500000.0, float(st.session_state.budget_cap), 500.0)
 
     with col2:
-        up_crop = st.file_uploader("Upload Crop CSV", type=["csv"], key="crop_csv")
+        up_crop = st.file_uploader("Upload Crop Recommendation CSV", type=["csv"], key="crop_csv")
         if up_crop is not None:
             st.session_state.uploaded_crop_df = pd.read_csv(up_crop)
             st.success(f"Loaded {st.session_state.uploaded_crop_df.shape[0]} records.")
-        up_fert = st.file_uploader("Upload Fertilizer CSV", type=["csv"], key="fert_csv")
+        up_fert = st.file_uploader("Upload Fertilizer Prediction CSV", type=["csv"], key="fert_csv")
         if up_fert is not None:
             st.session_state.uploaded_fert_df = pd.read_csv(up_fert)
             st.session_state.uploaded_fert_df.columns = [c.strip() for c in st.session_state.uploaded_fert_df.columns]
