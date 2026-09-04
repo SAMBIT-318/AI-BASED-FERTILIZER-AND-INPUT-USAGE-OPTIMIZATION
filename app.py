@@ -1,8 +1,6 @@
 import os
-import random
 import urllib.parse
 import joblib
-import requests
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -91,36 +89,6 @@ def verify_user(mobile, password):
         pass
     return False
 
-def send_brevo_sms_otp(mobile_number, otp_code):
-    try:
-        api_key = st.secrets["brevo"]["api_key"]
-        sender = st.secrets["brevo"].get("sender", "FertApp")
-    except Exception:
-        api_key = "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"
-        sender = "FertApp"
-
-    url = "https://api.brevo.com/v3/transactionalSMS/sendTransacSMS"
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json",
-        "api-key": api_key
-    }
-    payload = {
-        "sender": sender,
-        "recipient": f"91{mobile_number}",
-        "content": f"Your AI Fertilizer App verification OTP is: {otp_code}",
-        "type": "transactional"
-    }
-
-    try:
-        response = requests.post(url, json=payload, headers=headers, timeout=8)
-        if response.status_code in [200, 201]:
-            return True, "Dispatched via SMS"
-        else:
-            return False, response.text
-    except Exception as e:
-        return False, str(e)
-
 # Session state initialization
 if "step" not in st.session_state:
     st.session_state.step = 1
@@ -128,10 +96,6 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "user_mobile" not in st.session_state:
     st.session_state.user_mobile = ""
-if "generated_otp" not in st.session_state:
-    st.session_state.generated_otp = None
-if "otp_mobile" not in st.session_state:
-    st.session_state.otp_mobile = ""
 
 if "uploaded_crop_df" not in st.session_state:
     st.session_state.uploaded_crop_df = None
@@ -168,10 +132,10 @@ st.markdown(f"**Screen {st.session_state.step} of 7**")
 st.progress(st.session_state.step / 7.0)
 
 # -------------------------------------------------------------
-# SCREEN 1: User Authentication (Mobile + Brevo SMS OTP)
+# SCREEN 1: User Authentication (Mobile + Password)
 # -------------------------------------------------------------
 if st.session_state.step == 1:
-    st.subheader("1. 📱 Mobile Verification & Account Access")
+    st.subheader("1. 📱 User Authentication & Access")
     if not st.session_state.logged_in:
         auth_mode = st.radio("Choose Mode", ["Login", "Register New Account"])
         
@@ -195,43 +159,20 @@ if st.session_state.step == 1:
         else:
             reg_mobile = st.text_input("Mobile Number", max_chars=10, placeholder="Enter 10-digit mobile number")
             reg_pass = st.text_input("Create Password", type="password", placeholder="Set account password")
-            
-            c_otp1, c_otp2 = st.columns([2, 1])
-            with c_otp1:
-                input_otp = st.text_input("Enter 6-Digit OTP", max_chars=6, placeholder="e.g. 123456")
-            with c_otp2:
-                st.write("")
-                st.write("")
-                if st.button("Send SMS OTP"):
-                    clean_mob = reg_mobile.strip()
-                    if len(clean_mob) == 10 and clean_mob.isdigit():
-                        gen_code = str(random.randint(100000, 999999))
-                        st.session_state.generated_otp = gen_code
-                        st.session_state.otp_mobile = clean_mob
-                        
-                        sent, msg = send_brevo_sms_otp(clean_mob, gen_code)
-                        if sent:
-                            st.success(f"OTP successfully sent via SMS to +91 {clean_mob}!")
-                        else:
-                            st.error("Failed to deliver SMS. Please verify your Brevo SMS account activation and credits.")
-                    else:
-                        st.error("Enter a valid 10-digit mobile number first.")
+            reg_confirm_pass = st.text_input("Confirm Password", type="password", placeholder="Re-enter password")
 
-            if st.button("Verify OTP & Register", type="primary"):
+            if st.button("Register & Create Account", type="primary"):
                 clean_mob = reg_mobile.strip()
                 if not (len(clean_mob) == 10 and clean_mob.isdigit()):
-                    st.warning("Enter a valid 10-digit mobile number.")
+                    st.warning("Please enter a valid 10-digit mobile number.")
                 elif not reg_pass.strip():
                     st.warning("Please enter a password.")
-                elif not st.session_state.generated_otp or clean_mob != st.session_state.otp_mobile:
-                    st.error("Please click 'Send SMS OTP' to request a code.")
-                elif input_otp.strip() != st.session_state.generated_otp:
-                    st.error("Incorrect OTP entered. Please verify the code sent to your phone.")
+                elif reg_pass.strip() != reg_confirm_pass.strip():
+                    st.error("Passwords do not match. Please re-enter.")
                 else:
                     success, msg = register_user(clean_mob, reg_pass.strip())
                     if success:
                         st.success(msg)
-                        st.session_state.generated_otp = None
                     else:
                         st.error(msg)
     else:
