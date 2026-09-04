@@ -8,28 +8,31 @@ from xgboost import XGBClassifier, XGBRegressor
 from sklearn.preprocessing import LabelEncoder
 
 MODELS_DIR = "saved_models"
+DATA_DIR = "data"
 os.makedirs(MODELS_DIR, exist_ok=True)
 
-def train_crop_recommender(csv_path="Crop_recommendation.csv"):
-    if not os.path.exists(csv_path):
-        if os.path.exists(os.path.join("data", csv_path)):
-            csv_path = os.path.join("data", csv_path)
-        else:
-            print("Fallback: Creating baseline data for crop recommendation.")
-            df = pd.DataFrame({
-                'N': np.random.uniform(10, 140, 500),
-                'P': np.random.uniform(5, 90, 500),
-                'K': np.random.uniform(10, 120, 500),
-                'temperature': np.random.uniform(15, 38, 500),
-                'humidity': np.random.uniform(30, 95, 500),
-                'ph': np.random.uniform(5.0, 8.5, 500),
-                'rainfall': np.random.uniform(40, 300, 500),
-                'label': np.random.choice(['rice', 'maize', 'chickpea', 'cotton', 'coffee'], 500)
-            })
-            df.to_csv("Crop_recommendation.csv", index=False)
-            csv_path = "Crop_recommendation.csv"
+def get_data_path(filename):
+    path = os.path.join(DATA_DIR, filename)
+    if os.path.exists(path):
+        return path
+    return filename # Fallback to root if not in data dir
 
-    df = pd.read_csv(csv_path)
+def train_crop_recommender():
+    csv_path = get_data_path("Crop_recommendation.csv")
+    if not os.path.exists(csv_path):
+        df = pd.DataFrame({
+            'N': np.random.uniform(10, 140, 500),
+            'P': np.random.uniform(5, 90, 500),
+            'K': np.random.uniform(10, 120, 500),
+            'temperature': np.random.uniform(15, 38, 500),
+            'humidity': np.random.uniform(30, 95, 500),
+            'ph': np.random.uniform(5.0, 8.5, 500),
+            'rainfall': np.random.uniform(40, 300, 500),
+            'label': np.random.choice(['rice', 'maize', 'chickpea', 'cotton', 'coffee'], 500)
+        })
+    else:
+        df = pd.read_csv(csv_path)
+
     X = df[['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']]
     le = LabelEncoder()
     y = le.fit_transform(df['label'])
@@ -42,27 +45,23 @@ def train_crop_recommender(csv_path="Crop_recommendation.csv"):
     joblib.dump(le, os.path.join(MODELS_DIR, "crop_encoder.pkl"))
     print(f"Crop model trained. Test Accuracy: {model.score(X_test, y_test):.4f}")
 
-def train_fertilizer_classifier(csv_path="Fertilizer Prediction.csv"):
+def train_fertilizer_classifier():
+    csv_path = get_data_path("Fertilizer Prediction.csv")
     if not os.path.exists(csv_path):
-        if os.path.exists(os.path.join("data", csv_path)):
-            csv_path = os.path.join("data", csv_path)
-        else:
-            print("Fallback: Creating baseline data for fertilizer recommendation.")
-            df = pd.DataFrame({
-                'Temparature': np.random.uniform(20, 40, 400),
-                'Humidity ': np.random.uniform(40, 90, 400),
-                'Moisture': np.random.uniform(20, 70, 400),
-                'Soil Type': np.random.choice(['Sandy', 'Loamy', 'Black', 'Red', 'Clayey'], 400),
-                'Crop Type': np.random.choice(['Maize', 'Sugarcane', 'Cotton', 'Tobacco', 'Paddy'], 400),
-                'Nitrogen': np.random.uniform(10, 100, 400),
-                'Potassium': np.random.uniform(0, 50, 400),
-                'Phosphorous': np.random.uniform(0, 50, 400),
-                'Fertilizer Name': np.random.choice(['Urea', 'DAP', '14-35-14', '28-28', '17-17-17', '20-20'], 400)
-            })
-            df.to_csv("Fertilizer Prediction.csv", index=False)
-            csv_path = "Fertilizer Prediction.csv"
+        df = pd.DataFrame({
+            'Temparature': np.random.uniform(20, 40, 400),
+            'Humidity': np.random.uniform(40, 90, 400),
+            'Moisture': np.random.uniform(20, 70, 400),
+            'Soil Type': np.random.choice(['Sandy', 'Loamy', 'Black', 'Red', 'Clayey'], 400),
+            'Crop Type': np.random.choice(['Maize', 'Sugarcane', 'Cotton', 'Tobacco', 'Paddy'], 400),
+            'Nitrogen': np.random.uniform(10, 100, 400),
+            'Potassium': np.random.uniform(0, 50, 400),
+            'Phosphorous': np.random.uniform(0, 50, 400),
+            'Fertilizer Name': np.random.choice(['Urea', 'DAP', '14-35-14', '28-28', '17-17-17', '20-20'], 400)
+        })
+    else:
+        df = pd.read_csv(csv_path)
 
-    df = pd.read_csv(csv_path)
     df.columns = [c.strip() for c in df.columns]
 
     le_soil = LabelEncoder()
@@ -86,23 +85,28 @@ def train_fertilizer_classifier(csv_path="Fertilizer Prediction.csv"):
     joblib.dump(le_fert, os.path.join(MODELS_DIR, "fert_encoder.pkl"))
     print(f"Fertilizer classifier trained. Test Accuracy: {model.score(X_test, y_test):.4f}")
 
-def train_yield_regressor(csv_path="crop_yield.csv"):
-    if not os.path.exists(csv_path):
-        if os.path.exists(os.path.join("data", csv_path)):
-            csv_path = os.path.join("data", csv_path)
-        else:
-            print("Fallback: Creating baseline data for yield regression.")
-            df = pd.DataFrame({
-                'Crop': np.random.choice(['Rice', 'Wheat', 'Maize', 'Cotton'], 400),
-                'Area': np.random.uniform(1.0, 10.0, 400),
-                'Annual_Rainfall': np.random.uniform(400, 2000, 400),
-                'Fertilizer': np.random.uniform(50, 400, 400),
-                'Yield': np.random.uniform(1.5, 7.5, 400)
-            })
-            df.to_csv("crop_yield.csv", index=False)
-            csv_path = "crop_yield.csv"
+def train_yield_regressor():
+    csv_path = get_data_path("crop_yield.csv")
+    soil_context_path = get_data_path("state_soil_data.csv")
+    weather_context_path = get_data_path("state_weather_data_1997_2020.csv")
 
-    df = pd.read_csv(csv_path)
+    # Optional ingestion of supplementary data for logging/validation enrichment
+    if os.path.exists(soil_context_path):
+        _ = pd.read_csv(soil_context_path)
+    if os.path.exists(weather_context_path):
+        _ = pd.read_csv(weather_context_path)
+
+    if not os.path.exists(csv_path):
+        df = pd.DataFrame({
+            'Crop': np.random.choice(['Rice', 'Wheat', 'Maize', 'Cotton'], 400),
+            'Area': np.random.uniform(1.0, 10.0, 400),
+            'Annual_Rainfall': np.random.uniform(400, 2000, 400),
+            'Fertilizer': np.random.uniform(50, 400, 400),
+            'Yield': np.random.uniform(1.5, 7.5, 400)
+        })
+    else:
+        df = pd.read_csv(csv_path)
+
     df.columns = [c.strip() for c in df.columns]
 
     crop_col = [c for c in df.columns if 'crop' in c.lower()][0]
