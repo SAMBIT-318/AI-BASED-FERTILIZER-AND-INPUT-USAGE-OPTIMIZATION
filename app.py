@@ -1,6 +1,8 @@
 import os
+import random
 import urllib.parse
 import joblib
+import requests
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -32,7 +34,6 @@ try:
     db_name = st.secrets["postgres"]["database"]
     DB_URI = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=require"
 except Exception:
-    # Direct fallback using connection pooler configuration
     DB_URI = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require"
 
 @st.cache_resource
@@ -40,7 +41,7 @@ def get_db_engine():
     try:
         engine = create_engine(DB_URI, pool_pre_ping=True, connect_args={"connect_timeout": 10})
         with engine.connect() as conn:
-            conn.execute(text("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT)"))
+            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
             conn.commit()
         return engine
     except Exception:
@@ -48,30 +49,62 @@ def get_db_engine():
 
 engine = get_db_engine()
 
-def register_user(username, password):
+def register_user(mobile, password):
     if not engine:
         return False, "Database connection not established. Check your network or secrets."
     hashed_pw = hashlib.sha256(password.encode()).hexdigest()
     try:
         with engine.connect() as conn:
-            conn.execute(text("INSERT INTO users (username, password) VALUES (:u, :p)"), {"u": username, "p": hashed_pw})
+            conn.execute(text("INSERT INTO users (mobile_number, password) VALUES (:m, :p)"), {"m": mobile, "p": hashed_pw})
             conn.commit()
         return True, "Registration successful! You can now log in."
     except Exception:
-        return False, "Username already exists or database is unavailable."
+        return False, "Mobile number already registered or database is unavailable."
 
-def verify_user(username, password):
+def verify_user(mobile, password):
     if not engine:
         return False
     hashed_pw = hashlib.sha256(password.encode()).hexdigest()
     try:
         with engine.connect() as conn:
-            result = conn.execute(text("SELECT password FROM users WHERE username = :u"), {"u": username}).fetchone()
+            result = conn.execute(text("SELECT password FROM users WHERE mobile_number = :m"), {"m": mobile}).fetchone()
             if result and result[0] == hashed_pw:
                 return True
     except Exception:
         pass
     return False
+
+def send_brevo_sms_otp(mobile_number, otp_code):
+    try:
+        api_key = st.secrets["brevo"]["api_key"]
+        sender = st.secrets["brevo"].get("sender", "FertApp")
+    except Exception:
+        st.error("Brevo credentials missing in Streamlit Secrets. Please check your secrets.toml.")
+        return False
+
+    url = "https://api.brevo.com/v3/transactionalSMS/sendTransacSms"
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "api-key": api_key
+    }
+    payload = {
+        "sender": sender,
+        "recipient": f"91{mobile_number}",
+        "content": f"Your AI Fertilizer App verification OTP is: {otp_code}. Valid for 5 minutes.",
+        "type": "transactional"
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        if response.status_code in [200, 201]:
+            return True
+        else:
+            st.error(f"Failed to dispatch SMS: {response.text}")
+            return False
+    except Exception as e:
+        st.error(f"Error communicating with SMS Gateway: {e}")
+        return False
 
 # Load models and encoders
 crop_model = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
@@ -86,13 +119,18 @@ yield_model = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
 yield_features = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
 yield_crop_encoder = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
 
-# Session state initialization for sequential screen flow
+# Session state initialization
 if "step" not in st.session_state:
     st.session_state.step = 1
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-if "username" not in st.session_state:
-    st.session_state.username = ""
+if "user_mobile" not in st.session_state:
+    st.session_state.user_mobile = ""
+if "generated_otp" not in st.session_state:
+    st.session_state.generated_otp = None
+if "otp_mobile" not in st.session_state:
+    st.session_state.otp_mobile = ""
+
 if "uploaded_crop_df" not in st.session_state:
     st.session_state.uploaded_crop_df = None
 if "uploaded_fert_df" not in st.session_state:
@@ -128,37 +166,71 @@ st.markdown(f"**Screen {st.session_state.step} of 7**")
 st.progress(st.session_state.step / 7.0)
 
 # -------------------------------------------------------------
-# SCREEN 1: User Authentication
+# SCREEN 1: User Authentication (Mobile + Brevo SMS OTP)
 # -------------------------------------------------------------
 if st.session_state.step == 1:
-    st.subheader("1. 🔐 User Authentication & Registry")
+    st.subheader("1. 📱 Mobile Verification & Account Access")
     if not st.session_state.logged_in:
-        auth_mode = st.radio("Mode", ["Login", "Register New Account"])
-        input_user = st.text_input("Username")
-        input_pass = st.text_input("Password", type="password")
+        auth_mode = st.radio("Choose Mode", ["Login", "Register New Account"])
         
-        if auth_mode == "Register New Account":
-            if st.button("Create Account"):
-                if input_user.strip() and input_pass.strip():
-                    success, msg = register_user(input_user.strip(), input_pass.strip())
+        if auth_mode == "Login":
+            input_mobile = st.text_input("Mobile Number", max_chars=10, placeholder="Enter 10-digit mobile number")
+            input_pass = st.text_input("Password", type="password", placeholder="Enter your password")
+            
+            if st.button("Login & Proceed", type="primary"):
+                clean_mobile = input_mobile.strip()
+                if len(clean_mobile) == 10 and clean_mobile.isdigit():
+                    if verify_user(clean_mobile, input_pass.strip()):
+                        st.session_state.logged_in = True
+                        st.session_state.user_mobile = clean_mobile
+                        st.session_state.step = 2
+                        st.rerun()
+                    else:
+                        st.error("Invalid mobile number or incorrect password.")
+                else:
+                    st.warning("Please enter a valid 10-digit mobile number.")
+                    
+        else:
+            reg_mobile = st.text_input("Mobile Number", max_chars=10, placeholder="Enter 10-digit mobile number")
+            reg_pass = st.text_input("Create Password", type="password", placeholder="Set account password")
+            
+            c_otp1, c_otp2 = st.columns([2, 1])
+            with c_otp1:
+                input_otp = st.text_input("Enter 6-Digit OTP", max_chars=6, placeholder="e.g. 123456")
+            with c_otp2:
+                st.write("")
+                st.write("")
+                if st.button("Send SMS OTP"):
+                    clean_mob = reg_mobile.strip()
+                    if len(clean_mob) == 10 and clean_mob.isdigit():
+                        gen_code = str(random.randint(100000, 999999))
+                        if send_brevo_sms_otp(clean_mob, gen_code):
+                            st.session_state.generated_otp = gen_code
+                            st.session_state.otp_mobile = clean_mob
+                            st.success(f"OTP successfully dispatched via SMS to +91 {clean_mob}!")
+                    else:
+                        st.error("Enter a valid 10-digit mobile number first.")
+
+            if st.button("Verify OTP & Register", type="primary"):
+                clean_mob = reg_mobile.strip()
+                if not (len(clean_mob) == 10 and clean_mob.isdigit()):
+                    st.warning("Enter a valid 10-digit mobile number.")
+                elif not reg_pass.strip():
+                    st.warning("Please enter a password.")
+                elif not st.session_state.generated_otp or clean_mob != st.session_state.otp_mobile:
+                    st.error("Please click 'Send SMS OTP' to request a code.")
+                elif input_otp.strip() != st.session_state.generated_otp:
+                    st.error("Incorrect OTP entered. Please verify the code sent to your phone.")
+                else:
+                    success, msg = register_user(clean_mob, reg_pass.strip())
                     if success:
                         st.success(msg)
+                        st.session_state.generated_otp = None
                     else:
                         st.error(msg)
-                else:
-                    st.warning("Please fill out both fields.")
-        else:
-            if st.button("Login & Proceed"):
-                if verify_user(input_user.strip(), input_pass.strip()):
-                    st.session_state.logged_in = True
-                    st.session_state.username = input_user.strip()
-                    st.session_state.step = 2
-                    st.rerun()
-                else:
-                    st.error("Invalid username or password.")
     else:
-        st.success(f"Logged in as **{st.session_state.username}**")
-        if st.button("Continue to Field Telemetry ➔"):
+        st.success(f"Logged in as **+91 {st.session_state.user_mobile}**")
+        if st.button("Continue to Field Telemetry ➔", type="primary"):
             st.session_state.step = 2
             st.rerun()
 
@@ -186,11 +258,11 @@ elif st.session_state.step == 2:
         st.session_state.budget_cap = st.number_input("Budget Cap (INR)", 1000.0, 500000.0, float(st.session_state.budget_cap), 500.0)
 
     with col2:
-        up_crop = st.file_uploader("Upload Crop Recommendation CSV", type=["csv"], key="crop_csv")
+        up_crop = st.file_uploader("Upload Crop CSV", type=["csv"], key="crop_csv")
         if up_crop is not None:
             st.session_state.uploaded_crop_df = pd.read_csv(up_crop)
             st.success(f"Loaded {st.session_state.uploaded_crop_df.shape[0]} records.")
-        up_fert = st.file_uploader("Upload Fertilizer Prediction CSV", type=["csv"], key="fert_csv")
+        up_fert = st.file_uploader("Upload Fertilizer CSV", type=["csv"], key="fert_csv")
         if up_fert is not None:
             st.session_state.uploaded_fert_df = pd.read_csv(up_fert)
             st.session_state.uploaded_fert_df.columns = [c.strip() for c in st.session_state.uploaded_fert_df.columns]
@@ -356,7 +428,7 @@ elif st.session_state.step == 6:
     }
     st.dataframe(pd.DataFrame(breakdown), use_container_width=True)
 
-    report_content = f"OPTIMIZATION REPORT\nUser: {st.session_state.username}\nCost: ${opt['total_cost']}\nUrea: {opt['urea_kg']}kg\nDAP: {opt['dap_kg']}kg\nMOP: {opt['mop_kg']}kg"
+    report_content = f"OPTIMIZATION REPORT\nMobile: {st.session_state.user_mobile}\nCost: ${opt['total_cost']}\nUrea: {opt['urea_kg']}kg\nDAP: {opt['dap_kg']}kg\nMOP: {opt['mop_kg']}kg"
     st.download_button("Download Report", report_content, file_name="fertilizer_report.txt")
 
     st.markdown("---")
@@ -379,7 +451,7 @@ elif st.session_state.step == 7:
     
     if st.button("Log Out & Complete Session"):
         st.session_state.logged_in = False
-        st.session_state.username = ""
+        st.session_state.user_mobile = ""
         st.session_state.step = 1
         st.cache_data.clear()
         st.cache_resource.clear()
