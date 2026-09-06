@@ -737,6 +737,10 @@ if "rainfall" not in st.session_state:
     st.session_state.rainfall = 150.0
 if "soil_source" not in st.session_state:
     st.session_state.soil_source = None
+if "sel_soil" not in st.session_state:
+    st.session_state.sel_soil = list(soil_encoder.classes_)[0]
+if "sel_crop" not in st.session_state:
+    st.session_state.sel_crop = list(crop_type_encoder.classes_)[0]
 
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
