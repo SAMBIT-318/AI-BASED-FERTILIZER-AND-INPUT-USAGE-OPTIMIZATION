@@ -998,4 +998,109 @@ elif st.session_state.step == 5:
 # -------------------------------------------------------------
 elif st.session_state.step == 6:
     st.subheader("6. 🚀 Your Fertilizer Bags & Application Schedule")
-    def_n, def_
+    def_n, def_p, def_k = calculate_advanced_nutrients(
+        st.session_state.target_yield, st.session_state.soil_n, st.session_state.soil_p,
+        st.session_state.soil_k, st.session_state.soc, st.session_state.soil_ph,
+        st.session_state.soil_moist, st.session_state.sel_soil
+    )
+    opt = optimize_fertilizer_blend(
+        req_n=def_n, req_p=def_p, req_k=def_k,
+        budget_cap=st.session_state.budget_cap,
+        land_area=st.session_state.land_area,
+        soil_texture=str(st.session_state.sel_soil),
+        rainfall_mm=st.session_state.rainfall,
+        soc=st.session_state.soc
+    )
+    st.session_state.opt_results = opt
+
+    r1, r2, r3 = st.columns(3)
+    r1.metric("Optimized Total Cost", f"₹{opt['total_cost']:,.0f}")
+    r2.metric("Land Covered", f"{st.session_state.raw_land_val:.2f} {st.session_state.land_unit.split(' ')[0]}")
+    r3.metric("Budget Utilized", f"{opt['budget_utilized_pct']}%")
+
+    st.markdown("##### 🛒 Fertilizer Bags Needed for Your Field:")
+    st.table(pd.DataFrame({
+        "Fertilizer Product": ["Urea (Synthetic N)", "DAP (Phosphatic)", "MOP (Red Potash)", "Complex 14-35-14", "Organic Desi Compost"],
+        "Total Weight (kg)": [f"{opt['urea_kg']} kg", f"{opt['dap_kg']} kg", f"{opt['mop_kg']} kg", f"{opt['complex_kg']} kg", f"{opt['compost_kg']} kg"],
+        "Standard 50kg Bags": [
+            f"{max(1, round(opt['urea_kg'] / 50.0))} bags" if opt['urea_kg'] > 0 else "0",
+            f"{max(1, round(opt['dap_kg'] / 50.0))} bags" if opt['dap_kg'] > 0 else "0",
+            f"{max(1, round(opt['mop_kg'] / 50.0))} bags" if opt['mop_kg'] > 0 else "0",
+            f"{max(1, round(opt['complex_kg'] / 50.0))} bags" if opt['complex_kg'] > 0 else "0",
+            f"{round(opt['compost_kg'] / 50.0)} bags" if opt['compost_kg'] > 0 else "0"
+        ]
+    }))
+
+    st.markdown("##### 📅 Timed Split Application Rules:")
+    st.table(pd.DataFrame({
+        "Crop Stage": ["1. Basal (At Sowing)", "2. Tillering (Day 20-25)", "3. Panicle / Flowering (Day 45-55)"],
+        "What to Apply": ["All Compost + All DAP + 1/3 Potash + 1/4 Urea", "1/2 Urea + 1/3 Potash (Near roots)", "Remaining Urea + Remaining Potash"],
+        "Benefit": ["Strong root foundation", "Boosts green tillering", "Increases grain weight"]
+    }))
+
+    st.divider()
+    b1, b2 = st.columns([1, 5])
+    if b1.button(T["btn_back"]):
+        st.session_state.step = 5
+        st.rerun()
+    if b2.button(T["btn_next"]):
+        st.session_state.step = 7
+        st.rerun()
+
+# -------------------------------------------------------------
+# SCREEN 7: PRESCRIPTION RECEIPT DOSSIER
+# -------------------------------------------------------------
+elif st.session_state.step == 7:
+    st.subheader("7. 📋 Official Farmer Prescription Card")
+    opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0})
+    
+    st.markdown(f"""
+    <div class="summary-card">
+        <h2 style="color: #1B5E20; margin-top: 0;">🌾 Precision Fertilizer & Input Advisory Card</h2>
+        <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Survey Plot No:</strong> {st.session_state.get('selected_plot', 'Custom Plot')}</p>
+        <p><strong>Jurisdiction:</strong> {st.session_state.c_village}, {st.session_state.c_area}, GP: {st.session_state.c_panchayat}, Tehsil: {st.session_state.c_block}, Dist: {st.session_state.c_dist}, {st.session_state.c_state}</p>
+        <p><strong>Field Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
+        <p><strong>GPS Coordinates:</strong> {st.session_state.lat:.4f}° N, {st.session_state.lon:.4f}° E</p>
+        <hr style="border: 1px solid #A5D6A7;"/>
+        <h3 style="color: #1B5E20;">🛒 Required Purchases:</h3>
+        <ul style="font-size: 15px; line-height: 1.8;">
+            <li><strong>Urea:</strong> {opt['urea_kg']} kg (~{round(opt['urea_kg'] / 50.0)} bags of 50kg)</li>
+            <li><strong>DAP:</strong> {opt['dap_kg']} kg (~{round(opt['dap_kg'] / 50.0)} bags of 50kg)</li>
+            <li><strong>MOP (Potash):</strong> {opt['mop_kg']} kg (~{round(opt['mop_kg'] / 50.0)} bags of 50kg)</li>
+            <li><strong>Organic Compost:</strong> {opt['compost_kg']} kg</li>
+        </ul>
+        <h3 style="color: #1B5E20;">💰 Estimated Total Cost: ₹{opt['total_cost']:,.0f}</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nLocation: {st.session_state.c_village}, {st.session_state.c_block}, {st.session_state.c_dist}\nPlot No: {st.session_state.get('selected_plot', 'Custom')}\nLand: {st.session_state.raw_land_val:.2f} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
+    st.download_button("📥 Download Prescription Record", receipt_txt, file_name="Farmer_Prescription.txt")
+
+    st.divider()
+    b1, b2 = st.columns([1, 5])
+    if b1.button(T["btn_back"]):
+        st.session_state.step = 6
+        st.rerun()
+    if b2.button("Proceed to Feedback & Exit ➔"):
+        st.session_state.step = 8
+        st.rerun()
+
+# -------------------------------------------------------------
+# SCREEN 8: FARMER FEEDBACK & LOGOUT
+# -------------------------------------------------------------
+elif st.session_state.step == 8:
+    st.subheader(T["feedback_title"])
+    st.write("Please rate the clarity and usefulness of the recommendation:")
+    
+    rating = st.slider("Rating (1 = Poor, 5 = Excellent)", 1, 5, 5)
+    comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):")
+    
+    if st.button(T["feedback_submit"]):
+        save_feedback(st.session_state.user_mobile, rating, comments)
+        st.success("✅ Thank you! Your feedback has been stored safely.")
+        
+        st.session_state.logged_in = False
+        st.session_state.user_mobile = ""
+        st.session_state.step = 1
+        st.cache_data.clear()
+        st.rerun()
