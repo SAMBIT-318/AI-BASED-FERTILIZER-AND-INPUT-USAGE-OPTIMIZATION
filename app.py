@@ -607,7 +607,7 @@ TRANSLATIONS = {
         "reg_tab": "新規農家登録",
         "mobile_lbl": "携帯電話番号",
         "pass_lbl": "パスワード",
-        "conf_pass_lbl": "パスワードの確認",
+        "conf_pass_lbl": "パスワード의確認",
         "lang_select": "アプリ言語 / グローバル言語設定",
         "mode_select": "農業サービスの選択",
         "mode_opt": "🌾 土壌および肥料最適化パイプライン",
@@ -1033,7 +1033,11 @@ elif st.session_state.step == 2:
                 st.write(f"🌱 **Will this crop continue to grow?**: **{res['will_grow']}**")
         
         st.divider()
-        if st.button("Complete & Leave Feedback ➔"):
+        b_prev, b_next_diag = st.columns([1, 5])
+        if b_prev.button(T["btn_back"], key="diag_back"):
+            st.session_state.step = 1
+            st.rerun()
+        if b_next_diag.button("Complete & Leave Feedback ➔", key="diag_next"):
             st.session_state.step = 8
             st.rerun()
 
@@ -1151,11 +1155,11 @@ elif st.session_state.step == 2:
 
         st.divider()
         b1, b2 = st.columns([1, 5])
-        if b1.button(T["btn_back"]):
+        if b1.button(T["btn_back"], key="step2_back"):
             st.session_state.step = 1
             st.rerun()
             
-        if b2.button(T["btn_next"]):
+        if b2.button(T["btn_next"], key="step2_next"):
             if st.session_state.soil_source is None:
                 st.error("⚠️ Please either scan genuine soil in Tab 1 OR save manual soil values in Tab 3 before proceeding.")
             else:
@@ -1176,10 +1180,10 @@ elif st.session_state.step == 3:
 
     st.divider()
     b1, b2 = st.columns([1, 5])
-    if b1.button(T["btn_back"]):
+    if b1.button(T["btn_back"], key="step3_back"):
         st.session_state.step = 2
         st.rerun()
-    if b2.button(T["btn_next"]):
+    if b2.button(T["btn_next"], key="step3_next"):
         st.session_state.step = 4
         st.rerun()
 
@@ -1197,10 +1201,10 @@ elif st.session_state.step == 4:
 
     st.divider()
     b1, b2 = st.columns([1, 5])
-    if b1.button(T["btn_back"]):
+    if b1.button(T["btn_back"], key="step4_back"):
         st.session_state.step = 3
         st.rerun()
-    if b2.button(T["btn_next"]):
+    if b2.button(T["btn_next"], key="step4_next"):
         st.session_state.step = 5
         st.rerun()
 
@@ -1241,10 +1245,10 @@ elif st.session_state.step == 5:
 
     st.divider()
     b1, b2 = st.columns([1, 5])
-    if b1.button(T["btn_back"]):
+    if b1.button(T["btn_back"], key="step5_back"):
         st.session_state.step = 4
         st.rerun()
-    if b2.button(T["btn_next"]):
+    if b2.button(T["btn_next"], key="step5_next"):
         st.session_state.step = 6
         st.rerun()
 
@@ -1301,10 +1305,10 @@ elif st.session_state.step == 6:
 
     st.divider()
     b1, b2 = st.columns([1, 5])
-    if b1.button(T["btn_back"]):
+    if b1.button(T["btn_back"], key="step6_back"):
         st.session_state.step = 5
         st.rerun()
-    if b2.button(T["btn_next"]):
+    if b2.button(T["btn_next"], key="step6_next"):
         st.session_state.step = 7
         st.rerun()
 
@@ -1366,7 +1370,6 @@ elif st.session_state.step == 7:
     })
     st.table(app_methods_df)
 
-    # Generate Professional PDF strictly in English to ensure 100% clean rendering without block characters
     pdf_bytes = generate_english_pdf(
         user_mobile=st.session_state.user_mobile,
         plot_id=st.session_state.plot_id,
@@ -1404,7 +1407,7 @@ elif st.session_state.step == 7:
             st.rerun()
 
     st.divider()
-    if st.button(T["btn_back"]):
+    if st.button(T["btn_back"], key="step7_back"):
         st.session_state.step = 6
         st.rerun()
 
