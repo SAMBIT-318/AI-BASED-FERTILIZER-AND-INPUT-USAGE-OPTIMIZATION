@@ -7,4 +7,4 @@ joblib
 sqlalchemy
 psycopg2-binary
 Pillow
-requests
+reportlab
