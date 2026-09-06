@@ -424,10 +424,13 @@ def render_land_conversion_table(entered_val, chosen_unit):
 # -------------------------------------------------------------
 # NUTRIENT DEFICIT ENGINE
 # -------------------------------------------------------------
-def calculate_advanced_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph, soil_moist, soil_texture):
-    demand_n = 22.0 * target_yield
-    demand_p = 4.5 * target_yield
-    demand_k = 19.0 * target_yield
+def calculate_advanced_nutrients(target_yield_per_acre, soil_n, soil_p, soil_k, soc, ph, soil_moist, soil_texture):
+    # Convert t/acre target yield to t/ha for internal botanical stoichiometry (1 acre = 2.47105 ha)
+    target_yield_ha = target_yield_per_acre * 2.47105
+
+    demand_n = 22.0 * target_yield_ha
+    demand_p = 4.5 * target_yield_ha
+    demand_k = 19.0 * target_yield_ha
 
     nue_n = 0.50
     if "sandy" in str(soil_texture).lower():
@@ -613,7 +616,7 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     story.append(Paragraph(lang_dict.get("sec_profile", "1. FARMER & LAND PROFILE"), section_h1))
     profile_data = [
         [Paragraph("<b>Farmer Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
-        [Paragraph("<b>Target Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Target Yield:</b>", body_style), Paragraph(f"{target_yield} t/ha", bold_style)],
+        [Paragraph("<b>Target Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Target Harvest:</b>", body_style), Paragraph(f"{target_yield} t/acre", bold_style)],
         [Paragraph("<b>Land Area:</b>", body_style), Paragraph(f"{raw_land:.2f} {land_unit}", bold_style), Paragraph("<b>Standard Area:</b>", body_style), Paragraph(f"{opt.get('land_area', raw_land*0.404686):.3f} Hectares", bold_style)],
         [Paragraph("<b>Farmer Budget:</b>", body_style), Paragraph(f"Rs. {budget:,.0f}", bold_style), Paragraph("<b>Optimization Cost:</b>", body_style), Paragraph(f"Rs. {opt['total_cost']:,.0f}", bold_style)],
     ]
@@ -707,7 +710,7 @@ defaults = {
     "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
     "soil_moist": 45.0, "soc": 0.70, "temp": 26.5, "humidity": 68.0,
     "rainfall": 150.0, "raw_land_val": 1.5, "land_unit": "Acre (एकड़ / ଏକର)",
-    "land_area": 0.607, "budget_cap": 25000.0, "target_yield": 4.5,
+    "land_area": 0.607, "budget_cap": 25000.0, "target_yield": 2.0,
     "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
     "plot_id": "Plot No. 104/1",
@@ -938,7 +941,9 @@ elif st.session_state.step == 2:
             c_s1, c_s2, c_s3 = st.columns(3)
             c_s1.selectbox("Soil Type", list(soil_encoder.classes_), key="sel_soil")
             c_s2.selectbox("Planned Crop", list(crop_type_encoder.classes_), key="sel_crop")
-            st.session_state.target_yield = c_s3.number_input("Target Harvest (t/ha)", 1.0, 15.0, float(st.session_state.target_yield), 0.5)
+            
+            # Target Harvest Input with t/acre unit
+            st.session_state.target_yield = c_s3.number_input("Target Harvest (t/acre)", 0.5, 10.0, float(st.session_state.target_yield), 0.25)
 
             if st.button("Save Manual Soil Values"):
                 st.session_state.soil_source = "manual"
@@ -1005,7 +1010,7 @@ elif st.session_state.step == 4:
 elif st.session_state.step == 5:
     st.subheader("5. ⚠️ Required Nutrient Deficit & Dynamic Crop Recommendation")
     def_n, def_p, def_k = calculate_advanced_nutrients(
-        target_yield=st.session_state.target_yield,
+        target_yield_per_acre=st.session_state.target_yield,
         soil_n=st.session_state.soil_n,
         soil_p=st.session_state.soil_p,
         soil_k=st.session_state.soil_k,
@@ -1025,10 +1030,10 @@ elif st.session_state.step == 5:
 
     g1, g2 = st.columns(2)
     with g1:
-        st.markdown(f"##### Nutrient Shortage for {st.session_state.target_yield} t/ha:")
-        st.warning(f"• **Nitrogen Needed**: {def_n:.1f} kg/ha")
-        st.warning(f"• **Phosphorus Needed**: {def_p:.1f} kg/ha")
-        st.warning(f"• **Potash Needed**: {def_k:.1f} kg/ha")
+        st.markdown(f"##### Nutrient Shortage for {st.session_state.target_yield} t/acre:")
+        st.warning(f"• **Nitrogen Needed**: {def_n:.1f} kg/acre")
+        st.warning(f"• **Phosphorus Needed**: {def_p:.1f} kg/acre")
+        st.warning(f"• **Potash Needed**: {def_k:.1f} kg/acre")
     with g2:
         st.markdown("##### 🌟 AI Dynamic Crop Recommendation:")
         st.success(f"🌱 **Best Suited Crop for Scanned/Input Soil**: **{dynamic_pred_crop.capitalize()}**")
@@ -1049,9 +1054,14 @@ elif st.session_state.step == 5:
 elif st.session_state.step == 6:
     st.subheader("6. 🚀 Your Fertilizer Bags & Application Schedule")
     def_n, def_p, def_k = calculate_advanced_nutrients(
-        st.session_state.target_yield, st.session_state.soil_n, st.session_state.soil_p,
-        st.session_state.soil_k, st.session_state.soc, st.session_state.soil_ph,
-        st.session_state.soil_moist, st.session_state.sel_soil
+        target_yield_per_acre=st.session_state.target_yield,
+        soil_n=st.session_state.soil_n,
+        soil_p=st.session_state.soil_p,
+        soil_k=st.session_state.soil_k,
+        soc=st.session_state.soc,
+        ph=st.session_state.soil_ph,
+        soil_moist=st.session_state.soil_moist,
+        soil_texture=st.session_state.sel_soil
     )
     opt = optimize_fertilizer_blend(
         req_n=def_n, req_p=def_p, req_k=def_k,
@@ -1121,7 +1131,7 @@ elif st.session_state.step == 7:
         </div>
         <hr style="border: 1px solid #A5D6A7; margin: 12px 0;"/>
         <p style="margin:4px 0;"><strong>Farmer Mobile:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel ID:</strong> {st.session_state.plot_id}</p>
-        <p style="margin:4px 0;"><strong>Cultivated Crop:</strong> {st.session_state.sel_crop} | <strong>Target Harvest:</strong> {st.session_state.target_yield} t/ha</p>
+        <p style="margin:4px 0;"><strong>Cultivated Crop:</strong> {st.session_state.sel_crop} | <strong>Target Harvest:</strong> {st.session_state.target_yield} t/acre</p>
         <p style="margin:4px 0;"><strong>Land Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} ({st.session_state.land_area:.3f} Ha)</p>
         <hr style="border: 1px solid #A5D6A7; margin: 15px 0;"/>
         <h4 style="color: #1B5E20; margin-bottom: 6px;">🛒 Required Commercial Purchases:</h4>
