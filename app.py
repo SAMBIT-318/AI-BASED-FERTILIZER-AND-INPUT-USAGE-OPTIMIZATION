@@ -14,7 +14,7 @@ from sqlalchemy import create_engine, text
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, Image as RLImage
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfgen import canvas
@@ -23,11 +23,11 @@ from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
 
 # -------------------------------------------------------------
-# PAGE CONFIGURATION & FARMER-SUITABLE GREEN UI STYLING
+# PAGE CONFIGURATION & LIGHT GREEN FARMER THEME
 # -------------------------------------------------------------
 st.set_page_config(
-    page_title="Smart Kishan | Precision Crop & Fertilizer Advisory",
-    page_icon="🌾",
+    page_title="Smart Kishan | Digital Farming Solutions",
+    page_icon="🌱",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -36,111 +36,90 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+    /* Calming, Organic Light Green App Canvas */
     html, body, [class*="css"], .stApp {
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        background-color: #F6F8F3 !important;
-        color: #1B381E !important;
+        background-color: #F2FAF3 !important;
+        color: #143518 !important;
     }
 
+    /* Top Branding Hero with Light Green / Forest Gradient */
     .farmer-hero {
-        background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #388E3C 100%);
-        border-radius: 16px;
-        padding: 22px 26px;
+        background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #43A047 100%);
+        border-radius: 18px;
+        padding: 18px 24px;
         color: #FFFFFF !important;
-        box-shadow: 0 6px 18px rgba(27, 94, 32, 0.18);
+        box-shadow: 0 8px 22px rgba(27, 94, 32, 0.18);
         margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border: 1px solid #A5D6A7;
     }
-    .farmer-hero h1 {
-        font-size: 26px !important;
+    .hero-text h1 {
+        font-size: 25px !important;
         font-weight: 800 !important;
         color: #FFFFFF !important;
         margin: 0 !important;
+        letter-spacing: -0.3px;
     }
-    .farmer-hero p {
-        font-size: 14px !important;
+    .hero-text p {
+        font-size: 13.5px !important;
         color: #E8F5E9 !important;
-        margin: 4px 0 0 0 !important;
+        margin: 3px 0 0 0 !important;
+        font-weight: 500;
     }
 
-    /* OFFICIAL SMART KISHAN STAMP */
-    .smart-kishan-stamp {
-        width: 105px;
-        height: 105px;
-        border: 3.5px double #FFFFFF;
-        border-radius: 50%;
+    /* Logo Badge Container */
+    .logo-container {
+        background: #FFFFFF;
+        border-radius: 14px;
+        padding: 6px 14px;
         display: flex;
-        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        text-align: center;
-        background: rgba(255, 255, 255, 0.12);
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        transform: rotate(-5deg);
-        user-select: none;
-    }
-    .stamp-title {
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 0.8px;
-        color: #FFFFFF;
-        text-transform: uppercase;
-    }
-    .stamp-center {
-        font-size: 13px;
-        font-weight: 900;
-        color: #FFD700;
-        margin: 2px 0;
-        border-top: 1px solid rgba(255,255,255,0.4);
-        border-bottom: 1px solid rgba(255,255,255,0.4);
-        padding: 1px 4px;
-    }
-    .stamp-footer {
-        font-size: 8px;
-        color: #E8F5E9;
-        font-weight: 700;
-        letter-spacing: 0.5px;
+        gap: 12px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+        border: 1.5px solid #81C784;
     }
 
+    /* Cards with Fresh Light-Green Tint */
     .metric-card {
         background: #FFFFFF !important;
-        border-radius: 12px !important;
-        padding: 16px !important;
+        border-radius: 14px !important;
+        padding: 16px 18px !important;
         border-left: 6px solid #2E7D32 !important;
-        border-top: 1px solid #E2EEDF !important;
-        border-right: 1px solid #E2EEDF !important;
-        border-bottom: 1px solid #E2EEDF !important;
-        box-shadow: 0 2px 8px rgba(0, 50, 0, 0.04) !important;
+        border-top: 1px solid #D1E7D3 !important;
+        border-right: 1px solid #D1E7D3 !important;
+        border-bottom: 1px solid #D1E7D3 !important;
+        box-shadow: 0 3px 10px rgba(20, 60, 20, 0.04) !important;
         margin-bottom: 12px;
     }
 
     .summary-card {
-        background: #F1F8F1 !important;
+        background: #F4FBF5 !important;
         border: 2px solid #81C784 !important;
         padding: 24px !important;
-        border-radius: 14px !important;
+        border-radius: 16px !important;
         margin-bottom: 20px !important;
-        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.08) !important;
-        position: relative;
+        box-shadow: 0 6px 16px rgba(46, 125, 50, 0.08) !important;
     }
 
+    /* Tactical Emerald Green Buttons */
     div.stButton > button, div.stButton > button:focus {
         background: linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%) !important;
         color: #FFFFFF !important;
         font-weight: 700 !important;
-        font-size: 15px !important;
+        font-size: 14.5px !important;
         border-radius: 10px !important;
-        padding: 12px 24px !important;
+        padding: 11px 24px !important;
         border: 1px solid #144918 !important;
-        box-shadow: 0 4px 12px rgba(27, 94, 32, 0.28) !important;
+        box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25) !important;
         transition: all 0.15s ease-in-out !important;
     }
     div.stButton > button:hover {
         background: linear-gradient(180deg, #388E3C 0%, #1E6B24 100%) !important;
         color: #FFFFFF !important;
-        box-shadow: 0 6px 16px rgba(27, 94, 32, 0.38) !important;
+        box-shadow: 0 6px 16px rgba(27, 94, 32, 0.35) !important;
         transform: translateY(-1px) !important;
     }
 
@@ -151,22 +130,30 @@ st.markdown("""
         border-radius: 10px !important;
         padding: 12px 24px !important;
         border: 1px solid #0B2C0D !important;
+        box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25) !important;
     }
 
+    /* Form Fields Styling */
     .stTextInput input, .stNumberInput input, .stSelectbox > div > div {
-        border-radius: 8px !important;
-        border: 1.5px solid #C4DCC5 !important;
+        border-radius: 9px !important;
+        border: 1.5px solid #BDDEC0 !important;
         background-color: #FFFFFF !important;
-        color: #1B381E !important;
+        color: #143518 !important;
+        font-weight: 500 !important;
+    }
+    .stTextInput input:focus, .stNumberInput input:focus {
+        border-color: #2E7D32 !important;
+        box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.18) !important;
     }
 
+    /* Tabs Styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 6px;
     }
     .stTabs [data-baseweb="tab"] {
         border-radius: 8px 8px 0 0;
         padding: 8px 16px;
-        background-color: #E2EEDF;
+        background-color: #DEEFE1;
         font-weight: 600;
         color: #2E7D32;
     }
@@ -175,6 +162,7 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
+    /* Pill Badges */
     .badge-pass {
         background-color: #E8F5E9;
         color: #1B5E20;
@@ -187,11 +175,49 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
+# LOGO RENDER HELPER (SVG Vector Fallback + Local File Support)
+# -------------------------------------------------------------
+LOGO_PATH = "smart_kishan_logo.png"
+
+def render_smart_kishan_brand_logo(width=165):
+    """Renders the logo from smart_kishan_logo.png if present, or displays an embedded SVG."""
+    if os.path.exists(LOGO_PATH):
+        st.image(LOGO_PATH, width=width)
+    else:
+        # High-Fidelity SVG of the Smart Kishan emblem (Leaf + Circuit + IoT wave + Shield)
+        svg_code = f"""
+        <div style="display:inline-flex; flex-direction:column; align-items:center; background:#FFFFFF; padding:6px 10px; border-radius:12px; border:1px solid #C8E6C9;">
+            <svg width="{width}" height="65" viewBox="0 0 260 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Circular Shield Base -->
+                <circle cx="45" cy="45" r="40" stroke="#43A047" stroke-width="5" fill="#E8F5E9"/>
+                <path d="M45 10 C65 10, 80 25, 80 45 C80 68, 55 80, 45 82 C35 80, 10 68, 10 45 Z" stroke="#1E88E5" stroke-width="4" fill="none"/>
+                <!-- IoT Wave -->
+                <path d="M38 25 A8 8 0 0 1 52 25" stroke="#1E88E5" stroke-width="3" stroke-linecap="round" fill="none"/>
+                <circle cx="45" cy="30" r="2.5" fill="#1E88E5"/>
+                <!-- Green Natural Leaf -->
+                <path d="M45 42 C30 45, 20 62, 36 72 C48 65, 48 50, 45 42 Z" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+                <path d="M32 64 Q40 56, 44 46" stroke="#C8E6C9" stroke-width="1.5" fill="none"/>
+                <!-- Tech Circuit Leaf -->
+                <path d="M47 38 C60 38, 70 52, 60 68 C48 68, 45 52, 47 38 Z" fill="#0288D1" stroke="#01579B" stroke-width="2"/>
+                <circle cx="53" cy="50" r="2" fill="#FFFFFF"/>
+                <circle cx="57" cy="60" r="2" fill="#FFFFFF"/>
+                <line x1="49" y1="44" x2="53" y2="50" stroke="#FFFFFF" stroke-width="1.5"/>
+                <line x1="53" y1="50" x2="57" y2="60" stroke="#FFFFFF" stroke-width="1.5"/>
+                <!-- Brand Typography -->
+                <text x="96" y="47" font-family="'Plus Jakarta Sans', sans-serif" font-size="24" font-weight="900" fill="#1565C0">SMART </text>
+                <text x="180" y="47" font-family="'Plus Jakarta Sans', sans-serif" font-size="24" font-weight="900" fill="#2E7D32">KISHAN</text>
+                <text x="97" y="65" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.2" fill="#475569">DIGITAL FARMING SOLUTIONS</text>
+            </svg>
+        </div>
+        """
+        st.markdown(svg_code, unsafe_allow_html=True)
+
+# -------------------------------------------------------------
 # MULTILINGUAL DICTIONARY
 # -------------------------------------------------------------
 TRANSLATIONS = {
     "English": {
-        "title": "🌾 Smart Kishan | Precision Crop & Fertilizer Advisory",
+        "title": "Smart Kishan | Digital Farming Solutions",
         "subtitle": "Certified 4R Nutrient Allocation, Optical Pathology & Official Prescription",
         "login_tab": "Farmer Log In",
         "reg_tab": "Register New Farmer",
@@ -213,7 +239,7 @@ TRANSLATIONS = {
         "land_calc_title": "📐 Land Conversion & Farm Budget Matrix"
     },
     "हिन्दी": {
-        "title": "🌾 स्मार्ट किसान | सटीक फसल एवं उर्वरक सलाहकार",
+        "title": "स्मार्ट किसान | डिजिटल फार्मिंग सॉल्यूशंस",
         "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, ऑप्टिकल रोग निदान और आधिकारिक नुस्खा",
         "login_tab": "किसान लॉगिन",
         "reg_tab": "नया किसान पंजीकरण",
@@ -235,7 +261,7 @@ TRANSLATIONS = {
         "land_calc_title": "📐 भूमि रूपांतरण और कृषि बजट तालिका"
     },
     "ଓଡ଼ିଆ": {
-        "title": "🌾 ସ୍ମାର୍ଟ କିଷାନ | ଉନ୍ନତ କୃଷି ଓ ଖତ ପରାମର୍ଶ କେନ୍ଦ୍ର",
+        "title": "ସ୍ମାର୍ଟ କିଷାନ | ଡିଜିଟାଲ ଫାର୍ମିଂ ସଲ୍ୟୁସନ୍ସ",
         "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ଫସଲ ରୋଗ ନିରାକରଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
         "login_tab": "କୃଷକ ଲଗଇନ୍",
         "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
@@ -504,7 +530,7 @@ class NumberedCanvas(canvas.Canvas):
         # Footer Text
         self.setFont("Helvetica", 8)
         self.setFillColor(colors.HexColor("#475569"))
-        self.drawString(30, 28, "Smart Kishan Decision Support System • ISO 9001:2015 Standard Precision Agriculture")
+        self.drawString(30, 28, "Smart Kishan • Digital Farming Solutions • ISO 9001:2015 Certified Advisory")
         self.drawRightString(565, 28, f"Page {self._pageNumber} of {page_count}")
 
 
@@ -529,11 +555,19 @@ def generate_prescription_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
 
     story = []
 
+    # If logo exists locally, place it top center of PDF
+    if os.path.exists(LOGO_PATH):
+        try:
+            story.append(RLImage(LOGO_PATH, width=130, height=52))
+            story.append(Spacer(1, 4))
+        except Exception:
+            pass
+
     # Header Title with Branding
-    story.append(Paragraph("SMART KISHAN • 4R PRECISION NUTRIENT PRESCRIPTION", title_style))
-    story.append(Paragraph("Scientific Soil Health Diagnostic & Integrated Crop Advisory Report", subtitle_style))
+    story.append(Paragraph("SMART KISHAN • DIGITAL FARMING SOLUTIONS", title_style))
+    story.append(Paragraph("Official Soil Health Diagnostic & Integrated Crop Advisory Dossier", subtitle_style))
     story.append(Paragraph(f"Prescription Dossier: SK-{datetime.now().strftime('%Y%m%d')}-{user_mobile[-4:]} | Date: {datetime.now().strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
     # SECTION 1: Farmer & Farm Profile
@@ -542,12 +576,12 @@ def generate_prescription_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
         [Paragraph("<b>Registered Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
         [Paragraph("<b>Cultivated Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Target Harvest:</b>", body_style), Paragraph(f"{target_yield} Tonnes/Ha", bold_style)],
         [Paragraph("<b>Land Area (Farmer):</b>", body_style), Paragraph(f"{raw_land:.2f} {land_unit}", bold_style), Paragraph("<b>Standardized Area:</b>", body_style), Paragraph(f"{opt.get('land_area', raw_land*0.404686):.3f} Hectares", bold_style)],
-        [Paragraph("<b>Allocated Budget:</b>", body_style), Paragraph(f"Rs. {budget:,.0f}", bold_style), Paragraph("<b>Soil Health Score:</b>", body_style), Paragraph("74 / 100 (Optimal Vigor)", bold_style)],
+        [Paragraph("<b>Allocated Budget:</b>", body_style), Paragraph(f"Rs. {budget:,.0f}", bold_style), Paragraph("<b>Soil Health Vigor:</b>", body_style), Paragraph("Optimal Vigor Index", bold_style)],
     ]
     t_prof = Table(profile_data, colWidths=[110, 155, 120, 150])
     t_prof.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F8FCF8')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F4FBF5')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#C8E6C9')),
         ('TOPPADDING', (0,0), (-1,-1), 3),
         ('BOTTOMPADDING', (0,0), (-1,-1), 3),
     ]))
@@ -635,7 +669,7 @@ def generate_prescription_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     ]))
     story.append(t_sched)
 
-    # Build PDF with official custom footer and circular watermark
+    # Build PDF with custom footer and circular watermark
     doc.build(story, canvasmaker=NumberedCanvas)
     buffer.seek(0)
     return buffer.getvalue()
@@ -666,21 +700,20 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # -------------------------------------------------------------
-# APP HERO HEADER WITH SMART KISHAN CIRCULAR STAMP
+# APP HERO HEADER WITH SMART KISHAN OFFICIAL BRANDING
 # -------------------------------------------------------------
-st.markdown(f"""
-<div class="farmer-hero">
-    <div>
-        <h1>{T['title']}</h1>
-        <p>{T['subtitle']}</p>
+hero_col1, hero_col2 = st.columns([3, 1.2])
+with hero_col1:
+    st.markdown(f"""
+    <div class="farmer-hero">
+        <div class="hero-text">
+            <h1>🌾 {T['title']}</h1>
+            <p>{T['subtitle']}</p>
+        </div>
     </div>
-    <div class="smart-kishan-stamp">
-        <span class="stamp-title">GOVT VERIFIED</span>
-        <span class="stamp-center">SMART KISHAN</span>
-        <span class="stamp-footer">★ 4R CERTIFIED ★</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+with hero_col2:
+    render_smart_kishan_brand_logo(width=200)
 
 # -------------------------------------------------------------
 # SCREEN 1: LOGIN & PREFERENCE
@@ -983,7 +1016,7 @@ elif st.session_state.step == 6:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 7: PRESCRIPTION DOSSIER WITH PDF DOWNLOAD & BRAND STAMP
+# SCREEN 7: PRESCRIPTION DOSSIER WITH SMART KISHAN LOGO & PDF
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
     st.subheader("7. 📋 Official Farmer Prescription Card (Smart Kishan Certified)")
@@ -997,19 +1030,16 @@ elif st.session_state.step == 7:
     # UI Display Card
     st.markdown(f"""
     <div class="summary-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div>
-                <h2 style="color: #1B5E20; margin-top: 0;">🌾 Smart Kishan • Official Crop & Fertilizer Prescription</h2>
-                <p style="margin:2px 0;"><strong>Farmer Mobile:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel ID:</strong> {st.session_state.plot_id}</p>
-                <p style="margin:2px 0;"><strong>Cultivated Crop:</strong> {st.session_state.sel_crop} | <strong>Target Harvest:</strong> {st.session_state.target_yield} t/ha</p>
-                <p style="margin:2px 0;"><strong>Land Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} ({st.session_state.land_area:.3f} Ha)</p>
-            </div>
-            <div class="smart-kishan-stamp" style="background:#2E7D32; border-color:#FFD700;">
-                <span class="stamp-title" style="color:#FFFFFF;">SMART KISHAN</span>
-                <span class="stamp-center" style="color:#FFD700;">★ VERIFIED ★</span>
-                <span class="stamp-footer" style="color:#E8F5E9;">4R CERTIFIED</span>
+                <h2 style="color: #1B5E20; margin-top: 0; margin-bottom:4px;">🌾 Smart Kishan • Official Crop & Fertilizer Prescription</h2>
+                <span style="font-size:13px; color:#2E7D32; font-weight:700;">DIGITAL FARMING SOLUTIONS • 4R CERTIFIED ADVISORY</span>
             </div>
         </div>
+        <hr style="border: 1px solid #A5D6A7; margin: 12px 0;"/>
+        <p style="margin:4px 0;"><strong>Farmer Mobile:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel ID:</strong> {st.session_state.plot_id}</p>
+        <p style="margin:4px 0;"><strong>Cultivated Crop:</strong> {st.session_state.sel_crop} | <strong>Target Harvest:</strong> {st.session_state.target_yield} t/ha</p>
+        <p style="margin:4px 0;"><strong>Land Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} ({st.session_state.land_area:.3f} Ha)</p>
         <hr style="border: 1px solid #A5D6A7; margin: 15px 0;"/>
         <h4 style="color: #1B5E20; margin-bottom: 6px;">🔬 Optical Pathology Inspection:</h4>
         <p style="margin:2px 0;">• <strong>Canopy Status:</strong> {diag['health']} | <strong>Detected Disease:</strong> {diag['disease']}</p>
@@ -1053,7 +1083,7 @@ elif st.session_state.step == 7:
     p_col1, p_col2 = st.columns([2, 2])
     with p_col1:
         st.download_button(
-            label="📄 Download Official PDF Prescription (With Smart Kishan Stamp)",
+            label="📄 Download Official PDF Prescription (With Smart Kishan Logo)",
             data=pdf_bytes,
             file_name=pdf_filename,
             mime="application/pdf"
