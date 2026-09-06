@@ -1,6 +1,7 @@
 import io
 import os
 import urllib.parse
+import urllib.request
 import joblib
 import numpy as np
 import pandas as pd
@@ -10,7 +11,7 @@ from datetime import datetime
 from PIL import Image, ImageStat, ImageFilter
 from sqlalchemy import create_engine, text
 
-# ReportLab imports for professional PDF generation & Unicode support
+# ReportLab imports for professional PDF generation
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import (
@@ -23,6 +24,17 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
+
+# -------------------------------------------------------------
+# AUTO-DOWNLOAD UNICODE FONT FOR MULTILINGUAL PDF SUPPORT
+# -------------------------------------------------------------
+FONT_FILE = "DejaVuSans.ttf"
+if not os.path.exists(FONT_FILE):
+    try:
+        font_url = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf"
+        urllib.request.urlretrieve(font_url, FONT_FILE)
+    except Exception:
+        pass
 
 # -------------------------------------------------------------
 # PAGE CONFIGURATION & LIGHT GREEN FARMER THEME
@@ -153,422 +165,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# SAFE MODEL LOADER (DEFINED BEFORE DEFAULTS)
-# -------------------------------------------------------------
-MODELS_DIR = "saved_models"
-
-def ensure_models_exist():
-    os.makedirs(MODELS_DIR, exist_ok=True)
-    for fname in ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl"]:
-        if not os.path.exists(os.path.join(MODELS_DIR, fname)):
-            train_crop_recommender()
-            train_fertilizer_classifier()
-            train_yield_regressor()
-            break
-
-@st.cache_resource(show_spinner=False)
-def load_all_models():
-    ensure_models_exist()
-    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
-    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
-    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
-    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
-    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
-    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
-    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
-    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
-    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
-    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
-
-(crop_model, crop_encoder, fert_model, soil_encoder, 
- crop_type_encoder, fert_enc, yield_model, 
- yield_features, yield_crop_encoder) = load_all_models()
-
-# -------------------------------------------------------------
-# EXTENSIVE GLOBAL MULTILINGUAL DICTIONARY (Supports All Languages)
-# -------------------------------------------------------------
-TRANSLATIONS = {
-    "English": {
-        "title": "Smart Kishan | Digital Farming Solutions",
-        "subtitle": "Certified 4R Nutrient Allocation, Real-Soil Triage & Official Prescription",
-        "login_tab": "Farmer Log In",
-        "reg_tab": "Register New Farmer",
-        "mobile_lbl": "Mobile Number",
-        "pass_lbl": "Password",
-        "conf_pass_lbl": "Confirm Password",
-        "lang_select": "App Language / Global Language Preference",
-        "mode_select": "Select Farm Service",
-        "mode_opt": "🌾 Full Soil & Fertilizer Optimization Pipeline",
-        "mode_diag": "🔬 Plant Disease, Pest & Medicine Diagnosis Only",
-        "btn_login": "Log In to Farm Dashboard ➔",
-        "btn_reg": "Create Account",
-        "btn_back": "⬅️ Back",
-        "btn_next": "Continue ➔",
-        "budget_lbl": "Your Maximum Fertilizer Budget (₹)",
-        "budget_help": "Optimization engine ensures total purchase cost stays strictly within this limit.",
-        "feedback_title": "🌟 Mandatory Farmer Feedback & Star Rating",
-        "feedback_submit": "Submit Feedback & Exit Dashboard ➔",
-        "land_calc_title": "📐 Land Unit Selection & Farm Budget Matrix",
-        "pdf_title": "SMART KISHAN • OFFICIAL CROP PRESCRIPTION",
-        "pdf_sub": "Certified 4R Nutrient Stewardship & Field Application Dossier",
-        "sec_profile": "1. FARMER & LAND PROFILE",
-        "sec_soil": "2. SOIL PROFILE & MEASURED ATTRIBUTES",
-        "sec_purchases": "3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)",
-        "sec_schedule": "4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS",
-        "stage_1_period": "Stage 1: Basal Dressing (At Sowing / Transplanting - Day 0)",
-        "stage_1_method": "Incorporate compost and broadcast full DAP and 1/3 MOP. Place 5-7 cm below seed furrow; do not leave on dry surface.",
-        "stage_2_period": "Stage 2: Vegetative Growth (20 - 25 Days Post Sowing)",
-        "stage_2_method": "Side-dress 1/2 urea dose + 1/3 MOP along plant rows. Ensure adequate soil moisture or irrigate within 24 hours.",
-        "stage_3_period": "Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)",
-        "stage_3_method": "Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.",
-        "soil_detected": "Soil is detected",
-        "soil_not_detected": "Not detected"
-    },
-    "हिन्दी": {
-        "title": "स्मार्ट किसान | डिजिटल फार्मिंग सॉल्यूशंस",
-        "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, वास्तविक मृदा विश्लेषण और आधिकारिक नुस्खा",
-        "login_tab": "किसान लॉगिन",
-        "reg_tab": "नया किसान पंजीकरण",
-        "mobile_lbl": "मोबाइल नंबर",
-        "pass_lbl": "पासवर्ड",
-        "conf_pass_lbl": "पासवर्ड की पुष्टि करें",
-        "lang_select": "ऐप भाषा / वैश्विक भाषा प्राथमिकता",
-        "mode_select": "कृषि सेवा चुनें",
-        "mode_opt": "🌾 पूर्ण मृदा एवं उर्वरक अनुकूलन पाइपलाइन",
-        "mode_diag": "🔬 केवल पौध रोग, कीट एवं औषधि निदान",
-        "btn_login": "डैशबोर्ड में लॉगिन करें ➔",
-        "btn_reg": "खाता बनाएं",
-        "btn_back": "⬅️ पीछे",
-        "btn_next": "आगे बढ़ें ➔",
-        "budget_lbl": "आपका अधिकतम उर्वरक बजट (₹)",
-        "budget_help": "यह सुनिश्चित करता है कि कुल उर्वरक खरीद लागत इस बजट सीमा से अधिक न हो।",
-        "feedback_title": "🌟 अनिवार्य किसान समीक्षा और स्टार रेटिंग",
-        "feedback_submit": "समीक्षा जमा करें और बाहर निकलें ➔",
-        "land_calc_title": "📐 भूमि इकाई चयन और कृषि बजट तालिका",
-        "pdf_title": "स्मार्ट किसान • आधिकारिक फसल एवं उर्वरक नुस्खा",
-        "pdf_sub": "प्रमाणित 4R पोषक तत्व प्रबंधन और कृषि अनुप्रयोग विवरण",
-        "sec_profile": "1. किसान और भूमि का विवरण",
-        "sec_soil": "2. मृदा परीक्षण और पर्यावरण पैरामीटर",
-        "sec_purchases": "3. आवश्यक उर्वरक खरीद (50 किलोग्राम बैग)",
-        "sec_schedule": "4. किसानों के लिए आवेदन समय अवधि और उपयोग करने की विधि",
-        "stage_1_period": "चरण 1: बुवाई / रोपाई के समय (दिन 0 - आधार खुराक)",
-        "stage_1_method": "कम्पोस्ट, डीएपी और 1/3 पोटाश को बीज से 5-7 सेमी गहराई में डालें। सूखी मिट्टी की ऊपरी सतह पर खुला न छोड़ें।",
-        "stage_2_period": "चरण 2: वनस्पति विकास अवस्था (बुवाई के 20 - 25 दिन बाद)",
-        "stage_2_method": "आधी यूरिया और 1/3 पोटाश को जड़ों के पास डालें। मिट्टी में पर्याप्त नमी होना अनिवार्य है या 24 घंटे में हल्की सिंचाई करें।",
-        "stage_3_period": "चरण 3: फूल आने और दाना भराव के समय (बुवाई के 45 - 55 दिन बाद)",
-        "stage_3_method": "बची हुई यूरिया और पोटाश का छिड़काव करें। भारी बारिश के समय न डालें ताकि खाद बह न जाए।",
-        "soil_detected": "Soil is detected",
-        "soil_not_detected": "Not detected"
-    },
-    "ଓଡ଼ିଆ": {
-        "title": "ସ୍ମାର୍ଟ କିଷାନ | ଡିଜିଟାଲ ଫାର୍ମିଂ ସଲ୍ୟୁସନ୍ସ",
-        "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ପ୍ରକୃତ ମୃତ୍ତିକା ବିଶ୍ଳେଷଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
-        "login_tab": "କୃଷକ ଲଗଇନ୍",
-        "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
-        "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
-        "pass_lbl": "ପାସୱାର୍ଡ",
-        "conf_pass_lbl": "ପାସୱାର୍ଡ ନିଶ୍ଚିତ କରନ୍ତୁ",
-        "lang_select": "ଭାଷା ଚୟନ / ବିଶ୍ୱବ୍ୟାପୀ ଭାଷା ପସନ୍ଦ",
-        "mode_select": "ସେବା ଚୟନ କରନ୍ତୁ",
-        "mode_opt": "🌾 ସମ୍ପୂର୍ଣ୍ଣ ମୃତ୍ତିକା ଓ ସାର ପରିମାଣ ନିର୍ଦ୍ଧାରଣ",
-        "mode_diag": "🔬 କେବଳ ଫସଲ ରୋଗ, କୀଟ ଚିହ୍ନଟ ଓ ଔଷଧ",
-        "btn_login": "ଡ୍ୟାସବୋର୍ଡରେ ପ୍ରବେଶ କରନ୍ତୁ ➔",
-        "btn_reg": "ଖାତା ତିଆରି କରନ୍ତୁ",
-        "btn_back": "⬅️ ପଛକୁ ଯାଆନ୍ତୁ",
-        "btn_next": "ଆଗକୁ ବଢ଼ନ୍ତୁ ➔",
-        "budget_lbl": "ଆପଣଙ୍କ ସର୍ବାଧିକ ସାର ଖର୍ଚ୍ଚ ବଜେଟ୍ (₹)",
-        "budget_help": "ଏହା ନିଶ୍ଚିତ କରେ ଯେ ଆପଣଙ୍କ ସାର ଖର୍ଚ୍ଚ ଏହି ବଜେଟ୍ ସୀମା ଭିତରେ ରହିବ।",
-        "feedback_title": "🌟 ବାଧ୍ୟତାମୂଳକ କୃଷକ ମତାମତ ଏବଂ ଷ୍ଟାର ରେଟିଂ",
-        "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ ଏବଂ ବାହାରକୁ ଯାଆନ୍ତୁ ➔",
-        "land_calc_title": "📐 ଜମି ଏକକ ଏବଂ କୃଷି ବଜେଟ୍ ସାରଣୀ",
-        "pdf_title": "ସ୍ମାର୍ଟ କିଷାନ • ସରକାରୀ ଫସଲ ଓ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ (ପ୍ରେସକ୍ରିପସନ)",
-        "pdf_sub": "୪ଆର୍ ନିୟମ ଅନୁମୋଦିତ କୃଷି ଓ ମୃତ୍ତିକା ପରିଚାଳନା ପତ୍ର",
-        "sec_profile": "୧. କୃଷକ ଏବଂ ଜମିର ବିବରଣୀ",
-        "sec_soil": "୨. ମୃତ୍ତିକା ପରୀକ୍ଷଣ ତଥ୍ୟ ଏବଂ ପରିବେଶ",
-        "sec_purchases": "୩. ଆବଶ୍ୟକ ଖତ ଓ ସାର କ୍ରୟ (୫୦ କେଜି ବସ୍ତା)",
-        "sec_schedule": "୪. ଚାଷୀଙ୍କ ପାଇଁ ସାର ପ୍ରୟୋଗ ସମୟସୀମା ଏବଂ ପ୍ରୟୋଗ ପଦ୍ଧତି",
-        "stage_1_period": "ପ୍ରଥମ ପର୍ଯ୍ୟାୟ: ତଳି ରୋପଣ / ବୁଣିବା ସମୟରେ (୦ ଦିନ - ମୂଳ ସାର)",
-        "stage_1_method": "ସମସ୍ତ ଜୈବିକ ଖତ, ସମ୍ପୂର୍ଣ୍ଣ ଡିଏପି ଏବଂ ୧/୩ ଭାଗ ପଟାସକୁ ମଞ୍ଜି ପୋତିବା ସ୍ଥାନର ୫-୭ ସେମି ଗଭୀରରେ ମିଶାନ୍ତୁ। ଶୁଖିଲା ମାଟି ଉପରେ ପକାନ୍ତୁ ନାହିଁ।",
-        "stage_2_period": "ଦ୍ୱିତୀୟ ପର୍ଯ୍ୟାୟ: ଗଛ ବୃଦ୍ଧି ଓ ପିଲ ବାହାରିବା ସମୟ (୨୦ ରୁ ୨୫ ଦିନ)",
-        "stage_2_method": "ଅଧା ୟୁରିଆ ଓ ୧/୩ ଭାଗ ପଟାସ ଗଛର ମୂଳ ନିକଟରେ ଦିଅନ୍ତୁ। ମାଟିରେ ଉପଯୁକ୍ତ ଓଦାଳିଆ ଅବସ୍ଥା ରହିବା ଦରକାର କିମ୍ବା ୨୪ ଘଣ୍ଟା ମଧ୍ୟରେ ପାଣି ମଡ଼ାନ୍ତୁ।",
-        "stage_3_period": "ତୃତୀୟ ପର୍ଯ୍ୟାୟ: ଫୁଲ ଫୁଟିବା ଓ ଶସ୍ୟ ଭରିବା ସମୟ (୪୫ ରୁ ୫୫ ଦିନ)",
-        "stage_3_method": "ଅବଶିଷ୍ଟ ୟୁରିଆ ଓ ପଟାସ ପ୍ରୟୋଗ କରନ୍ତୁ। ପ୍ରବଳ ବର୍ଷା ସମୟରେ ସାର ପକାନ୍ତୁ ନାହିଁ ଯାହା ଦ୍ୱାରା ଖତ ଧୋଇ ହୋଇ ନଷ୍ଟ ହେବ ନାହିଁ।",
-        "soil_detected": "Soil is detected",
-        "soil_not_detected": "Not detected"
-    },
-    "मराठी": {
-        "title": "स्मार्ट किसान | डिजिटल शेती उपाय",
-        "subtitle": "प्रमाणित 4R पोषक तत्व व्यवस्थापन, वास्तविक माती परीक्षण आणि अधिकृत कृषी शिफारस",
-        "login_tab": "शेतकरी लॉगिन",
-        "reg_tab": "नवीन शेतकरी नोंदणी",
-        "mobile_lbl": "मोबाईल नंबर",
-        "pass_lbl": "पासवर्ड",
-        "conf_pass_lbl": "पासवर्ड पुष्टी करा",
-        "lang_select": "भाषा निवडा",
-        "mode_select": "कृषी सेवा निवडा",
-        "mode_opt": "🌾 संपूर्ण माती आणि खत ऑप्टिमायझेशन",
-        "mode_diag": "🔬 केवळ पीक रोग, कीटक आणि औषध निदान",
-        "btn_login": "डॅशबोर्डवर लॉग इन करा ➔",
-        "btn_reg": "खाते तयार करा",
-        "btn_back": "⬅️ मागे",
-        "btn_next": "पुढे चालू ठेवा ➔",
-        "budget_lbl": "कमाल खत बजेट (₹)",
-        "budget_help": "खत खरेदी खर्च या मर्यादेत राहतो.",
-        "feedback_title": "🌟 शेतकरी अभिप्राय आणि स्टार रेटिंग",
-        "feedback_submit": "अभिप्राय सबमिट करा आणि बाहेर पडा ➔",
-        "land_calc_title": "📐 जमीन रूपांतरण आणि बजेट तक्ता",
-        "pdf_title": "स्मार्ट किसान • अधिकृत पीक आणि खत कृषी शिफारस",
-        "pdf_sub": "प्रमाणित 4R पोषक व्यवस्थापन आणि अर्ज तपशील",
-        "sec_profile": "१. शेतकरी आणि जमीन तपशील",
-        "sec_soil": "२. माती परीक्षण आणि हवामान",
-        "sec_purchases": "३. शिफारस केलेली खत खरेदी (५० किलो गोणी)",
-        "sec_schedule": "४. खत अर्ज करण्याची वेळ आणि पद्धत",
-        "stage_1_period": "पायरी १: पेरणीच्या वेळी (दिवस 0 - मूळ खत)",
-        "stage_1_method": "कंपोस्ट, डीएपी आणि १/३ पोटॅश जमिनीत मिसळा.",
-        "stage_2_period": "पायरी २: वाढीची अवस्था (२०-२५ दिवस)",
-        "stage_2_method": "अर्धी युरिया आणि १/३ पोटॅश द्या.",
-        "stage_3_period": "पायरी ३: फुल येण्याची अवस्था (४५-५५ दिवस)",
-        "stage_3_method": "उरलेली युरिया आणि पोटॅश टाका.",
-        "soil_detected": "माती आढळली",
-        "soil_not_detected": "आढळली नाही"
-    },
-    "தமிழ்": {
-        "title": "ஸ்மார்ட் கிசான் | டிஜிட்டல் விவசாய தீர்வுகள்",
-        "subtitle": "சான்றளிக்கப்பட்ட 4R சத்து மேலாண்மை, உண்மையான மண் பரிசோதனை மற்றும் அதிகாரப்பூர்வ பரிந்துரை",
-        "login_tab": "விவசாயி உள்நுழைவு",
-        "reg_tab": "புதிய விவசாயி பதிவு",
-        "mobile_lbl": "மொபைல் எண்",
-        "pass_lbl": "கடவுச்சொல்",
-        "conf_pass_lbl": "கடவுச்சொல்லை உறுதிப்படுத்தவும்",
-        "lang_select": "மொழி தேர்வு",
-        "mode_select": "விவசாய சேவையைத் தேர்ந்தெடுக்கவும்",
-        "mode_opt": "🌾 முழுமையான மண் மற்றும் உர மேம்படுத்தல்",
-        "mode_diag": "🔬 பயிர் நோய் மற்றும் பூச்சி கண்டறிதல் மட்டும்",
-        "btn_login": "உள்நுழைக ➔",
-        "btn_reg": "கணக்கு உருவாக்கவும்",
-        "btn_back": "⬅️ பின்னோக்கி",
-        "btn_next": "தொடரவும் ➔",
-        "budget_lbl": "அதிகபட்ச உர பட்ஜெட் (₹)",
-        "budget_help": "உர வாங்கும் செலவு இந்த வரம்பிற்குள் இருக்கும்.",
-        "feedback_title": "🌟 விவசாயி கருத்து மற்றும் மதிப்பீடு",
-        "feedback_submit": "கருத்தை சமர்ப்பித்து வெளியேறவும் ➔",
-        "land_calc_title": "📐 நில அளவு மற்றும் பட்ஜெட் அட்டவணை",
-        "pdf_title": "ஸ்மார்ட் கிசான் • அதிகாரப்பூர்வ பயிர் பரிந்துரை",
-        "pdf_sub": "சான்றளிக்கப்பட்ட 4R மேலாண்மை மற்றும் பயன்பாட்டு விவரம்",
-        "sec_profile": "1. விவசாயி மற்றும் நில விவரம்",
-        "sec_soil": "2. மண் சோதனை மற்றும் சூழல்",
-        "sec_purchases": "3. தேவையான உர கொள்முதல் (50கிகி மூட்டைகள்)",
-        "sec_schedule": "4. உரமிடும் காலம் மற்றும் முறை",
-        "stage_1_period": "நிலை 1: விதைக்கும் போது (நாள் 0)",
-        "stage_1_method": "உரம், டிஏபி மற்றும் பொட்டாஷ் இடவும்.",
-        "stage_2_period": "நிலை 2: வளர்ச்சி பருவம் (20-25 நாட்கள்)",
-        "stage_2_method": "யூரியா மற்றும் பொட்டாஷ் இடவும்.",
-        "stage_3_period": "நிலை 3: பூக்கும் பருவம் (45-55 நாட்கள்)",
-        "stage_3_method": "மீதமுள்ள உரங்களை இடவும்.",
-        "soil_detected": "மண் கண்டறியப்பட்டது",
-        "soil_not_detected": "கண்டறியப்படவில்லை"
-    },
-    "తెలుగు": {
-        "title": "స్ಮಾರ್ಟ్ కిసాన్ | డిజిటల్ వ్యవసాయ పరిష్కారాలు",
-        "subtitle": "ధృవీకరించబడిన 4R పోషక నిర్వహణ, నిజమైన నేల పరీక్ష & అధికారిక సిఫార్సు",
-        "login_tab": "రైతు లాగిన్",
-        "reg_tab": "కొత్త రైతు నమోదు",
-        "mobile_lbl": "మొబైల్ నంబర్",
-        "pass_lbl": "పాస్‌వర్డ్",
-        "conf_pass_lbl": "పాస్‌వర్డ్‌ని నిర్ధారించండి",
-        "lang_select": "భాషను ఎంచుకోండి",
-        "mode_select": "వ్యవసాయ సేవను ఎంచుకోండి",
-        "mode_opt": "🌾 పూర్తి నేల & ఎరువుల ఆప్టిమైజేషన్",
-        "mode_diag": "🔬 మొక్కల వ్యాధి & పురుగుల నిర్ధారణ మాత్రమే",
-        "btn_login": "లాగిన్ అవ్వండి ➔",
-        "btn_reg": "ఖాతాను సృష్టించండి",
-        "btn_back": "⬅️ వెనుకకు",
-        "btn_next": "కొనసాగించండి ➔",
-        "budget_lbl": "గరిష్ట ఎరువుల బడ్జెట్ (₹)",
-        "budget_help": "ఎరువుల కొనుగోలు ఖర్చు ఈ పరిమితిలోనే ఉంటుంది.",
-        "feedback_title": "🌟 రైతు అభిప్రాయం & రేటింగ్",
-        "feedback_submit": "అభిప్రాయాన్ని సమర్పించండి ➔",
-        "land_calc_title": "📐 భూమి మార్పిడి & బడ్జెట్ పట్టిక",
-        "pdf_title": "స్ಮಾರ್ಟ్ కిసాన్ • అధికారిక పంట & ఎరువుల సిఫార్సు",
-        "pdf_sub": "ధృవీకరించబడిన 4R నిర్వహణ & అప్లికేషన్ వివరాలు",
-        "sec_profile": "1. రైతు మరియు భూమి వివరాలు",
-        "sec_soil": "2. నేల పరీక్ష మరియు పర్యావరణం",
-        "sec_purchases": "3. సిఫార్సు చేయబడిన ఎరువుల కొనుగోలు (50 కేజీ సంచులు)",
-        "sec_schedule": "4. ఎరువులు వేసే సమయం మరియు పద్ధతి",
-        "stage_1_period": "దశ 1: విత్తే సమయంలో (రోజు 0)",
-        "stage_1_method": "కంపొస్ట్, డిఏపి మరియు పొటాష్ వేయండి.",
-        "stage_2_period": "దశ 2: పెరుగుదల దశ (20-25 రోజులు)",
-        "stage_2_method": "యూరియా మరియు పొటాష్ వేయండి.",
-        "stage_3_period": "దశ 3: పూత దశ (45-55 రోజులు)",
-        "stage_3_method": "మిగిలిన ఎరువులు వేయండి.",
-        "soil_detected": "నేల కనుగొనబడింది",
-        "soil_not_detected": "కనుగొనబడలేదు"
-    },
-    "Français": {
-        "title": "Smart Kishan | Solutions Agricoles Numériques",
-        "subtitle": "Allocation de nutriments 4R certifiée, triage des sols réels et ordonnance officielle",
-        "login_tab": "Connexion Agriculteur",
-        "reg_tab": "Enregistrer un Nouvel Agriculteur",
-        "mobile_lbl": "Numéro de Mobile",
-        "pass_lbl": "Mot de Passe",
-        "conf_pass_lbl": "Confirmer le Mot de Passe",
-        "lang_select": "Langue de l'application / Préférence de langue",
-        "mode_select": "Sélectionner le Service Agricole",
-        "mode_opt": "🌾 Pipeline complet d'optimisation du sol et des engrais",
-        "mode_diag": "🔬 Diagnostic des maladies, ravageurs et médicaments des plantes uniquement",
-        "btn_login": "Connexion au Tableau de Bord ➔",
-        "btn_reg": "Créer un Compte",
-        "btn_back": "⬅️ Retour",
-        "btn_next": "Continuer ➔",
-        "budget_lbl": "Budget Maximum d'Engrais (₹)",
-        "budget_help": "Le moteur d'optimisation garantit que le coût d'achat total reste strictement dans cette limite.",
-        "feedback_title": "🌟 Avis des Agriculteurs et Notation par Étoiles",
-        "feedback_submit": "Soumettre les commentaires et terminer ➔",
-        "land_calc_title": "📐 Conversion des Terres et Matrice Budgétaire",
-        "pdf_title": "SMART KISHAN • ORDONNANCE OFFICIELLE DES CULTURES",
-        "pdf_sub": "Gestion des nutriments 4R certifiée et dossier d'application sur le terrain",
-        "sec_profile": "1. PROFIL DE L'AGRICULTEUR ET DES TERRES",
-        "sec_soil": "2. PROFIL DU SOL ET ATTRIBUTS MESURÉS",
-        "sec_purchases": "3. ACHATS D'ENGRAIS RECOMMANDÉS (SACS DE 50KG)",
-        "sec_schedule": "4. PÉRIODES ET MÉTHODES D'APPLICATION CRONOMETRÉES",
-        "stage_1_period": "Étape 1 : Dressing basal (Au semis / repiquage - Jour 0)",
-        "stage_1_method": "Incorporez le compost et épandez tout le DAP et 1/3 de MOP à 5-7 cm de profondeur.",
-        "stage_2_period": "Étape 2 : Croissance végétative (20 - 25 jours après semis)",
-        "stage_2_method": "Apportez 1/2 dose d'urée + 1/3 de MOP le long des rangs.",
-        "stage_3_period": "Étape 3 : Initiation paniculaire / Floraison (45 - 55 jours)",
-        "stage_3_method": "Apportez le reste de l'urée et du MOP.",
-        "soil_detected": "Sol détecté",
-        "soil_not_detected": "Non détecté"
-    },
-    "日本語": {
-        "title": "スマートキシャン | デジタル農業ソリューション",
-        "subtitle": "認定4R養分配分、実土壌判定および公式処方箋",
-        "login_tab": "農家ログイン",
-        "reg_tab": "新規農家登録",
-        "mobile_lbl": "携帯電話番号",
-        "pass_lbl": "パスワード",
-        "conf_pass_lbl": "パスワードの確認",
-        "lang_select": "アプリ言語 / グローバル言語設定",
-        "mode_select": "農業サービスの選択",
-        "mode_opt": "🌾 土壌および肥料最適化パイプライン",
-        "mode_diag": "🔬 植物の病気・害虫診断のみ",
-        "btn_login": "ダッシュボードにログイン ➔",
-        "btn_reg": "アカウント作成",
-        "btn_back": "⬅️ 戻る",
-        "btn_next": "次へ ➔",
-        "budget_lbl": "最大肥料予算 (₹)",
-        "budget_help": "最適化エンジンにより、購入費用がこの予算内に厳格に抑えられます。",
-        "feedback_title": "🌟 農家のフィードバックと星評価",
-        "feedback_submit": "フィードバックを送信して完了 ➔",
-        "land_calc_title": "📐 土地面積変換と予算マトリックス",
-        "pdf_title": "スマートキシャン • 公式作物処方箋",
-        "pdf_sub": "認定4R養分管理および現場適用 dossier",
-        "sec_profile": "1. 農家および土地プロフィール",
-        "sec_soil": "2. 土壌プロフィールと計測属性",
-        "sec_purchases": "3. 推奨肥料購入 (50kg袋)",
-        "sec_schedule": "4. 農家向け施用時期および方法",
-        "stage_1_period": "ステージ1：基肥（播種・移植時 - 0日目）",
-        "stage_1_method": "堆肥を混ぜ、全量のDAPと1/3のMOPをまきます。",
-        "stage_2_period": "ステージ2：栄養成長期（播種後20〜25日）",
-        "stage_2_method": "尿素の1/2量と1/3のMOPを施用します。",
-        "stage_3_period": "ステージ3：穂いもち形成期・開花期（播種後45〜55日）",
-        "stage_3_method": "残りの尿素とMOPを追肥します。",
-        "soil_detected": "土壌が検出されました",
-        "soil_not_detected": "検出されませんでした"
-    },
-    "中文": {
-        "title": "Smart Kishan | 数字农业解决方案",
-        "subtitle": "经认证的4R养分分配、真实土壤筛查与官方处方",
-        "login_tab": "农民登录",
-        "reg_tab": "注册新农民",
-        "mobile_lbl": "手机号码",
-        "pass_lbl": "密码",
-        "conf_pass_lbl": "确认密码",
-        "lang_select": "应用语言 / 全球语言偏好",
-        "mode_select": "选择农业服务",
-        "mode_opt": "🌾 全面土壤与肥料优化管道",
-        "mode_diag": "🔬 仅限植物病虫害及药物诊断",
-        "btn_login": "登录农场仪表板 ➔",
-        "btn_reg": "创建账户",
-        "btn_back": "⬅️ 返回",
-        "btn_next": "继续 ➔",
-        "budget_lbl": "最大肥料预算 (₹)",
-        "budget_help": "优化引擎确保总采购成本严格保持在此限额内。",
-        "feedback_title": "🌟 农民反馈与星级评定",
-        "feedback_submit": "提交反馈并完成 ➔",
-        "land_calc_title": "📐 土地换算与农场预算矩阵",
-        "pdf_title": "SMART KISHAN • 官方作物处方",
-        "pdf_sub": "经认证的4R养分管理与田间施用档案",
-        "sec_profile": "1. 农民与土地概况",
-        "sec_soil": "2. 土壤概况与测量属性",
-        "sec_purchases": "3. 推荐肥料购买（50公斤装）",
-        "sec_schedule": "4. 农户施用时期与方法",
-        "stage_1_period": "阶段1：基肥（播种/移栽时 - 第0天）",
-        "stage_1_method": "施入堆肥并撒施全部DAP及1/3 MOP。",
-        "stage_2_period": "阶段2：营养生长阶段（播种后20 - 25天）",
-        "stage_2_method": "追施1/2尿素及1/3 MOP。",
-        "stage_3_period": "阶段3：孕穗/开花期（播种后45 - 55天）",
-        "stage_3_method": "追施剩余的尿素及MOP。",
-        "soil_detected": "检测到土壤",
-        "soil_not_detected": "未检测到"
-    },
-    "Deutsch": {
-        "title": "Smart Kishan | Digitale Landwirtschaftslösungen",
-        "subtitle": "Zertifizierte 4R-Nährstoffzuteilung, reale Boden-Triage & offizielles Rezept",
-        "login_tab": "Landwirt Login",
-        "reg_tab": "Neuen Landwirt registrieren",
-        "mobile_lbl": "Handynummer",
-        "pass_lbl": "Passwort",
-        "conf_pass_lbl": "Passwort bestätigen",
-        "lang_select": "App-Sprache / Globale Sprachpräferenz",
-        "mode_select": "Landwirtschaftsdienst auswählen",
-        "mode_opt": "🌾 Vollständige Boden- und Düngungsoptimierung",
-        "mode_diag": "🔬 Nur Pflanzenkrankheits- und Schädlingsdiagnose",
-        "btn_login": "Zum Dashboard anmelden ➔",
-        "btn_reg": "Konto erstellen",
-        "btn_back": "⬅️ Zurück",
-        "btn_next": "Weiter ➔",
-        "budget_lbl": "Maximales Düngebudget (₹)",
-        "budget_help": "Die Optimierungs-Engine stellt sicher, dass die Gesamtkosten im Budget bleiben.",
-        "feedback_title": "🌟 Feedback & Sternebewertung für Landwirte",
-        "feedback_submit": "Feedback absenden & beenden ➔",
-        "land_calc_title": "📐 Flächenumrechnung & Budgetmatrix",
-        "pdf_title": "SMART KISHAN • OFFIZIELLNES PFLANZENREZEPT",
-        "pdf_sub": "Zertifiziertes 4R-Nährstoffmanagement & Anwendungsdossier",
-        "sec_profile": "1. LANDWIRT- UND FLÄCHENPROFIL",
-        "sec_soil": "2. BODENPROFIL & GEMESSENE EIGENSCHAFTEN",
-        "sec_purchases": "3. EMPFOHLENE DÜNGERKÄUFE (50-KG-SÄCKE)",
-        "sec_schedule": "4. ZEITLICHE ANWENDUNGSPERIODEN & METHODEN",
-        "stage_1_period": "Stufe 1: Grunddüngung (Bei Aussaat / Pflanzung - Tag 0)",
-        "stage_1_method": "Kompost einarbeiten und volles DAP und 1/3 MOP ausbringen.",
-        "stage_2_period": "Stufe 2: Vegetatives Wachstum (20 - 25 Tage nach Aussaat)",
-        "stage_2_method": "1/2 Harnstoffdosis + 1/3 MOP entlang der Reihen geben.",
-        "stage_3_period": "Stufe 3: Rispenschieben / Blüte (45 - 55 Tage)",
-        "stage_3_method": "Restlichen Harnstoff und MOP ausbringen.",
-        "soil_detected": "Boden erkannt",
-        "soil_not_detected": "Nicht erkannt"
-    }
-}
-
-# -------------------------------------------------------------
-# SESSION STATE INITIALIZATION & TRANSLATIONS
-# -------------------------------------------------------------
-if "step" not in st.session_state:
-    st.session_state.step = 1
-if "app_mode" not in st.session_state:
-    st.session_state.app_mode = "Full Optimization"
-if "app_lang" not in st.session_state:
-    st.session_state.app_lang = "English"
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "user_mobile" not in st.session_state:
-    st.session_state.user_mobile = ""
-if "rating" not in st.session_state:
-    st.session_state.rating = 5
-
-T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
-
-# -------------------------------------------------------------
 # SAFE MODEL LOADER
 # -------------------------------------------------------------
 MODELS_DIR = "saved_models"
@@ -601,7 +197,7 @@ def load_all_models():
  yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
-# DATABASE ENGINE
+# DATABASE ENGINE & AUTH HELPERS
 # -------------------------------------------------------------
 @st.cache_resource
 def get_db_engine():
@@ -662,146 +258,273 @@ def save_feedback(mobile, rating, comments):
         return False
 
 # -------------------------------------------------------------
-# LAND CONVERSIONS (Ground-Truth Math)
+# GLOBAL MULTILINGUAL UI DICTIONARY
 # -------------------------------------------------------------
-UNIT_TO_HECTARE = {
-    "Acre (एकड़ / ଏକର)": 0.404686,
-    "Hectare (हेक्टेयर / ହେକ୍ଟର)": 1.0,
-    "Guntha (गुंठा / ଗୁଣ୍ଠ)": 0.010117,
-    "Decimal / Cent (डिसमिल / ଡେସିମିଲ)": 0.004047,
-    "Square Feet (वर्ग फुट / ବର୍ଗ ଫୁଟ)": 0.0000092903
+TRANSLATIONS = {
+    "English": {
+        "title": "Smart Kishan | Digital Farming Solutions",
+        "subtitle": "Certified 4R Nutrient Allocation, Real-Soil Triage & Official Prescription",
+        "login_tab": "Farmer Log In",
+        "reg_tab": "Register New Farmer",
+        "mobile_lbl": "Mobile Number",
+        "pass_lbl": "Password",
+        "conf_pass_lbl": "Confirm Password",
+        "lang_select": "App Language / Global Language Preference",
+        "mode_select": "Select Farm Service",
+        "mode_opt": "🌾 Full Soil & Fertilizer Optimization Pipeline",
+        "mode_diag": "🔬 Plant Disease, Pest & Medicine Diagnosis Only",
+        "btn_login": "Log In to Farm Dashboard ➔",
+        "btn_reg": "Create Account",
+        "btn_back": "⬅️ Back",
+        "btn_next": "Continue ➔",
+        "budget_lbl": "Your Maximum Fertilizer Budget (₹)",
+        "budget_help": "Optimization engine ensures total purchase cost stays strictly within this limit.",
+        "feedback_title": "🌟 Mandatory Farmer Feedback & Star Rating",
+        "feedback_submit": "Submit Feedback & Exit Dashboard ➔",
+        "land_calc_title": "📐 Land Unit Selection & Farm Budget Matrix",
+        "soil_detected": "Soil is detected",
+        "soil_not_detected": "Not detected"
+    },
+    "हिन्दी": {
+        "title": "स्मार्ट किसान | डिजिटल फार्मिंग सॉल्यूशंस",
+        "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, वास्तविक मृदा विश्लेषण और आधिकारिक नुस्खा",
+        "login_tab": "किसान लॉगिन",
+        "reg_tab": "नया किसान पंजीकरण",
+        "mobile_lbl": "मोबाइल नंबर",
+        "pass_lbl": "पासवर्ड",
+        "conf_pass_lbl": "पासवर्ड की पुष्टि करें",
+        "lang_select": "ऐप भाषा / वैश्विक भाषा प्राथमिकता",
+        "mode_select": "कृषि सेवा चुनें",
+        "mode_opt": "🌾 पूर्ण मृदा एवं उर्वरक अनुकूलन पाइपलाइन",
+        "mode_diag": "🔬 केवल पौध रोग, कीट एवं औषधि निदान",
+        "btn_login": "डैशबोर्ड में लॉगिन करें ➔",
+        "btn_reg": "खाता बनाएं",
+        "btn_back": "⬅️ पीछे",
+        "btn_next": "आगे बढ़ें ➔",
+        "budget_lbl": "आपका अधिकतम उर्वरक बजट (₹)",
+        "budget_help": "यह सुनिश्चित करता है कि कुल उर्वरक खरीद लागत इस बजट सीमा से अधिक न हो।",
+        "feedback_title": "🌟 अनिवार्य किसान समीक्षा और स्टार रेटिंग",
+        "feedback_submit": "समीक्षा जमा करें और बाहर निकलें ➔",
+        "land_calc_title": "📐 भूमि इकाई चयन और कृषि बजट तालिका",
+        "soil_detected": "Soil is detected",
+        "soil_not_detected": "Not detected"
+    },
+    "ଓଡ଼ିଆ": {
+        "title": "ସ୍ମାର୍ଟ କିଷାନ | ଡିଜିଟାଲ ଫାର୍ମିଂ ସଲ୍ୟୁସନ୍ସ",
+        "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ପ୍ରକୃତ ମୃତ୍ତିକା ବିଶ୍ଳେଷଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
+        "login_tab": "କୃଷକ ଲଗଇନ୍",
+        "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
+        "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
+        "pass_lbl": "ପାସୱାର୍ଡ",
+        "conf_pass_lbl": "ପାସୱାର୍ଡ ନିଶ୍ଚିତ କରନ୍ତୁ",
+        "lang_select": "ଭାଷା ଚୟନ / ବିଶ୍ୱବ୍ୟାପୀ ଭାଷା ପସନ୍ଦ",
+        "mode_select": "ସେବା ଚୟନ କରନ୍ତୁ",
+        "mode_opt": "🌾 ସମ୍ପୂର୍ଣ୍ଣ ମୃତ୍ତିକା ଓ ସାର ପରିମାଣ ନିର୍ଦ୍ଧାରଣ",
+        "mode_diag": "🔬 କେବଳ ଫସଲ ରୋଗ, କୀଟ ଚିହ୍ନଟ ଓ ଔଷଧ",
+        "btn_login": "ଡ୍ୟାସବୋର୍ଡରେ ପ୍ରବେଶ କରନ୍ତୁ ➔",
+        "btn_reg": "ଖାତା ତିଆରି କରନ୍ତୁ",
+        "btn_back": "⬅️ ପଛକୁ ଯାଆନ୍ତୁ",
+        "btn_next": "ଆଗକୁ ବଢ଼ନ୍ତୁ ➔",
+        "budget_lbl": "ଆପଣଙ୍କ ସର୍ବାଧିକ ସାର ଖର୍ଚ୍ଚ ବଜେଟ୍ (₹)",
+        "budget_help": "ଏହା ନିଶ୍ଚିତ କରେ ଯେ ଆପଣଙ୍କ ସାର ଖର୍ଚ୍ଚ ଏହି ବଜେଟ୍ ସୀମା ଭିତରେ ରହିବ।",
+        "feedback_title": "🌟 ବାଧ୍ୟତାମୂଳକ କୃଷକ ମତାମତ ଏବଂ ଷ୍ଟାର ରେଟିଂ",
+        "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ ଏବଂ ବାହାରକୁ ଯାଆନ୍ତୁ ➔",
+        "land_calc_title": "📐 ଜମି ଏକକ ଏବଂ କୃଷି ବଜେଟ୍ ସାରଣୀ",
+        "soil_detected": "Soil is detected",
+        "soil_not_detected": "Not detected"
+    },
+    "मराठी": {
+        "title": "स्मार्ट किसान | डिजिटल शेती उपाय",
+        "subtitle": "प्रमाणित 4R पोषक तत्व व्यवस्थापन, वास्तविक माती परीक्षण आणि अधिकृत कृषी शिफारस",
+        "login_tab": "शेतकरी लॉगिन",
+        "reg_tab": "नवीन शेतकरी नोंदणी",
+        "mobile_lbl": "मोबाईल नंबर",
+        "pass_lbl": "पासवर्ड",
+        "conf_pass_lbl": "पासवर्ड पुष्टी करा",
+        "lang_select": "भाषा निवडा",
+        "mode_select": "कृषी सेवा निवडा",
+        "mode_opt": "🌾 संपूर्ण माती आणि खत ऑप्टिमायझेशन",
+        "mode_diag": "🔬 केवळ पीक रोग, कीटक आणि औषध निदान",
+        "btn_login": "डॅशबोर्डवर लॉग इन करा ➔",
+        "btn_reg": "खाते तयार करा",
+        "btn_back": "⬅️ मागे",
+        "btn_next": "पुढे चालू ठेवा ➔",
+        "budget_lbl": "कमाल खत बजेट (₹)",
+        "budget_help": "खत खरेदी खर्च या मर्यादेत राहतो.",
+        "feedback_title": "🌟 शेतकरी अभिप्राय आणि स्टार रेटिंग",
+        "feedback_submit": "अभिप्राय सबमिट करा आणि बाहेर पडा ➔",
+        "land_calc_title": "📐 जमीन रूपांतरण आणि बजेट तक्ता",
+        "soil_detected": "माती आढळली",
+        "soil_not_detected": "आढळली नाही"
+    },
+    "தமிழ்": {
+        "title": "ஸ்மார்ட் கிசான் | டிஜிட்டல் விவசாய தீர்வுகள்",
+        "subtitle": "சான்றளிக்கப்பட்ட 4R சத்து மேலாண்மை, உண்மையான மண் பரிசோதனை மற்றும் அதிகாரப்பூர்வ பரிந்துரை",
+        "login_tab": "விவசாயி உள்நுழைவு",
+        "reg_tab": "புதிய விவசாயி பதிவு",
+        "mobile_lbl": "மொபைல் எண்",
+        "pass_lbl": "கடவுச்சொல்",
+        "conf_pass_lbl": "கடவுச்சொல்லை உறுதிப்படுத்தவும்",
+        "lang_select": "மொழி தேர்வு",
+        "mode_select": "விவசாய சேவையைத் தேர்ந்தெடுக்கவும்",
+        "mode_opt": "🌾 முழுமையான மண் மற்றும் உர மேம்படுத்தல்",
+        "mode_diag": "🔬 பயிர் நோய் மற்றும் பூச்சி கண்டறிதல் மட்டும்",
+        "btn_login": "உள்நுழைக ➔",
+        "btn_reg": "கணக்கு உருவாக்கவும்",
+        "btn_back": "⬅️ பின்னோக்கி",
+        "btn_next": "தொடரவும் ➔",
+        "budget_lbl": "அதிகபட்ச உர பட்ஜெட் (₹)",
+        "budget_help": "உர வாங்கும் செலவு இந்த வரம்பிற்குள் இருக்கும்.",
+        "feedback_title": "🌟 விவசாயி கருத்து மற்றும் மதிப்பீடு",
+        "feedback_submit": "கருத்தை சமர்ப்பித்து வெளியேறவும் ➔",
+        "land_calc_title": "📐 நில அளவு மற்றும் பட்ஜெட் அட்டவணை",
+        "soil_detected": "மண் கண்டறியப்பட்டது",
+        "soil_not_detected": "கண்டறியப்படவில்லை"
+    },
+    "తెలుగు": {
+        "title": "స్మార్ట్ కిసాన్ | డిజిటల్ వ్యవసాయ పరిష్కారాలు",
+        "subtitle": "ధృవీకరించబడిన 4R పోషక నిర్వహణ, నిజమైన నేల పరీక్ష & అధికారిక సిఫార్సు",
+        "login_tab": "రైతు లాగిన్",
+        "reg_tab": "కొత్త రైతు నమోదు",
+        "mobile_lbl": "మొబైల్ నంబర్",
+        "pass_lbl": "పాస్‌వర్డ్",
+        "conf_pass_lbl": "పాస్‌వర్డ్‌ని నిర్ధారించండి",
+        "lang_select": "భాషను ఎంచుకోండి",
+        "mode_select": "వ్యవసాయ సేవను ఎంచుకోండి",
+        "mode_opt": "🌾 పూర్తి నేల & ఎరువుల ఆప్టిమైజేషన్",
+        "mode_diag": "🔬 మొక్కల వ్యాధి & పురుగుల నిర్ధారణ మాత్రమే",
+        "btn_login": "లాగిన్ అవ్వండి ➔",
+        "btn_reg": "ఖాతాను సృష్టించండి",
+        "btn_back": "⬅️ వెనుకకు",
+        "btn_next": "కొనసాగించండి ➔",
+        "budget_lbl": "గరిష్ట ఎరువుల బడ్జెట్ (₹)",
+        "budget_help": "ఎరువుల కొనుగోలు ఖర్చు ఈ పరిమితిలోనే ఉంటుంది.",
+        "feedback_title": "🌟 రైతు అభిప్రాయం & రేటింగ్",
+        "feedback_submit": "అభిప్రాయాన్ని సమర్పించండి ➔",
+        "land_calc_title": "📐 భూమి మార్పిడి & బడ్జెట్ పట్టిక",
+        "soil_detected": "నేల కనుగొనబడింది",
+        "soil_not_detected": "కనుగొనబడలేదు"
+    },
+    "Français": {
+        "title": "Smart Kishan | Solutions Agricoles Numériques",
+        "subtitle": "Allocation de nutriments 4R certifiée, triage des sols réels et ordonnance officielle",
+        "login_tab": "Connexion Agriculteur",
+        "reg_tab": "Enregistrer un Nouvel Agriculteur",
+        "mobile_lbl": "Numéro de Mobile",
+        "pass_lbl": "Mot de Passe",
+        "conf_pass_lbl": "Confirmer le Mot de Passe",
+        "lang_select": "Langue de l'application / Préférence de langue",
+        "mode_select": "Sélectionner le Service Agricole",
+        "mode_opt": "🌾 Pipeline complet d'optimisation du sol et des engrais",
+        "mode_diag": "🔬 Diagnostic des maladies, ravageurs et médicaments des plantes uniquement",
+        "btn_login": "Connexion au Tableau de Bord ➔",
+        "btn_reg": "Créer un Compte",
+        "btn_back": "⬅️ Retour",
+        "btn_next": "Continuer ➔",
+        "budget_lbl": "Budget Maximum d'Engrais (₹)",
+        "budget_help": "Le moteur d'optimisation garantit que le coût d'achat total reste strictement dans cette limite.",
+        "feedback_title": "🌟 Avis des Agriculteurs et Notation par Étoiles",
+        "feedback_submit": "Soumettre les commentaires et terminer ➔",
+        "land_calc_title": "📐 Conversion des Terres et Matrice Budgétaire",
+        "soil_detected": "Sol détecté",
+        "soil_not_detected": "Non détecté"
+    },
+    "日本語": {
+        "title": "スマートキシャン | デジタル農業ソリューション",
+        "subtitle": "認定4R養分配分、実土壌判定および公式処方箋",
+        "login_tab": "農家ログイン",
+        "reg_tab": "新規農家登録",
+        "mobile_lbl": "携帯電話番号",
+        "pass_lbl": "パスワード",
+        "conf_pass_lbl": "パスワードの確認",
+        "lang_select": "アプリ言語 / グローバル言語設定",
+        "mode_select": "農業サービスの選択",
+        "mode_opt": "🌾 土壌および肥料最適化パイプライン",
+        "mode_diag": "🔬 植物の病気・害虫診断のみ",
+        "btn_login": "ダッシュボードにログイン ➔",
+        "btn_reg": "アカウント作成",
+        "btn_back": "⬅️ 戻る",
+        "btn_next": "次へ ➔",
+        "budget_lbl": "最大肥料予算 (₹)",
+        "budget_help": "最適化エンジンにより、購入費用がこの予算内に厳格に抑えられます。",
+        "feedback_title": "🌟 農家のフィードバックと星評価",
+        "feedback_submit": "フィードバックを送信して完了 ➔",
+        "land_calc_title": "📐 土地面積変換と予算マトリックス",
+        "soil_detected": "土壌が検出されました",
+        "soil_not_detected": "検出されませんでした"
+    },
+    "中文": {
+        "title": "Smart Kishan | 数字农业解决方案",
+        "subtitle": "经认证的4R养分分配、真实土壤筛查与官方处方",
+        "login_tab": "农民登录",
+        "reg_tab": "注册新农民",
+        "mobile_lbl": "手机号码",
+        "pass_lbl": "密码",
+        "conf_pass_lbl": "确认密码",
+        "lang_select": "应用语言 / 全球语言偏好",
+        "mode_select": "选择农业服务",
+        "mode_opt": "🌾 全面土壤与肥料优化管道",
+        "mode_diag": "🔬 仅限植物病虫害及药物诊断",
+        "btn_login": "登录农场仪表板 ➔",
+        "btn_reg": "创建账户",
+        "btn_back": "⬅️ 返回",
+        "btn_next": "继续 ➔",
+        "budget_lbl": "最大肥料预算 (₹)",
+        "budget_help": "优化引擎确保总采购成本严格保持在此限额内。",
+        "feedback_title": "🌟 农民反馈与星级评定",
+        "feedback_submit": "提交反馈并完成 ➔",
+        "land_calc_title": "📐 土地换算与农场预算矩阵",
+        "soil_detected": "检测到土壤",
+        "soil_not_detected": "未检测到"
+    },
+    "Deutsch": {
+        "title": "Smart Kishan | Digitale Landwirtschaftslösungen",
+        "subtitle": "Zertifizierte 4R-Nährstoffzuteilung, reale Boden-Triage & offizielles Rezept",
+        "login_tab": "Landwirt Login",
+        "reg_tab": "Neuen Landwirt registrieren",
+        "mobile_lbl": "Handynummer",
+        "pass_lbl": "Passwort",
+        "conf_pass_lbl": "Passwort bestätigen",
+        "lang_select": "App-Sprache / Globale Sprachpräferenz",
+        "mode_select": "Landwirtschaftsdienst auswählen",
+        "mode_opt": "🌾 Vollständige Boden- und Düngungsoptimierung",
+        "mode_diag": "🔬 Nur Pflanzenkrankheits- und Schädlingsdiagnose",
+        "btn_login": "Zum Dashboard anmelden ➔",
+        "btn_reg": "Konto erstellen",
+        "btn_back": "⬅️ Zurück",
+        "btn_next": "Weiter ➔",
+        "budget_lbl": "Maximales Düngebudget (₹)",
+        "budget_help": "Die Optimierungs-Engine stellt sicher, dass die Gesamtkosten im Budget bleiben.",
+        "feedback_title": "🌟 Feedback & Sternebewertung für Landwirte",
+        "feedback_submit": "Feedback absenden & beenden ➔",
+        "land_calc_title": "📐 Flächenumrechnung & Budgetmatrix",
+        "soil_detected": "Boden erkannt",
+        "soil_not_detected": "Nicht erkannt"
+    }
 }
 
-def render_land_conversion_table(entered_val, chosen_unit):
-    ha_base = entered_val * UNIT_TO_HECTARE[chosen_unit]
-    acres = ha_base / 0.404686
-    guntha = acres * 40.0
-    decimals = acres * 100.0
-    sq_ft = acres * 43560.0
-    
-    table_df = pd.DataFrame({
-        "Unit Name": ["Acre (ଏକର)", "Hectare (ହେକ୍ଟର)", "Guntha (ଗୁଣ୍ଠ)", "Decimal (ଡେସିମିଲ)", "Square Feet (Sq Ft)"],
-        "Calculated Size": [f"{acres:.3f} Acres", f"{ha_base:.3f} Ha", f"{guntha:.2f} Guntha", f"{decimals:.1f} Decimals", f"{sq_ft:,.0f} Sq Ft"]
-    })
-    return table_df, ha_base
+# -------------------------------------------------------------
+# SESSION STATE INITIALIZATION & TRANSLATIONS
+# -------------------------------------------------------------
+if "step" not in st.session_state:
+    st.session_state.step = 1
+if "app_mode" not in st.session_state:
+    st.session_state.app_mode = "Full Optimization"
+if "app_lang" not in st.session_state:
+    st.session_state.app_lang = "English"
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "user_mobile" not in st.session_state:
+    st.session_state.user_mobile = ""
+if "rating" not in st.session_state:
+    st.session_state.rating = 5
+if "plot_id" not in st.session_state:
+    st.session_state.plot_id = "Plot No. 104/1"
+
+T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
-# NUTRIENT DEFICIT ENGINE
-# -------------------------------------------------------------
-def calculate_advanced_nutrients(target_yield_per_acre, soil_n, soil_p, soil_k, soc, ph, soil_moist, soil_texture):
-    target_yield_ha = target_yield_per_acre * 2.47105
-
-    demand_n = 22.0 * target_yield_ha
-    demand_p = 4.5 * target_yield_ha
-    demand_k = 19.0 * target_yield_ha
-
-    nue_n = 0.50
-    if "sandy" in str(soil_texture).lower():
-        nue_n -= 0.10
-    if soil_moist < 30.0 or soil_moist > 75.0:
-        nue_n -= 0.08
-
-    ph_p_factor = 1.0 if 6.0 <= ph <= 7.2 else (0.60 if ph < 5.5 or ph > 8.0 else 0.80)
-    soc_n_factor = 1.0 + (soc * 0.15)
-
-    avail_n = (soil_n * 0.45) * soc_n_factor
-    avail_p = (soil_p * 0.35) * ph_p_factor
-    avail_k = (soil_k * 0.50)
-
-    def_n = max(0.0, (demand_n - avail_n) / max(0.3, nue_n))
-    def_p = max(0.0, (demand_p - avail_p) / 0.35)
-    def_k = max(0.0, (demand_k - avail_k) / 0.55)
-
-    return def_n, def_p, def_k
-
-# -------------------------------------------------------------
-# REAL-SOIL OPTICAL DISCRIMINATOR
-# -------------------------------------------------------------
-def verify_genuine_agricultural_soil(image_obj):
-    img_rgb = image_obj.convert("RGB").resize((160, 160))
-    np_img = np.array(img_rgb, dtype=np.float32)
-    
-    R = np_img[:, :, 0]
-    G = np_img[:, :, 1]
-    B = np_img[:, :, 2]
-
-    stat_rgb = ImageStat.Stat(img_rgb)
-    r_m, g_m, b_m = stat_rgb.mean[0], stat_rgb.mean[1], stat_rgb.mean[2]
-
-    is_earth_tone = (r_m >= g_m >= b_m) or (r_m < 90 and g_m < 90 and b_m < 90)
-    
-    gray = img_rgb.convert("L")
-    edges = gray.filter(ImageFilter.FIND_EDGES)
-    edge_stat = ImageStat.Stat(edges)
-    edge_var = edge_stat.var[0]
-
-    if is_earth_tone and edge_var > 20.0 and b_m < r_m:
-        if r_m > 135 and b_m < 95:
-            soil_type = "Red Laterite Soil"
-            est_n, est_p, est_k = 48.0, 22.0, 36.0
-            est_soc, est_ph, est_moist = 0.55, 6.2, 36.0
-        elif r_m < 85 and g_m < 85:
-            soil_type = "Deep Black Soil (Vertisol)"
-            est_n, est_p, est_k = 65.0, 35.0, 48.0
-            est_soc, est_ph, est_moist = 0.82, 7.4, 52.0
-        else:
-            soil_type = "Alluvial Loamy Clay"
-            est_n, est_p, est_k = 55.0, 30.0, 42.0
-            est_soc, est_ph, est_moist = 0.72, 6.6, 45.0
-
-        return {
-            "detected": True,
-            "soil_type": soil_type,
-            "metrics": {
-                "n": est_n, "p": est_p, "k": est_k,
-                "ph": est_ph, "soc": est_soc, "moist": est_moist,
-                "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})"
-            }
-        }
-    else:
-        return {
-            "detected": False,
-            "reason": "Not detected"
-        }
-
-def analyze_plant_disease_image(image_obj):
-    img_rgb = image_obj.convert("RGB").resize((100, 100))
-    arr = np.array(img_rgb)
-    r_mean, g_mean, b_mean = np.mean(arr[:, :, 0]), np.mean(arr[:, :, 1]), np.mean(arr[:, :, 2])
-    
-    if g_mean > r_mean and g_mean > b_mean:
-        return {
-            "health": "Healthy Plant Canopy",
-            "disease": "No critical fungal/bacterial infection",
-            "pest": "Minor sap-feeders / Thrips (<5%)",
-            "symptoms": "Healthy chlorophyll index and vigorous leaves.",
-            "medicine": "Neem Oil Spray (1500 ppm @ 3ml/L) as an organic protector.",
-            "recovery_chance": 95,
-            "will_grow": "Yes, excellent growth expected."
-        }
-    elif r_mean > g_mean and r_mean > 110:
-        return {
-            "health": "Infected Leaf Spots Detected",
-            "disease": "Leaf Rust / Early Blight (Alternaria spp.)",
-            "pest": "Fall Armyworm / Foliar Caterpillar chew marks",
-            "symptoms": "Yellow-brown necrotic spots with leaf edge wilting.",
-            "medicine": "Mancozeb 75% WP (2.5 g/L) + Chlorantraniliprole 18.5% SC (0.4 ml/L)",
-            "recovery_chance": 78,
-            "will_grow": "Yes, if treated within 48 to 72 hours."
-        }
-    else:
-        return {
-            "health": "Chlorosis & Stem Stress",
-            "disease": "Powdery Mildew / Bacterial Leaf Blight",
-            "pest": "Stem Borer / Aphid cluster colony",
-            "symptoms": "Pale whitening of lamina with loss of vigor.",
-            "medicine": "Hexaconazole 5% EC (2 ml/L) + Imidacloprid 17.8% SL (0.5 ml/L)",
-            "recovery_chance": 62,
-            "will_grow": "Moderate; requires immediate systemic spray."
-        }
-
-# -------------------------------------------------------------
-# PROFESSIONAL UNICODE-COMPLIANT MULTILINGUAL PDF GENERATOR
+# PROFESSIONAL ENGLISH PDF GENERator (STRICTLY IN ENGLISH)
 # -------------------------------------------------------------
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -821,45 +544,32 @@ class NumberedCanvas(canvas.Canvas):
         super().save()
 
     def draw_page_decorations(self, page_count):
-        self.setStrokeColor(colors.HexColor("#1B5E20"))
+        self.setStrokeColor(colors.HexColor("#1565C0"))
         self.setLineWidth(1.5)
         self.rect(20, 20, 555, 802)
 
         self.saveState()
-        self.setStrokeColor(colors.HexColor("#2E7D32"))
-        self.setFillColor(colors.HexColor("#E8F5E9"))
-        self.circle(500, 85, 38, stroke=1, fill=1)
-        self.circle(500, 85, 33, stroke=1, fill=0)
+        self.setStrokeColor(colors.HexColor("#1565C0"))
+        self.setFillColor(colors.HexColor("#E3F2FD"))
+        self.circle(460, 85, 38, stroke=1, fill=1)
+        self.circle(460, 85, 33, stroke=1, fill=0)
 
-        # Register and use Unicode font for canvas footer stamp if available
-        try:
-            font_path = "DejaVuSans.ttf"
-            if not os.path.exists(font_path):
-                font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-            if os.path.exists(font_path) and "UnicodeFont" not in pdfmetrics.getRegisteredFontNames():
-                pdfmetrics.registerFont(TTFont("UnicodeFont", font_path))
-            self.setFont("UnicodeFont", 6.5)
-        except Exception:
-            self.setFont("Helvetica-Bold", 6.5)
+        self.setFont("Helvetica-Bold", 6)
+        self.setFillColor(colors.HexColor("#0D47A1"))
+        self.drawCentredString(460, 103, "GOVT COMPLIANT")
+        self.drawCentredString(460, 83, "SMART KISHAN")
+        self.drawCentredString(460, 68, "4R CERTIFIED")
 
-        self.setFillColor(colors.HexColor("#1B5E20"))
-        self.drawCentredString(500, 104, "GOVT COMPLIANT")
-        self.drawCentredString(500, 83, "SMART KISHAN")
-        self.drawCentredString(500, 68, "4R CERTIFIED")
         self.restoreState()
 
-        try:
-            self.setFont("UnicodeFont", 8)
-        except Exception:
-            self.setFont("Helvetica", 8)
-
+        self.setFont("Helvetica", 8)
         self.setFillColor(colors.HexColor("#475569"))
         self.drawString(30, 28, "Smart Kishan • Digital Farming Solutions • ISO 9001:2015 Standard")
         self.drawRightString(565, 28, f"Page {self._pageNumber} of {page_count}")
 
 
-def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target_yield,
-                              budget, opt, diag, n, p, k, ph, soc, moist, temp, humid, rain, lang_dict):
+def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target_yield,
+                         budget, opt, diag, n, p, k, ph, soc, moist, temp, humid, rain):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -870,34 +580,12 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
         bottomMargin=45
     )
 
-    # Register Unicode font for all languages (Odia, Hindi, Marathi, Tamil, Telugu, Japanese, Chinese, French, German, etc.)
-    pdf_font_name = "Helvetica"
-    try:
-        font_candidates = [
-            "DejaVuSans.ttf",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-            "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
-            "FreeSans.ttf"
-        ]
-        registered_font = False
-        for fc in font_candidates:
-            if os.path.exists(fc):
-                pdfmetrics.registerFont(TTFont("UniversalUnicode", fc))
-                pdf_font_name = "UniversalUnicode"
-                registered_font = True
-                break
-        if not registered_font:
-            # Fallback if system TTF not found
-            pdf_font_name = "Helvetica"
-    except Exception:
-        pdf_font_name = "Helvetica"
-
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle('DocTitle', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=17, textColor=colors.HexColor('#1B5E20'), leading=21, alignment=1)
-    subtitle_style = ParagraphStyle('DocSub', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=9, textColor=colors.HexColor('#2E7D32'), leading=12, alignment=1)
-    section_h1 = ParagraphStyle('SecH1', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=10.5, textColor=colors.HexColor('#1B5E20'), leading=14, spaceBefore=8, spaceAfter=4)
-    body_style = ParagraphStyle('BodyText', parent=styles['Normal'], fontName=pdf_font_name, fontSize=8.5, textColor=colors.HexColor('#1E293B'), leading=11)
-    bold_style = ParagraphStyle('BoldText', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=8.5, textColor=colors.HexColor('#0F172A'), leading=11)
+    title_style = ParagraphStyle('DocTitle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=17, textColor=colors.HexColor('#1B5E20'), leading=21, alignment=1)
+    subtitle_style = ParagraphStyle('DocSub', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.HexColor('#2E7D32'), leading=12, alignment=1)
+    section_h1 = ParagraphStyle('SecH1', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10.5, textColor=colors.HexColor('#1B5E20'), leading=14, spaceBefore=8, spaceAfter=4)
+    body_style = ParagraphStyle('BodyText', parent=styles['Normal'], fontName='Helvetica', fontSize=8.5, textColor=colors.HexColor('#1E293B'), leading=11)
+    bold_style = ParagraphStyle('BoldText', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8.5, textColor=colors.HexColor('#0F172A'), leading=11)
 
     story = []
 
@@ -909,14 +597,14 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
         except Exception:
             pass
 
-    story.append(Paragraph(lang_dict.get("pdf_title", "SMART KISHAN • OFFICIAL CROP PRESCRIPTION"), title_style))
-    story.append(Paragraph(lang_dict.get("pdf_sub", "Certified 4R Nutrient Stewardship & Field Application Dossier"), subtitle_style))
-    story.append(Paragraph(f"Dossier ID: SK-{datetime.now().strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {datetime.now().strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName=pdf_font_name, fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
+    story.append(Paragraph("SMART KISHAN • OFFICIAL CROP PRESCRIPTION", title_style))
+    story.append(Paragraph("Certified 4R Nutrient Stewardship & Field Application Dossier", subtitle_style))
+    story.append(Paragraph(f"Dossier ID: SK-{datetime.now().strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {datetime.now().strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
     # SECTION 1: Farmer & Farm Profile
-    story.append(Paragraph(lang_dict.get("sec_profile", "1. FARMER & LAND PROFILE"), section_h1))
+    story.append(Paragraph("1. FARMER & LAND PROFILE", section_h1))
     profile_data = [
         [Paragraph("<b>Farmer Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
         [Paragraph("<b>Target Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Target Harvest:</b>", body_style), Paragraph(f"{target_yield} t/acre", bold_style)],
@@ -933,7 +621,7 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     story.append(t_prof)
 
     # SECTION 2: Baseline Soil & Telemetry
-    story.append(Paragraph(lang_dict.get("sec_soil", "2. SOIL PROFILE & MEASURED ATTRIBUTES"), section_h1))
+    story.append(Paragraph("2. SOIL PROFILE & MEASURED ATTRIBUTES", section_h1))
     telemetry_data = [
         [Paragraph("<b>Nitrogen (N):</b>", body_style), Paragraph(f"{n:.1f} mg/kg", bold_style), Paragraph("<b>Soil pH:</b>", body_style), Paragraph(f"{ph:.1f}", bold_style), Paragraph("<b>Ambient Temp:</b>", body_style), Paragraph(f"{temp:.1f} °C", bold_style)],
         [Paragraph("<b>Phosphorus (P):</b>", body_style), Paragraph(f"{p:.1f} mg/kg", bold_style), Paragraph("<b>Organic Carbon:</b>", body_style), Paragraph(f"{soc:.2f} %", bold_style), Paragraph("<b>Relative Humidity:</b>", body_style), Paragraph(f"{humid:.0f} %", bold_style)],
@@ -949,7 +637,7 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     story.append(t_tel)
 
     # SECTION 3: Fertilizer Purchases
-    story.append(Paragraph(lang_dict.get("sec_purchases", "3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)"), section_h1))
+    story.append(Paragraph("3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)", section_h1))
     urea_bags = max(1, round(opt['urea_kg'] / 50.0)) if opt['urea_kg'] > 0 else 0
     dap_bags = max(1, round(opt['dap_kg'] / 50.0)) if opt['dap_kg'] > 0 else 0
     mop_bags = max(1, round(opt['mop_kg'] / 50.0)) if opt['mop_kg'] > 0 else 0
@@ -974,23 +662,23 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     story.append(t_fert)
 
     # SECTION 4: Timed Application Periods & Methods
-    story.append(Paragraph(lang_dict.get("sec_schedule", "4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS"), section_h1))
+    story.append(Paragraph("4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS", section_h1))
     schedule_data = [
         [Paragraph("<b>Time Period</b>", bold_style), Paragraph("<b>Nutrient Blend</b>", bold_style), Paragraph("<b>Specific Application Method for Farmer</b>", bold_style)],
         [
-            Paragraph(f"<b>{lang_dict['stage_1_period']}</b>", body_style),
+            Paragraph("<b>Stage 1: Basal Dressing (At Sowing / Transplanting - Day 0)</b>", body_style),
             Paragraph("100% Bio-Compost + 100% DAP<br/>+ 1/3 MOP + 1/4 Urea", body_style),
-            Paragraph(lang_dict['stage_1_method'], body_style)
+            Paragraph("Incorporate compost and broadcast full DAP and 1/3 MOP. Place 5-7 cm below seed furrow; do not leave on dry surface.", body_style)
         ],
         [
-            Paragraph(f"<b>{lang_dict['stage_2_period']}</b>", body_style),
+            Paragraph("<b>Stage 2: Vegetative Growth (20 - 25 Days Post Sowing)</b>", body_style),
             Paragraph("1/2 Urea + 1/3 MOP<br/><i>(Vegetative Dose)</i>", body_style),
-            Paragraph(lang_dict['stage_2_method'], body_style)
+            Paragraph("Side-dress 1/2 urea dose + 1/3 MOP along plant rows. Ensure adequate soil moisture or irrigate within 24 hours.", body_style)
         ],
         [
-            Paragraph(f"<b>{lang_dict['stage_3_period']}</b>", body_style),
+            Paragraph("<b>Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)</b>", body_style),
             Paragraph("Remaining 1/4 Urea<br/>+ Remaining 1/3 MOP", body_style),
-            Paragraph(lang_dict['stage_3_method'], body_style)
+            Paragraph("Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.", body_style)
         ]
     ]
     t_sched = Table(schedule_data, colWidths=[130, 155, 250])
@@ -1007,7 +695,7 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     return buffer.getvalue()
 
 # -------------------------------------------------------------
-# DEFAULTS (AFTER MODEL LOADER SO CROP ENCODER IS INITIALIZED)
+# DEFAULTS
 # -------------------------------------------------------------
 defaults = {
     "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
@@ -1064,7 +752,6 @@ if st.session_state.step == 1:
     
     c_lang, c_mode = st.columns(2)
     
-    # Expanded global language list (English, Hindi, Odia, Marathi, Tamil, Telugu, French, Japanese, Chinese, German)
     available_languages = ["English", "हिन्दी", "ଓଡ଼ିଆ", "मराठी", "தமிழ்", "తెలుగు", "Français", "日本語", "中文", "Deutsch"]
     current_lang_index = available_languages.index(st.session_state.app_lang) if st.session_state.app_lang in available_languages else 0
     
@@ -1475,8 +1162,8 @@ elif st.session_state.step == 7:
     })
     st.table(app_methods_df)
 
-    # Generate Professional PDF in the Farmer's Selected Language
-    pdf_bytes = generate_multilingual_pdf(
+    # Generate Professional PDF strictly in English to ensure clear readability and layout stability
+    pdf_bytes = generate_english_pdf(
         user_mobile=st.session_state.user_mobile,
         plot_id=st.session_state.plot_id,
         raw_land=st.session_state.raw_land_val,
@@ -1494,16 +1181,15 @@ elif st.session_state.step == 7:
         moist=st.session_state.soil_moist,
         temp=st.session_state.temp,
         humid=st.session_state.humidity,
-        rain=st.session_state.rainfall,
-        lang_dict=T
+        rain=st.session_state.rainfall
     )
 
-    pdf_filename = f"SmartKishan_{st.session_state.app_lang}_Prescription_{st.session_state.user_mobile}.pdf"
+    pdf_filename = f"SmartKishan_English_Prescription_{st.session_state.user_mobile}.pdf"
 
     p_col1, p_col2 = st.columns([2, 2])
     with p_col1:
         st.download_button(
-            label=f"📄 Download PDF Prescription ({st.session_state.app_lang})",
+            label="📄 Download PDF Prescription (English)",
             data=pdf_bytes,
             file_name=pdf_filename,
             mime="application/pdf"
@@ -1525,7 +1211,6 @@ elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
     st.write("Please tap the stars below to rate your advisory experience before exiting:")
 
-    # Borderless Star Rating Component (Matching reference image style)
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="star-container">', unsafe_allow_html=True)
     star_cols = st.columns(5)
