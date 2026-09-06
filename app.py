@@ -157,21 +157,6 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25) !important;
     }
 
-    /* BORDERLESS CLEAN STAR BUTTON STYLING */
-    .star-container button {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        font-size: 38px !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        transition: transform 0.1s ease;
-    }
-    .star-container button:hover {
-        background: transparent !important;
-        transform: scale(1.15);
-    }
-
     .badge-pass {
         background-color: #E8F5E9;
         color: #1B5E20;
@@ -190,6 +175,38 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+# -------------------------------------------------------------
+# SAFE MODEL LOADER (DEFINED BEFORE DEFAULTS)
+# -------------------------------------------------------------
+MODELS_DIR = "saved_models"
+
+def ensure_models_exist():
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    for fname in ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl"]:
+        if not os.path.exists(os.path.join(MODELS_DIR, fname)):
+            train_crop_recommender()
+            train_fertilizer_classifier()
+            train_yield_regressor()
+            break
+
+@st.cache_resource(show_spinner=False)
+def load_all_models():
+    ensure_models_exist()
+    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
+    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
+    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
+    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
+    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
+    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
+    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
+    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
+    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
+    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
+
+(crop_model, crop_encoder, fert_model, soil_encoder, 
+ crop_type_encoder, fert_enc, yield_model, 
+ yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
 # MULTILINGUAL DICTIONARY
@@ -304,56 +321,6 @@ TRANSLATIONS = {
         "soil_not_detected": "Not detected"
     }
 }
-
-# -------------------------------------------------------------
-# SESSION STATE INITIALIZATION & TRANSLATIONS
-# -------------------------------------------------------------
-if "step" not in st.session_state:
-    st.session_state.step = 1
-if "app_mode" not in st.session_state:
-    st.session_state.app_mode = "Full Optimization"
-if "app_lang" not in st.session_state:
-    st.session_state.app_lang = "English"
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "user_mobile" not in st.session_state:
-    st.session_state.user_mobile = ""
-if "rating" not in st.session_state:
-    st.session_state.rating = 5
-
-T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
-
-# -------------------------------------------------------------
-# SAFE MODEL LOADER
-# -------------------------------------------------------------
-MODELS_DIR = "saved_models"
-
-def ensure_models_exist():
-    os.makedirs(MODELS_DIR, exist_ok=True)
-    for fname in ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl"]:
-        if not os.path.exists(os.path.join(MODELS_DIR, fname)):
-            train_crop_recommender()
-            train_fertilizer_classifier()
-            train_yield_regressor()
-            break
-
-@st.cache_resource(show_spinner=False)
-def load_all_models():
-    ensure_models_exist()
-    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
-    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
-    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
-    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
-    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
-    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
-    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
-    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
-    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
-    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
-
-(crop_model, crop_encoder, fert_model, soil_encoder, 
- crop_type_enc, fert_enc, yield_model, 
- yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
 # DATABASE ENGINE
@@ -722,7 +689,7 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     return buffer.getvalue()
 
 # -------------------------------------------------------------
-# DEFAULTS
+# DEFAULTS (AFTER MODEL LOADER SO CROP ENCODER IS INITIALIZED)
 # -------------------------------------------------------------
 defaults = {
     "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
@@ -1228,13 +1195,13 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY BORDERLESS GREEN STAR RATING & EXIT
+# SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
-    st.write("Please tap the green stars below to rate your advisory experience before exiting:")
+    st.write("Please tap the stars below to rate your advisory experience before exiting:")
 
-    # Borderless Green Star Rating Component (Matching reference image style)
+    # Borderless Star Rating Component (Matching reference image style)
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="star-container">', unsafe_allow_html=True)
     star_cols = st.columns(5)
@@ -1244,17 +1211,14 @@ elif st.session_state.step == 8:
 
     for i in range(1, 6):
         with star_cols[i-1]:
-            # Styled green star matching user reference
             star_symbol = "★" if i <= st.session_state.star_selection else "☆"
-            star_color_style = "color: #7CB342;" if i <= st.session_state.star_selection else "color: #C8E6C9;"
             
-            # Using clean borderless HTML button representation
             if st.button(f"{star_symbol}", key=f"borderless_star_{i}", use_container_width=True):
                 st.session_state.star_selection = i
                 st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown(f"<h3 style='text-align: center; color: #558B2F;'>★ {st.session_state.star_selection} / 5 Green Stars Rated ★</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='text-align: center; color: #D4AC0D;'>★ {st.session_state.star_selection} / 5 Stars Rated ★</h3>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
     feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your feedback here...")
