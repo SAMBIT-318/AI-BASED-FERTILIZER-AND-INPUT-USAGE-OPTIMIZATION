@@ -499,7 +499,7 @@ TRANSLATIONS = {
         "budget_lbl": "कमाल खत बजेट (₹)",
         "budget_help": "खत खरेदी खर्च या मर्यादेत राहतो.",
         "feedback_title": "🌟 शेतकरी अभिप्राय आणि स्टार रेटिंग",
-        "feedback_submit": "अभिप्राय सबमिट करा आणि बाहर पडा ➔",
+        "feedback_submit": "अभिप्राय सबमिट करा आणि बाहेर पडा ➔",
         "land_calc_title": "📐 जमीन रूपांतरण आणि बजेट तक्ता",
         "stage_1_period": "पायरी १: पेरणीच्या वेळी (दिवस 0 - मूळ खत)",
         "stage_1_method": "कंपोस्ट, डीएपी आणि १/३ पोटॅश जमिनीत मिसळा.",
@@ -735,6 +735,8 @@ if "humidity" not in st.session_state:
     st.session_state.humidity = 68.0
 if "rainfall" not in st.session_state:
     st.session_state.rainfall = 150.0
+if "soil_source" not in st.session_state:
+    st.session_state.soil_source = None
 
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
