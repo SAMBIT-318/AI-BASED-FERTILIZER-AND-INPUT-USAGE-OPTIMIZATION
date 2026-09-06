@@ -693,7 +693,7 @@ TRANSLATIONS = {
 }
 
 # -------------------------------------------------------------
-# SESSION STATE INITIALIZATION & TRANSLATIONS
+# SESSION STATE INITIALIZATION & DEFAULTS
 # -------------------------------------------------------------
 if "step" not in st.session_state:
     st.session_state.step = 1
@@ -717,6 +717,24 @@ if "budget_cap" not in st.session_state:
     st.session_state.budget_cap = 25000.0
 if "target_yield" not in st.session_state:
     st.session_state.target_yield = 2.0
+if "soil_n" not in st.session_state:
+    st.session_state.soil_n = 50.0
+if "soil_p" not in st.session_state:
+    st.session_state.soil_p = 30.0
+if "soil_k" not in st.session_state:
+    st.session_state.soil_k = 35.0
+if "soil_ph" not in st.session_state:
+    st.session_state.soil_ph = 6.5
+if "soc" not in st.session_state:
+    st.session_state.soc = 0.70
+if "soil_moist" not in st.session_state:
+    st.session_state.soil_moist = 45.0
+if "temp" not in st.session_state:
+    st.session_state.temp = 26.5
+if "humidity" not in st.session_state:
+    st.session_state.humidity = 68.0
+if "rainfall" not in st.session_state:
+    st.session_state.rainfall = 150.0
 
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
@@ -746,12 +764,10 @@ class NumberedCanvas(canvas.Canvas):
         self.rect(20, 20, 555, 802)
 
         self.saveState()
-        # Restored previous green stamp style with bold gold border inside
         self.setStrokeColor(colors.HexColor("#2E7D32"))
         self.setFillColor(colors.HexColor("#E8F5E9"))
         self.circle(500, 85, 38, stroke=1, fill=1)
         
-        # Bold Gold colored border inside the stamp circles
         self.setStrokeColor(colors.HexColor("#D4AC0D"))
         self.setLineWidth(2.5)
         self.circle(500, 85, 33, stroke=1, fill=0)
@@ -808,7 +824,6 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
-    # SECTION 1: Farmer & Farm Profile (Clean English for Land Unit to avoid block characters)
     clean_unit = "Acre"
     if "Hectare" in str(land_unit):
         clean_unit = "Hectare"
@@ -835,7 +850,6 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     ]))
     story.append(t_prof)
 
-    # SECTION 2: Baseline Soil & Telemetry
     story.append(Paragraph("2. SOIL PROFILE & MEASURED ATTRIBUTES", section_h1))
     telemetry_data = [
         [Paragraph("<b>Nitrogen (N):</b>", body_style), Paragraph(f"{n:.1f} mg/kg", bold_style), Paragraph("<b>Soil pH:</b>", body_style), Paragraph(f"{ph:.1f}", bold_style), Paragraph("<b>Ambient Temp:</b>", body_style), Paragraph(f"{temp:.1f} °C", bold_style)],
@@ -851,7 +865,6 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     ]))
     story.append(t_tel)
 
-    # SECTION 3: Fertilizer Purchases
     story.append(Paragraph("3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)", section_h1))
     urea_bags = max(1, round(opt['urea_kg'] / 50.0)) if opt['urea_kg'] > 0 else 0
     dap_bags = max(1, round(opt['dap_kg'] / 50.0)) if opt['dap_kg'] > 0 else 0
@@ -876,7 +889,6 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     ]))
     story.append(t_fert)
 
-    # SECTION 4: Timed Application Periods & Methods
     story.append(Paragraph("4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS", section_h1))
     schedule_data = [
         [Paragraph("<b>Time Period</b>", bold_style), Paragraph("<b>Nutrient Blend</b>", bold_style), Paragraph("<b>Specific Application Method for Farmer</b>", bold_style)],
@@ -1382,7 +1394,7 @@ elif st.session_state.step == 7:
     with p_col1:
         st.download_button(
             label="📄 Download PDF Prescription (English)",
-            data=pdf_bytes,
+            data=v := pdf_bytes,
             file_name=pdf_filename,
             mime="application/pdf"
         )
@@ -1401,7 +1413,7 @@ elif st.session_state.step == 7:
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
-    st.write("Please tap the stars below tory rate your advisory experience before exiting:")
+    st.write("Please tap the stars below to rate your advisory experience before exiting:")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="star-container">', unsafe_allow_html=True)
@@ -1429,7 +1441,7 @@ elif st.session_state.step == 8:
             st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
             save_feedback(st.session_state.user_mobile, st.session_state.star_selection, feedback_comments)
-            st.success("✅ Thank you! Your star rating and feedback have been recorded safely. Exiting session...")
+            st.success("✅ Thank you! Your star rating and feedback have been recorded safely. End of session...")
             
             st.session_state.logged_in = False
             st.session_state.user_mobile = ""
