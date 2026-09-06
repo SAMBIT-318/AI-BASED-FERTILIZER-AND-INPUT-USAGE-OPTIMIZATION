@@ -151,38 +151,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# SAFE MODEL LOADER (DEFINED BEFORE DEFAULTS)
-# -------------------------------------------------------------
-MODELS_DIR = "saved_models"
-
-def ensure_models_exist():
-    os.makedirs(MODELS_DIR, exist_ok=True)
-    for fname in ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl"]:
-        if not os.path.exists(os.path.join(MODELS_DIR, fname)):
-            train_crop_recommender()
-            train_fertilizer_classifier()
-            train_yield_regressor()
-            break
-
-@st.cache_resource(show_spinner=False)
-def load_all_models():
-    ensure_models_exist()
-    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
-    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
-    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
-    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
-    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
-    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
-    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
-    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
-    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
-    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
-
-(crop_model, crop_encoder, fert_model, soil_encoder, 
- crop_type_encoder, fert_enc, yield_model, 
- yield_features, yield_crop_encoder) = load_all_models()
-
-# -------------------------------------------------------------
 # MULTILINGUAL DICTIONARY
 # -------------------------------------------------------------
 TRANSLATIONS = {
@@ -295,6 +263,56 @@ TRANSLATIONS = {
         "soil_not_detected": "Not detected"
     }
 }
+
+# -------------------------------------------------------------
+# SESSION STATE INITIALIZATION & TRANSLATIONS
+# -------------------------------------------------------------
+if "step" not in st.session_state:
+    st.session_state.step = 1
+if "app_mode" not in st.session_state:
+    st.session_state.app_mode = "Full Optimization"
+if "app_lang" not in st.session_state:
+    st.session_state.app_lang = "English"
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "user_mobile" not in st.session_state:
+    st.session_state.user_mobile = ""
+if "rating" not in st.session_state:
+    st.session_state.rating = 5
+
+T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
+
+# -------------------------------------------------------------
+# SAFE MODEL LOADER
+# -------------------------------------------------------------
+MODELS_DIR = "saved_models"
+
+def ensure_models_exist():
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    for fname in ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl"]:
+        if not os.path.exists(os.path.join(MODELS_DIR, fname)):
+            train_crop_recommender()
+            train_fertilizer_classifier()
+            train_yield_regressor()
+            break
+
+@st.cache_resource(show_spinner=False)
+def load_all_models():
+    ensure_models_exist()
+    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
+    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
+    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
+    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
+    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
+    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
+    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
+    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
+    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
+    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
+
+(crop_model, crop_encoder, fert_model, soil_encoder, 
+ crop_type_encoder, fert_enc, yield_model, 
+ yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
 # DATABASE ENGINE
