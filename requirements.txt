@@ -1,9 +1,11 @@
 streamlit
+xgboost
+scikit-learn
 scipy
 numpy
 pandas
 joblib
-scikit-learn
 sqlalchemy
 psycopg2-binary
 Pillow
+requests
