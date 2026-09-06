@@ -387,7 +387,7 @@ def save_feedback(mobile, rating, comments):
         return False
 
 # -------------------------------------------------------------
-# GLOBAL MULTILINGUAL UI DICTIONARY
+# GLOBAL MULTILINGUAL UI DICTIONARY (With Safe Fallbacks)
 # -------------------------------------------------------------
 TRANSLATIONS = {
     "English": {
@@ -411,6 +411,12 @@ TRANSLATIONS = {
         "feedback_title": "🌟 Mandatory Farmer Feedback & Star Rating",
         "feedback_submit": "Submit Feedback & Exit Dashboard ➔",
         "land_calc_title": "📐 Land Unit Selection & Farm Budget Matrix",
+        "stage_1_period": "Stage 1: Basal Dressing (At Sowing / Transplanting - Day 0)",
+        "stage_1_method": "Incorporate compost and broadcast full DAP and 1/3 MOP. Place 5-7 cm below seed furrow; do not leave on dry surface.",
+        "stage_2_period": "Stage 2: Vegetative Growth (20 - 25 Days Post Sowing)",
+        "stage_2_method": "Side-dress 1/2 urea dose + 1/3 MOP along plant rows. Ensure adequate soil moisture or irrigate within 24 hours.",
+        "stage_3_period": "Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)",
+        "stage_3_method": "Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.",
         "soil_detected": "Soil is detected",
         "soil_not_detected": "Not detected"
     },
@@ -435,6 +441,12 @@ TRANSLATIONS = {
         "feedback_title": "🌟 अनिवार्य किसान समीक्षा और स्टार रेटिंग",
         "feedback_submit": "समीक्षा जमा करें और बाहर निकलें ➔",
         "land_calc_title": "📐 भूमि इकाई चयन और कृषि बजट तालिका",
+        "stage_1_period": "चरण 1: बुवाई / रोपाई के समय (दिन 0 - आधार खुराक)",
+        "stage_1_method": "कम्पोस्ट, डीएपी और 1/3 पोटाश को बीज से 5-7 सेमी गहराई में डालें। सूखी मिट्टी की ऊपरी सतह पर खुला न छोड़ें।",
+        "stage_2_period": "चरण 2: वनस्पति विकास अवस्था (बुवाई के 20 - 25 दिन बाद)",
+        "stage_2_method": "आधी यूरिया और 1/3 पोटाश को जड़ों के पास डालें। मिट्टी में पर्याप्त नमी होना अनिवार्य है या 24 घंटे में हल्की सिंचाई करें।",
+        "stage_3_period": "चरण 3: फूल आने और दाना भराव के समय (बुवाई के 45 - 55 दिन बाद)",
+        "stage_3_method": "बची हुई यूरिया और पोटाश का छिड़काव करें। भारी बारिश के समय न डालें ताकि खाद बह न जाए।",
         "soil_detected": "Soil is detected",
         "soil_not_detected": "Not detected"
     },
@@ -459,6 +471,12 @@ TRANSLATIONS = {
         "feedback_title": "🌟 ବାଧ୍ୟତାମୂଳକ କୃଷକ ମତାମତ ଏବଂ ଷ୍ଟାର ରେଟିଂ",
         "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ ଏବଂ ବାହାରକୁ ଯାଆନ୍ତୁ ➔",
         "land_calc_title": "📐 ଜମି ଏକକ ଏବଂ କୃଷି ବଜେଟ୍ ସାରଣୀ",
+        "stage_1_period": "ପ୍ରଥମ ପର୍ଯ୍ୟାୟ: ତଳି ରୋପଣ / ବୁଣିବା ସମୟରେ (୦ ଦିନ - ମୂଳ ସାର)",
+        "stage_1_method": "ସମସ୍ତ ଜୈବିକ ଖତ, ସମ୍ପୂର୍ଣ୍ଣ ଡିଏପି ଏବଂ ୧/୩ ଭାଗ ପଟାସକୁ ମଞ୍ଜି ପୋତିବା ସ୍ଥାନର ୫-୭ ସେମି ଗଭୀରରେ ମିଶାନ୍ତୁ। ଶୁଖିଲା ମାଟି ଉପରେ ପକାନ୍ତୁ ନାହିଁ।",
+        "stage_2_period": "ଦ୍ୱିତୀୟ ପର୍ଯ୍ୟାୟ: ଗଛ ବୃଦ୍ଧି ଓ ପିଲ ବାହାରିବା ସମୟ (୨୦ ରୁ ୨୫ ଦିନ)",
+        "stage_2_method": "ଅଧା ୟୁରିଆ ଓ ୧/୩ ଭାଗ ପଟାସ ଗଛର ମୂଳ ନିକଟରେ ଦିଅନ୍ତୁ। ମାଟିରେ ଉପଯୁକ୍ତ ଓଦାଳିଆ ଅବସ୍ଥା ରହିବା ଦରକାର କିମ୍ବା ୨୪ ଘଣ୍ଟା ମଧ୍ୟରେ ପାଣି ମଡ଼ାନ୍ତୁ।",
+        "stage_3_period": "ତୃତୀୟ ପର୍ଯ୍ୟାୟ: ଫୁଲ ଫୁଟିବା ଓ ଶସ୍ୟ ଭରିବା ସମୟ (୪୫ ରୁ ୫୫ ଦିନ)",
+        "stage_3_method": "ଅବଶିଷ୍ଟ ୟୁରିଆ ଓ ପଟାସ ପ୍ରୟୋଗ କରନ୍ତୁ। ପ୍ରବଳ ବର୍ଷା ସମୟରେ ସାର ପକାନ୍ତୁ ନାହିଁ ଯାହା ଦ୍ୱାରା ଖତ ଧୋଇ ହୋଇ ନଷ୍ଟ ହେବ ନାହିଁ।",
         "soil_detected": "Soil is detected",
         "soil_not_detected": "Not detected"
     },
@@ -483,6 +501,12 @@ TRANSLATIONS = {
         "feedback_title": "🌟 शेतकरी अभिप्राय आणि स्टार रेटिंग",
         "feedback_submit": "अभिप्राय सबमिट करा आणि बाहेर पडा ➔",
         "land_calc_title": "📐 जमीन रूपांतरण आणि बजेट तक्ता",
+        "stage_1_period": "पायरी १: पेरणीच्या वेळी (दिवस 0 - मूळ खत)",
+        "stage_1_method": "कंपोस्ट, डीएपी आणि १/३ पोटॅश जमिनीत मिसळा.",
+        "stage_2_period": "पायरी २: वाढीची अवस्था (२०-२५ दिवस)",
+        "stage_2_method": "अर्धी युरिया आणि १/३ पोटॅश द्या.",
+        "stage_3_period": "पायरी ३: फुल येण्याची अवस्था (४५-५५ दिवस)",
+        "stage_3_method": "उरलेली युरिया आणि पोटॅश टाका.",
         "soil_detected": "माती आढळली",
         "soil_not_detected": "आढळली नाही"
     },
@@ -507,6 +531,12 @@ TRANSLATIONS = {
         "feedback_title": "🌟 விவசாயி கருத்து மற்றும் மதிப்பீடு",
         "feedback_submit": "கருத்தை சமர்ப்பித்து வெளியேறவும் ➔",
         "land_calc_title": "📐 நில அளவு மற்றும் பட்ஜெட் அட்டவணை",
+        "stage_1_period": "நிலை 1: விதைக்கும் போது (நாள் 0)",
+        "stage_1_method": "உரம், டிஏபி மற்றும் பொட்டாஷ் இடவும்.",
+        "stage_2_period": "நிலை 2: வளர்ச்சி பருவம் (20-25 நாட்கள்)",
+        "stage_2_method": "யூரியா மற்றும் பொட்டாஷ் இடவும்.",
+        "stage_3_period": "நிலை 3: பூக்கும் பருவம் (45-55 நாட்கள்)",
+        "stage_3_method": "மீதமுள்ள உரங்களை இடவும்.",
         "soil_detected": "மண் கண்டறியப்பட்டது",
         "soil_not_detected": "கண்டறியப்படவில்லை"
     },
@@ -531,6 +561,12 @@ TRANSLATIONS = {
         "feedback_title": "🌟 రైతు అభిప్రాయం & రేటింగ్",
         "feedback_submit": "అభిప్రాయాన్ని సమర్పించండి ➔",
         "land_calc_title": "📐 భూమి మార్పిడి & బడ్జెట్ పట్టిక",
+        "stage_1_period": "దశ 1: విత్తే సమయంలో (రోజు 0)",
+        "stage_1_method": "కంపొస్ట్, డిఏపి మరియు పొటాష్ వేయండి.",
+        "stage_2_period": "దశ 2: పెరుగుదల దశ (20-25 రోజులు)",
+        "stage_2_method": "యూరియా మరియు పొటాష్ వేయండి.",
+        "stage_3_period": "దశ 3: పూత దశ (45-55 రోజులు)",
+        "stage_3_method": "మిగిలిన ఎరువులు వేయండి.",
         "soil_detected": "నేల కనుగొనబడింది",
         "soil_not_detected": "కనుగొనబడలేదు"
     },
@@ -555,6 +591,12 @@ TRANSLATIONS = {
         "feedback_title": "🌟 Avis des Agriculteurs et Notation par Étoiles",
         "feedback_submit": "Soumettre les commentaires et terminer ➔",
         "land_calc_title": "📐 Conversion des Terres et Matrice Budgétaire",
+        "stage_1_period": "Étape 1 : Dressing basal",
+        "stage_1_method": "Incorporez le compost et épandez tout le DAP et 1/3 de MOP.",
+        "stage_2_period": "Étape 2 : Croissance végétative",
+        "stage_2_method": "Apportez 1/2 dose d'urée + 1/3 de MOP.",
+        "stage_3_period": "Étape 3 : Floraison",
+        "stage_3_method": "Apportez le reste de l'urée et du MOP.",
         "soil_detected": "Sol détecté",
         "soil_not_detected": "Non détecté"
     },
@@ -579,6 +621,12 @@ TRANSLATIONS = {
         "feedback_title": "🌟 農家のフィードバックと星評価",
         "feedback_submit": "フィードバックを送信して完了 ➔",
         "land_calc_title": "📐 土地面積変換と予算マトリックス",
+        "stage_1_period": "ステージ1：基肥",
+        "stage_1_method": "堆肥を混ぜ、全量のDAPと1/3のMOPをまきます。",
+        "stage_2_period": "ステージ2：栄養成長期",
+        "stage_2_method": "尿素の1/2量と1/3のMOPを施用します。",
+        "stage_3_period": "ステージ3：開花期",
+        "stage_3_method": "残りの尿素とMOPを追肥します。",
         "soil_detected": "土壌が検出されました",
         "soil_not_detected": "検出されませんでした"
     },
@@ -603,6 +651,12 @@ TRANSLATIONS = {
         "feedback_title": "🌟 农民反馈与星级评定",
         "feedback_submit": "提交反馈并完成 ➔",
         "land_calc_title": "📐 土地换算与农场预算矩阵",
+        "stage_1_period": "阶段1：基肥",
+        "stage_1_method": "施入堆肥并撒施全部DAP及1/3 MOP。",
+        "stage_2_period": "阶段2：营养生长阶段",
+        "stage_2_method": "追施1/2尿素及1/3 MOP。",
+        "stage_3_period": "阶段3：开花期",
+        "stage_3_method": "追施剩余的尿素及MOP。",
         "soil_detected": "检测到土壤",
         "soil_not_detected": "未检测到"
     },
@@ -627,6 +681,12 @@ TRANSLATIONS = {
         "feedback_title": "🌟 Feedback & Sternebewertung für Landwirte",
         "feedback_submit": "Feedback absenden & beenden ➔",
         "land_calc_title": "📐 Flächenumrechnung & Budgetmatrix",
+        "stage_1_period": "Stufe 1: Grunddüngung",
+        "stage_1_method": "Kompost einarbeiten und volles DAP und 1/3 MOP ausbringen.",
+        "stage_2_period": "Stufe 2: Vegetatives Wachstum",
+        "stage_2_method": "1/2 Harnstoffdosis + 1/3 MOP entlang der Reihen geben.",
+        "stage_3_period": "Stufe 3: Blüte",
+        "stage_3_method": "Restlichen Harnstoff und MOP ausbringen.",
         "soil_detected": "Boden erkannt",
         "soil_not_detected": "Nicht erkannt"
     }
