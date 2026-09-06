@@ -568,7 +568,7 @@ TRANSLATIONS = {
         "stage_3_period": "దశ 3: పూత దశ (45-55 రోజులు)",
         "stage_3_method": "మిగిలిన ఎరువులు వేయండి.",
         "soil_detected": "నేల కనుగొనబడింది",
-        "soil_not_detected": "కనుగొనబడడਲେदु"
+        "soil_not_detected": "కనుగొనబడలేదు"
     },
     "Français": {
         "title": "Smart Kishan | Solutions Agricoles Numériques",
