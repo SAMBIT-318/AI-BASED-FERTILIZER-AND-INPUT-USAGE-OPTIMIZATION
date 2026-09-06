@@ -1,134 +1,57 @@
 import math
 from PIL import Image, ImageDraw, ImageFont
 
-def create_unique_smart_kishan_logo(output_filename="smart_kishan_logo.png"):
-    # 1000x1000 High-Res Canvas with Transparent Background
-    size = (1000, 1000)
-    img = Image.new("RGBA", size, (255, 255, 255, 0))
-    draw = ImageDraw.Draw(img)
-
-    center_x, center_y = 500, 360
-
-    # 1. Subtle Radial Glow Background
-    for r in range(320, 180, -8):
-        alpha = int(22 * (1 - (r - 180) / 140))
-        draw.ellipse([center_x - r, center_y - r, center_x + r, center_y + r], 
-                     fill=(232, 245, 233, alpha))
-
-    # 2. Modern Open Agro-Shield Arc
-    for w in range(16):
-        bbox = [center_x - 240 + w, center_y - 240 + w, center_x + 240 - w, center_y + 240 - w]
-        draw.arc(bbox, start=35, end=290, fill=(46, 125, 50, 240), width=2)
-        draw.arc(bbox, start=120, end=350, fill=(21, 101, 192, 220), width=2)
-
-    # 3. Precision Sensor / Wireless Telemetry Waves (Top Center)
-    wave_center_y = center_y - 170
-    draw.arc([center_x - 55, wave_center_y - 30, center_x + 55, wave_center_y + 40], 
-             start=200, end=340, fill=(2, 136, 209, 255), width=7)
-    draw.arc([center_x - 35, wave_center_y - 12, center_x + 35, wave_center_y + 35], 
-             start=200, end=340, fill=(2, 136, 209, 255), width=6)
-    draw.ellipse([center_x - 8, wave_center_y + 12, center_x + 8, wave_center_y + 28], 
-                 fill=(255, 179, 0, 255))
-
-    # 4. Leaf 1: Organic Natural Leaf (Left side)
-    organic_leaf_points = [
-        (center_x - 10, center_y + 130),
-        (center_x - 80, center_y + 100),
-        (center_x - 160, center_y + 10),
-        (center_x - 160, center_y - 80),
-        (center_x - 110, center_y - 140),
-        (center_x - 40, center_y - 90),
-        (center_x - 15, center_y - 10),
-        (center_x - 5, center_y + 80),
-    ]
-    draw.polygon(organic_leaf_points, fill=(67, 160, 71, 245), outline=(27, 94, 32, 255))
-    
-    draw.line([(center_x - 110, center_y - 140), (center_x - 10, center_y + 130)], fill=(165, 214, 167, 230), width=5)
-    draw.line([(center_x - 70, center_y - 30), (center_x - 130, center_y - 40)], fill=(165, 214, 167, 200), width=3)
-    draw.line([(center_x - 50, center_y + 30), (center_x - 110, center_y + 40)], fill=(165, 214, 167, 200), width=3)
-
-    # 5. Leaf 2: Digital IoT / Neural Circuit Leaf (Right side)
-    digital_leaf_points = [
-        (center_x - 5, center_y + 140),
-        (center_x + 30, center_y + 90),
-        (center_x + 120, center_y + 30),
-        (center_x + 150, center_y - 60),
-        (center_x + 100, center_y - 160),
-        (center_x + 40, center_y - 100),
-        (center_x + 5, center_y - 10),
-        (center_x - 5, center_y + 70),
-    ]
-    draw.polygon(digital_leaf_points, fill=(2, 119, 189, 245), outline=(1, 87, 155, 255))
-
-    circuit_nodes = [
-        ((center_x + 45, center_y - 50), (center_x + 85, center_y - 80)),
-        ((center_x + 45, center_y - 50), (center_x + 55, center_y + 10)),
-        ((center_x + 55, center_y + 10), (center_x + 105, center_y + 5)),
-        ((center_x + 55, center_y + 10), (center_x + 35, center_y + 75)),
-        ((center_x + 35, center_y + 75), (center_x + 85, center_y + 65)),
-    ]
-    for start, end in circuit_nodes:
-        draw.line([start, end], fill=(179, 229, 252, 230), width=4)
-        draw.ellipse([start[0] - 6, start[1] - 6, start[0] + 6, start[1] + 6], fill=(255, 255, 255, 255))
-        draw.ellipse([end[0] - 6, end[1] - 6, end[0] + 6, end[1] + 6], fill=(255, 215, 0, 255))
-
-    # 6. Typography
-    try:
-        font_main = ImageFont.truetype("arialbd.ttf", 82)
-        font_sub = ImageFont.truetype("arialbd.ttf", 29)
-    except Exception:
-        font_main = ImageFont.load_default()
-        font_sub = ImageFont.load_default()
-
-    text_y = 690
-    draw.text((220, text_y), "SMART", font=font_main, fill=(21, 101, 192, 255))
-    draw.text((535, text_y), "KISHAN", font=font_main, fill=(46, 125, 50, 255))
-    draw.text((250, 795), "DIGITAL  FARMING  SOLUTIONS", font=font_sub, fill=(71, 85, 105, 255))
-
-    img.save(output_filename, format="PNG")
-    print(f"Generated logo: {output_filename}")
-
-
-def create_verification_stamp(output_filename="smart_kishan_stamp.png"):
-    # 500x500 High-Res Circular Verification Stamp
+def create_agricultural_field_stamp(output_filename="smart_kishan_stamp.png"):
+    # 500x500 High-Resolution Circular Agricultural Seal
     size = (500, 500)
     img = Image.new("RGBA", size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
 
-    cx, cy, radius = 250, 250, 220
+    cx, cy, radius = 250, 250, 225
 
-    # Forest Green Background Circle
-    draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], fill=(46, 125, 50, 255))
+    # 1. Rich Forest & Light Green Agricultural Background Circle
+    draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], fill=(27, 94, 32, 255))
     
-    # Double White Border Rings
-    draw.ellipse([cx - radius + 8, cy - radius + 8, cx + radius - 8, cy + radius - 8], outline=(255, 255, 255, 255), width=4)
-    draw.ellipse([cx - radius + 16, cy - radius + 16, cx + radius - 16, cy + radius - 16], outline=(255, 255, 255, 255), width=2)
+    # Inner light green meadow gradient ring
+    draw.ellipse([cx - radius + 12, cy - radius + 12, cx + radius - 12, cy + radius - 12], fill=(46, 125, 50, 255))
+
+    # 2. Double Crisp White Border Rings
+    draw.ellipse([cx - radius + 20, cy - radius + 20, cx + radius - 20, cy + radius - 20], outline=(255, 255, 255, 255), width=3)
+    draw.ellipse([cx - radius + 27, cy - radius + 27, cx + radius - 27, cy + radius - 27], outline=(255, 215, 0, 255), width=2)
+
+    # 3. Agricultural Field Graphics (Sun, Hills, Crops inside stamp center)
+    # Golden Sun
+    draw.ellipse([cx - 35, cy - 85, cx + 35, cy - 15], fill=(255, 215, 0, 255))
+    
+    # Green Rolling Farm Hills
+    draw.arc([cx - 120, cy - 40, cx + 120, cy + 80], start=180, end=360, fill=(129, 199, 132, 255), width=18)
+    draw.arc([cx - 90, cy - 10, cx + 90, cy + 100], start=180, end=360, fill=(102, 187, 106, 255), width=14)
+
+    # Growing Crop Shoots
+    for dx in [-40, -20, 0, 20, 40]:
+        bx = cx + dx
+        by = cy + 25
+        draw.polygon([(bx, by), (bx - 5, by - 22), (bx + 5, by - 22)], fill=(200, 230, 201, 255))
 
     try:
-        f_top = ImageFont.truetype("arialbd.ttf", 28)
-        f_mid = ImageFont.truetype("arialbd.ttf", 40)
-        f_bot = ImageFont.truetype("arialbd.ttf", 26)
+        f_top = ImageFont.truetype("arialbd.ttf", 26)
+        f_mid = ImageFont.truetype("arialbd.ttf", 36)
+        f_bot = ImageFont.truetype("arialbd.ttf", 24)
     except Exception:
         f_top = f_mid = f_bot = ImageFont.load_default()
 
-    # Stamp Text Lines
-    draw.text((cx - 125, cy - 115), "GOVT COMPLIANT", font=f_top, fill=(255, 255, 255, 255))
+    # 4. Text Layout
+    draw.text((cx - 118, cy - 125), "GOVT COMPLIANT", font=f_top, fill=(255, 255, 255, 255))
     
-    # Dividing Rules
-    draw.line([(cx - 150, cy - 65), (cx + 150, cy - 65)], fill=(255, 255, 255, 200), width=3)
-    
-    # Golden SMART KISHAN Center Text
-    draw.text((cx - 142, cy - 40), "SMART KISHAN", font=f_mid, fill=(255, 215, 0, 255))
-    
-    draw.line([(cx - 150, cy + 25), (cx + 150, cy + 25)], fill=(255, 255, 255, 200), width=3)
+    # Golden SMART KISHAN Center Banner
+    draw.text((cx - 132, cy + 48), "SMART KISHAN", font=f_mid, fill=(255, 215, 0, 255))
     
     # Bottom 4R Certified text
-    draw.text((cx - 115, cy + 45), "★ 4R CERTIFIED ★", font=f_bot, fill=(255, 255, 255, 255))
+    draw.text((cx - 105, cy + 95), "★ 4R CERTIFIED ★", font=f_bot, fill=(255, 255, 255, 255))
 
     img.save(output_filename, format="PNG")
-    print(f"Generated stamp: {output_filename}")
+    print(f"Generated agricultural stamp: {output_filename}")
 
 
 if __name__ == "__main__":
-    create_unique_smart_kishan_logo("smart_kishan_logo.png")
-    create_verification_stamp("smart_kishan_stamp.png")
+    create_agricultural_field_stamp("smart_kishan_stamp.png")
