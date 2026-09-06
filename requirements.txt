@@ -8,4 +8,5 @@ sqlalchemy
 psycopg2-binary
 Pillow
 requests
-streamlit-js-eval
+folium
+streamlit-folium
