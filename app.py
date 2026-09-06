@@ -1213,31 +1213,30 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY 5-STAR FEEDBACK & EXIT GATEKEEPER
+# SCREEN 8: MANDATORY 5-STAR RATING FEEDBACK & EXIT GATEKEEPER
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
-    st.write("Please tap the stars to rate your advisory experience and provide comments before exiting:")
+    st.write("Please tap the 5 golden stars to rate your advisory experience and provide comments before exiting:")
 
-    # Interactive 5 Big Stars Component using 5 separate columns
+    # Interactive 5 Golden Stars Component
     st.markdown("<br>", unsafe_allow_html=True)
     star_cols = st.columns(5)
     
-    # Initialize rating in session state if missing
     if "star_selection" not in st.session_state:
         st.session_state.star_selection = 5
 
     for i in range(1, 6):
         with star_cols[i-1]:
-            star_label = "⭐" if i <= st.session_state.star_selection else "☆"
-            if st.button(star_label, key=f"star_btn_{i}", use_container_width=True):
+            star_display = "⭐" if i <= st.session_state.star_selection else "☆"
+            if st.button(f"{star_display}", key=f"star_btn_{i}", use_container_width=True):
                 st.session_state.star_selection = i
                 st.rerun()
 
-    st.markdown(f"<h4 style='text-align: center; color: #2E7D32;'>Rating Selected: {st.session_state.star_selection} / 5 Stars</h4>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='text-align: center; color: #B78103;'>★ {st.session_state.star_selection} / 5 Golden Stars Rated ★</h3>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your suggestions here...")
+    feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your feedback here...")
 
     if st.button(T["feedback_submit"]):
         if not feedback_comments.strip():
