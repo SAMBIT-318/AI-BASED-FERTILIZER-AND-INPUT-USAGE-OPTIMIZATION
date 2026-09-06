@@ -74,7 +74,15 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(46, 125, 50, 0.08) !important;
     }
 
-    /* Green Tactical Buttons */
+    .bhu-search-box {
+        background: #FFFFFF;
+        border: 2px solid #A5D6A7;
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 15px;
+    }
+
+    /* High-contrast Green tactical buttons */
     div.stButton > button, div.stButton > button:focus {
         background: linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%) !important;
         color: #FFFFFF !important;
@@ -123,6 +131,15 @@ st.markdown("""
         background-color: #2E7D32 !important;
         color: #FFFFFF !important;
     }
+
+    .badge-pass {
+        background-color: #E8F5E9;
+        color: #1B5E20;
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        border: 1px solid #A5D6A7;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -132,7 +149,7 @@ st.markdown("""
 TRANSLATIONS = {
     "English": {
         "title": "🌾 AI Based Precision Agriculture Advisor",
-        "subtitle": "Scientific 4R Nutrient Stewardship, Plot Mapping & Crop Prescription",
+        "subtitle": "Scientific 4R Nutrient Stewardship, Bhu-Map Plot Cadastre & Crop Prescription",
         "login_tab": "Farmer Log In",
         "reg_tab": "Register New Farmer",
         "mobile_lbl": "Mobile Number",
@@ -152,7 +169,7 @@ TRANSLATIONS = {
     },
     "हिन्दी": {
         "title": "🌾 एआई आधारित सटीक कृषि सलाहकार",
-        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, खेत नक्शा और फसल सलाह",
+        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, भू-नक्शा (खेत नंबर) और फसल सलाह",
         "login_tab": "किसान लॉगिन",
         "reg_tab": "नया किसान पंजीकरण",
         "mobile_lbl": "मोबाइल नंबर",
@@ -172,7 +189,7 @@ TRANSLATIONS = {
     },
     "ଓଡ଼ିଆ": {
         "title": "🌾 ଏଆଇ ଆଧାରିତ ଉନ୍ନତ କୃଷି ଓ ଖତ ପରାମର୍ଶ କେନ୍ଦ୍ର",
-        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, ଜମି ପ୍ଲଟ ଚିହ୍ନଟ ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
+        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, ଭୂ-ନକ୍ସା (ପ୍ଲଟ ନମ୍ବର) ଚିହ୍ନଟ ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
         "login_tab": "କୃଷକ ଲଗଇନ୍",
         "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
@@ -286,7 +303,7 @@ def save_feedback(mobile, rating, comments):
         return False
 
 # -------------------------------------------------------------
-# LAND CONVERSIONS
+# LAND CONVERSIONS (Multi-Unit Standards)
 # -------------------------------------------------------------
 UNIT_TO_HECTARE = {
     "Acre (एकड़ / ଏକର)": 0.404686,
@@ -295,6 +312,41 @@ UNIT_TO_HECTARE = {
     "Decimal / Cent (डिसमिल / ଡେସିମିଲ)": 0.004047,
     "Square Feet (वर्ग फुट / ବର୍ଗ ଫୁଟ)": 0.0000092903
 }
+
+def compute_all_land_units_from_sqft(sqft_area):
+    """Calculates all regional measurement dimensions from square feet."""
+    acres = sqft_area / 43560.0
+    hectares = sqft_area * 0.0000092903
+    guntha = sqft_area / 1089.0
+    decimals = sqft_area / 435.6
+    
+    # Calculate geometric rectangular dimensions (Length x Breadth estimate)
+    breadth_ft = np.sqrt(sqft_area / 1.6)
+    length_ft = breadth_ft * 1.6
+    breadth_m = breadth_ft * 0.3048
+    length_m = length_ft * 0.3048
+
+    df = pd.DataFrame({
+        "Measurement Unit": [
+            "Acre (एकड़ / ଏକର)",
+            "Guntha (गुंठा / ଗୁଣ୍ଠ)",
+            "Decimal / Cent (डिसमिल / ଡେସିମିଲ)",
+            "Hectare (हेक्टेयर / ହେକ୍ଟର)",
+            "Square Feet (वर्ग फुट / ବର୍ଗ ଫୁଟ)",
+            "Length (ଲମ୍ବ / लंबाई)",
+            "Breadth (ଓସାର / चौड़ाई)"
+        ],
+        "Parcel Value": [
+            f"{acres:.3f} Acres",
+            f"{guntha:.2f} Guntha",
+            f"{decimals:.2f} Decimals",
+            f"{hectares:.3f} Ha",
+            f"{sqft_area:,.1f} sq ft",
+            f"{length_ft:.1f} ft ({length_m:.1f} m)",
+            f"{breadth_ft:.1f} ft ({breadth_m:.1f} m)"
+        ]
+    })
+    return df, acres, hectares
 
 def render_land_conversion_table(entered_val, chosen_unit):
     ha_base = entered_val * UNIT_TO_HECTARE[chosen_unit]
@@ -397,6 +449,7 @@ defaults = {
     "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
     "lat": 20.2961, "lon": 85.8245,
+    "searched_plot_no": "104/1",
     "selected_plot": None
 }
 for k, v in defaults.items():
@@ -416,7 +469,7 @@ st.markdown(f"""
             <p>{T['subtitle']}</p>
         </div>
         <div style="background:rgba(255,255,255,0.2); padding:6px 14px; border-radius:10px; font-weight:700; font-size:13px;">
-            🛰️ GIS Plot Tracker Active
+            🛰️ Bhu-Naksha Cadastre Connected
         </div>
     </div>
 </div>
@@ -473,7 +526,7 @@ if st.session_state.step == 1:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 2: GREEN MAP WITH PLOT RECOGNITION & INSPECTION
+# SCREEN 2: BHU-NAKSHA CADASTRE SEARCH & MULTI-UNIT AREA
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if st.session_state.app_mode == "Diagnostic Only":
@@ -507,33 +560,34 @@ elif st.session_state.step == 2:
             st.rerun()
 
     else:
-        st.subheader("2. 📍 Real-Time Location, Plot Cadastral Map & Land Profile")
+        st.subheader("2. 📍 Bhu-Naksha Plot Search, Cadastral Map & Dimensions")
         
-        tab_geo, tab_camera, tab_land, tab_soil = st.tabs([
-            "🗺️ Green Plot Map & Parcel Inspector", 
+        tab_bhumap, tab_camera, tab_land, tab_soil = st.tabs([
+            "🗺️ Bhu-Naksha (ଭୂ-ନକ୍ସା / भू-नक्शा) & Plot Search", 
             "📷 Optical Camera Scanner", 
             "📐 Land Area Converter & Acreage", 
             "🧪 Soil Nutrient Levels"
         ])
         
-        with tab_geo:
-            st.markdown("##### 🌾 Professional Cadastral Agricultural Map")
-            st.caption("Click any registered green field polygon on the map below to inspect boundary dimensions, soil diagnostics, and owner telemetry.")
-            
-            # Formulate 4 neighboring registered farm plots around current coordinates
+        with tab_bhumap:
+            st.markdown("""
+            <div class="bhu-search-box">
+                <h4 style="margin:0 0 6px 0; color:#1B5E20;">🔍 Bhu-Naksha Cadastral Search Engine (ଭୂ-ଲେଖ / भू-अभिलेख)</h4>
+                <p style="margin:0; font-size:13px; color:#475569;">
+                    Type your <strong>Land Plot / Survey Number</strong> (e.g., <code>104/1</code>, <code>108/2</code>, <code>215</code>, <code>302/A</code>) to directly locate parcel boundaries, lengths, breadths, and full area measurements.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
             c_lat = float(st.session_state.lat)
             c_lon = float(st.session_state.lon)
 
-            # Define synthetic cadastral polygons (representing farmer registered holdings)
-            plots_data = [
-                {
-                    "plot_id": "PLOT-OD-0821",
-                    "owner": f"Farmer (+91 {st.session_state.user_mobile or '7008123456'})",
-                    "status": "Active Holding",
-                    "area_acre": 2.45,
-                    "crop": "Paddy (Rice)",
-                    "soil": "Clayey Loam",
-                    "health": "Optimal (74/100)",
+            # Cadastral parcels registry (Sample cadastral database for demonstration)
+            registered_plots = {
+                "104/1": {
+                    "plot_no": "104/1", "khata_no": "24/8", "owner": f"Farmer (+91 {st.session_state.user_mobile or '7008123456'})",
+                    "village": "Khurda / Jatni Sector 4", "soil": "Clayey Loam", "crop": "Paddy (Rice)",
+                    "sqft": 65340.0, # 1.50 Acres = 60 Guntha
                     "coords": [
                         [c_lat + 0.0010, c_lon - 0.0015],
                         [c_lat + 0.0028, c_lon - 0.0015],
@@ -541,14 +595,10 @@ elif st.session_state.step == 2:
                         [c_lat + 0.0010, c_lon + 0.0005]
                     ]
                 },
-                {
-                    "plot_id": "PLOT-OD-0822",
-                    "owner": "Ramesh Behera",
-                    "status": "Verified Soil Card",
-                    "area_acre": 1.80,
-                    "crop": "Maize",
-                    "soil": "Sandy Loam",
-                    "health": "Moderate (58/100)",
+                "108/2": {
+                    "plot_no": "108/2", "khata_no": "12/1", "owner": "Ramesh Behera",
+                    "village": "Khurda / Jatni Sector 4", "soil": "Sandy Loam", "crop": "Maize",
+                    "sqft": 47916.0, # 1.10 Acres = 44 Guntha
                     "coords": [
                         [c_lat + 0.0010, c_lon + 0.0007],
                         [c_lat + 0.0028, c_lon + 0.0007],
@@ -556,117 +606,111 @@ elif st.session_state.step == 2:
                         [c_lat + 0.0010, c_lon + 0.0025]
                     ]
                 },
-                {
-                    "plot_id": "PLOT-OD-0823",
-                    "owner": "Suresh Mohapatra",
-                    "status": "Under Fallow/Resting",
-                    "area_acre": 3.10,
-                    "crop": "Mustard / Oilseeds",
-                    "soil": "Red Laterite",
-                    "health": "Needs Compost (48/100)",
+                "215": {
+                    "plot_no": "215", "khata_no": "89/5", "owner": "Suresh Mohapatra",
+                    "village": "Khurda / Jatni Sector 4", "soil": "Red Laterite", "crop": "Mustard / Oilseeds",
+                    "sqft": 108900.0, # 2.50 Acres = 100 Guntha
                     "coords": [
-                        [c_lat - 0.0018, c_lon - 0.0015],
+                        [c_lat - 0.0020, c_lon - 0.0015],
                         [c_lat + 0.0005, c_lon - 0.0015],
                         [c_lat + 0.0005, c_lon + 0.0005],
-                        [c_lat - 0.0018, c_lon + 0.0005]
+                        [c_lat - 0.0020, c_lon + 0.0005]
                     ]
                 },
-                {
-                    "plot_id": "PLOT-OD-0824",
-                    "owner": "Prakash Swain",
-                    "status": "High Productivity",
-                    "area_acre": 1.25,
-                    "crop": "Groundnut",
-                    "soil": "Alluvial Silt",
-                    "health": "Healthy (82/100)",
+                "302/A": {
+                    "plot_no": "302/A", "khata_no": "55/3", "owner": "Prakash Swain",
+                    "village": "Khurda / Jatni Sector 4", "soil": "Alluvial Silt", "crop": "Groundnut",
+                    "sqft": 32670.0, # 0.75 Acres = 30 Guntha
                     "coords": [
-                        [c_lat - 0.0018, c_lon + 0.0007],
+                        [c_lat - 0.0020, c_lon + 0.0007],
                         [c_lat + 0.0005, c_lon + 0.0007],
                         [c_lat + 0.0005, c_lon + 0.0025],
-                        [c_lat - 0.0018, c_lon + 0.0025]
+                        [c_lat - 0.0020, c_lon + 0.0025]
                     ]
                 }
-            ]
+            }
 
-            # Build Folium Green Map
+            # Search bar & Selector row
+            s_col1, s_col2 = st.columns([2, 1])
+            with s_col1:
+                search_q = st.text_input("Enter Land Plot / Survey No (ପ୍ଲଟ ନମ୍ବର):", value=st.session_state.searched_plot_no, placeholder="e.g. 104/1, 108/2, 215, 302/A")
+            with s_col2:
+                quick_pick = st.selectbox("Or Quick-Select Registered Plot:", list(registered_plots.keys()))
+
+            target_plot_key = search_q.strip() if search_q.strip() in registered_plots else quick_pick
+            active_p = registered_plots.get(target_plot_key, registered_plots["104/1"])
+            st.session_state.searched_plot_no = target_plot_key
+
+            # Map generation centered on target plot
+            poly_centroid_lat = np.mean([pt[0] for pt in active_p["coords"]])
+            poly_centroid_lon = np.mean([pt[1] for pt in active_p["coords"]])
+
             f_map = folium.Map(
-                location=[c_lat, c_lon],
-                zoom_start=17,
+                location=[poly_centroid_lat, poly_centroid_lon],
+                zoom_start=18,
                 tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-                attr="Esri World Imagery"
+                attr="Esri Satellite"
             )
+            # Carto basemap overlay
+            folium.TileLayer('CartoDB positron', name="Cadastral Overlay", opacity=0.35).add_to(f_map)
 
-            # Add high-contrast OpenStreetMap Carto layer overlay for clear road and plot borders
-            folium.TileLayer('CartoDB positron', name="Earthy Basemap", opacity=0.35).add_to(f_map)
+            # Draw all neighboring registered fields
+            for p_k, p_data in registered_plots.items():
+                is_selected = (p_k == target_plot_key)
+                border_color = "#FFD700" if is_selected else "#2E7D32" # Gold highlight for searched plot
+                fill_color = "#4CAF50" if not is_selected else "#81C784"
+                f_weight = 4 if is_selected else 2
+                f_opacity = 0.55 if is_selected else 0.30
 
-            # Center Location Marker (Current Tractor / Device Position)
-            folium.Marker(
-                [c_lat, c_lon],
-                tooltip="📍 Current GPS Sensor Position",
-                icon=folium.Icon(color="green", icon="leaf")
-            ).add_to(f_map)
-
-            # Draw Recognized Field Plots with Green Styled Borders
-            for p_idx, plot in enumerate(plots_data):
-                popup_html = f"""
-                <div style='font-family:Plus Jakarta Sans, sans-serif; font-size:13px; width:220px;'>
-                    <b style='color:#1B5E20; font-size:14px;'>🌱 {plot['plot_id']}</b><br/>
-                    <b>Owner:</b> {plot['owner']}<br/>
-                    <b>Area:</b> {plot['area_acre']} Acres ({plot['area_acre'] * 0.404686:.2f} Ha)<br/>
-                    <b>Registered Crop:</b> {plot['crop']}<br/>
-                    <b>Soil Texture:</b> {plot['soil']}<br/>
-                    <b>Vigor Score:</b> <span style='color:#2E7D32; font-weight:700;'>{plot['health']}</span>
+                p_html = f"""
+                <div style='font-family:sans-serif; font-size:12px; width:200px;'>
+                    <b style='color:#1B5E20; font-size:14px;'>📍 Plot No: {p_data['plot_no']}</b><br/>
+                    <b>Khata:</b> {p_data['khata_no']}<br/>
+                    <b>Owner:</b> {p_data['owner']}<br/>
+                    <b>Area:</b> {p_data['sqft']/43560:.2f} Acres ({p_data['sqft']/1089:.1f} Guntha)<br/>
+                    <b>Crop:</b> {p_data['crop']}
                 </div>
                 """
                 folium.Polygon(
-                    locations=plot["coords"],
-                    color="#2E7D32",
-                    weight=3,
+                    locations=p_data["coords"],
+                    color=border_color,
+                    weight=f_weight,
                     fill=True,
-                    fill_color="#4CAF50",
-                    fill_opacity=0.38,
-                    tooltip=f"🌾 {plot['plot_id']} | Owner: {plot['owner']}",
-                    popup=folium.Popup(popup_html, max_width=260)
+                    fill_color=fill_color,
+                    fill_opacity=f_opacity,
+                    tooltip=f"🌾 Survey Plot: {p_data['plot_no']} ({p_data['owner']})",
+                    popup=folium.Popup(p_html, max_width=250)
                 ).add_to(f_map)
 
-            map_col, inspect_col = st.columns([3, 2])
-            with map_col:
-                # Render the map inside Streamlit
-                map_res = st_folium(f_map, height=440, width="100%", returned_objects=["last_object_clicked", "last_clicked"])
-            
-            with inspect_col:
-                st.markdown("<div style='font-size:15px; font-weight:700; color:#1B5E20; margin-bottom:8px;'>📋 Parcel Inspector Dossier</div>", unsafe_allow_html=True)
-                
-                # Interactive Plot Selection Box
-                p_names = [f"{p['plot_id']} - {p['owner']} ({p['area_acre']} Acres)" for p in plots_data]
-                chosen_p_str = st.selectbox("Select or Click Plot to Load Parameters:", p_names)
-                chosen_idx = p_names.index(chosen_p_str)
-                active_plot = plots_data[chosen_idx]
+            # Marker for searched plot
+            folium.Marker(
+                [poly_centroid_lat, poly_centroid_lon],
+                tooltip=f"📍 Identified Plot {active_p['plot_no']}",
+                icon=folium.Icon(color="green" if target_plot_key != "104/1" else "darkgreen", icon="info-sign")
+            ).add_to(f_map)
 
-                # Update session state with this plot's verified data
-                st.session_state.selected_plot = active_plot["plot_id"]
-                st.session_state.raw_land_val = active_plot["area_acre"]
+            m_view_col, m_data_col = st.columns([3, 2])
+            with m_view_col:
+                st_folium(f_map, height=440, width="100%", returned_objects=["last_clicked"])
+
+            with m_data_col:
+                st.markdown(f"#### 📐 Plot Dimensions & Area Matrix")
+                st.markdown(f"**Selected Survey Plot:** <span class='badge-pass'>Plot #{active_p['plot_no']}</span> (Khata #{active_p['khata_no']})", unsafe_allow_html=True)
+                st.write(f"👤 **Holding Owner:** {active_p['owner']}")
+                st.write(f"📍 **Village / Tehsil:** {active_p['village']}")
+
+                # Calculate Multi-Unit Dimensions
+                units_df, p_acres, p_ha = compute_all_land_units_from_sqft(active_p["sqft"])
+                st.table(units_df)
+
+                # Set session variables to this plot
+                st.session_state.selected_plot = active_p["plot_no"]
+                st.session_state.raw_land_val = p_acres
                 st.session_state.land_unit = "Acre (एकड़ / ଏକର)"
-                st.session_state.land_area = active_plot["area_acre"] * 0.404686
+                st.session_state.land_area = p_ha
 
-                # Display Land Details Card
-                st.markdown(f"""
-                <div class="metric-card" style="background:#FFFFFF; border: 1.5px solid #C8E6C9;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h4 style="margin:0; color:#1B5E20;">{active_plot['plot_id']}</h4>
-                        <span class="badge-pass">{active_plot['status']}</span>
-                    </div>
-                    <hr style="margin:8px 0; border:none; border-top:1px solid #E2EEDF;"/>
-                    <p style="margin:4px 0; font-size:13px;">👤 <strong>Registered Farmer:</strong> {active_plot['owner']}</p>
-                    <p style="margin:4px 0; font-size:13px;">📐 <strong>Parcel Area:</strong> {active_plot['area_acre']} Acres / {active_plot['area_acre'] * 40.0:.1f} Guntha</p>
-                    <p style="margin:4px 0; font-size:13px;">🌱 <strong>Target Crop:</strong> {active_plot['crop']}</p>
-                    <p style="margin:4px 0; font-size:13px;">🧪 <strong>Soil Texture:</strong> {active_plot['soil']}</p>
-                    <p style="margin:4px 0; font-size:13px;">💚 <strong>Soil Health Baseline:</strong> {active_plot['health']}</p>
-                </div>
-                """, unsafe_allow_html=True)
-
-                if st.button("Apply Selected Plot to Optimizer"):
-                    st.success(f"Loaded {active_plot['plot_id']} area ({active_plot['area_acre']} Acres) into chemical solver!")
+                if st.button("✅ Apply This Plot to Fertilizer Optimizer"):
+                    st.success(f"Applied Plot #{active_p['plot_no']} ({p_acres:.2f} Acres / {active_p['sqft']/1089:.1f} Guntha) into optimization model!")
 
         with tab_camera:
             st.markdown("##### Live Soil / Leaf Scan")
@@ -821,7 +865,7 @@ elif st.session_state.step == 6:
 
     r1, r2, r3 = st.columns(3)
     r1.metric("Optimized Total Cost", f"₹{opt['total_cost']:,.0f}")
-    r2.metric("Land Covered", f"{st.session_state.raw_land_val} {st.session_state.land_unit.split(' ')[0]}")
+    r2.metric("Land Covered", f"{st.session_state.raw_land_val:.2f} {st.session_state.land_unit.split(' ')[0]}")
     r3.metric("Budget Utilized", f"{opt['budget_utilized_pct']}%")
 
     st.markdown("##### 🛒 Fertilizer Bags Needed for Your Field:")
@@ -863,9 +907,9 @@ elif st.session_state.step == 7:
     st.markdown(f"""
     <div class="summary-card">
         <h2 style="color: #1B5E20; margin-top: 0;">🌾 Precision Fertilizer & Input Advisory Card</h2>
-        <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel ID:</strong> {st.session_state.get('selected_plot', 'Custom Parcel')}</p>
-        <p><strong>Field Area:</strong> {st.session_state.raw_land_val} {st.session_state.land_unit} | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
-        <p><strong>GPS Location:</strong> {st.session_state.lat:.4f}° N, {st.session_state.lon:.4f}° E</p>
+        <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Survey Plot No:</strong> {st.session_state.get('selected_plot', 'Custom Plot')}</p>
+        <p><strong>Field Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
+        <p><strong>Field GPS Coordinates:</strong> {st.session_state.lat:.4f}° N, {st.session_state.lon:.4f}° E</p>
         <hr style="border: 1px solid #A5D6A7;"/>
         <h3 style="color: #1B5E20;">🛒 Required Purchases:</h3>
         <ul style="font-size: 15px; line-height: 1.8;">
@@ -878,7 +922,7 @@ elif st.session_state.step == 7:
     </div>
     """, unsafe_allow_html=True)
     
-    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nParcel: {st.session_state.get('selected_plot', 'Custom')}\nLand: {st.session_state.raw_land_val} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
+    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nPlot No: {st.session_state.get('selected_plot', 'Custom')}\nLand: {st.session_state.raw_land_val:.2f} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
     st.download_button("📥 Download Prescription Record", receipt_txt, file_name="Farmer_Prescription.txt")
 
     st.divider()
