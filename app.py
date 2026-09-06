@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import hashlib
-import requests
 from PIL import Image
 from sqlalchemy import create_engine, text
 import folium
@@ -150,7 +149,7 @@ st.markdown("""
 TRANSLATIONS = {
     "English": {
         "title": "🌾 AI Based Precision Agriculture Advisor",
-        "subtitle": "Scientific 4R Nutrient Stewardship, Universal Bhu-Naksha Cadastre & Crop Prescription",
+        "subtitle": "Scientific 4R Nutrient Stewardship, Bhu-Naksha Cadastre & Crop Prescription",
         "login_tab": "Farmer Log In",
         "reg_tab": "Register New Farmer",
         "mobile_lbl": "Mobile Number",
@@ -170,7 +169,7 @@ TRANSLATIONS = {
     },
     "हिन्दी": {
         "title": "🌾 एआई आधारित सटीक कृषि सलाहकार",
-        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, सार्वभौमिक भू-नक्शा और फसल सलाह",
+        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, संपूर्ण भू-नक्शा और फसल सलाह",
         "login_tab": "किसान लॉगिन",
         "reg_tab": "नया किसान पंजीकरण",
         "mobile_lbl": "मोबाइल नंबर",
@@ -190,7 +189,7 @@ TRANSLATIONS = {
     },
     "ଓଡ଼ିଆ": {
         "title": "🌾 ଏଆଇ ଆଧାରିତ ଉନ୍ନତ କୃଷି ଓ ଖତ ପରାମର୍ଶ କେନ୍ଦ୍ର",
-        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, ସାର୍ବଜନୀନ ଭୂ-ନକ୍ସା (ଦେଶ, ରାଜ୍ୟ, ଜିଲ୍ଲା, ବ୍ଲକ, ପଞ୍ଚାୟତ, ଗ୍ରାମ) ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
+        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, ସମ୍ପୂର୍ଣ୍ଣ ଭୂ-ନକ୍ସା (ଦେଶ, ରାଜ୍ୟ, ଜିଲ୍ଲା, ବ୍ଲକ, ପଞ୍ଚାୟତ, ଗ୍ରାମ) ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
         "login_tab": "କୃଷକ ଲଗଇନ୍",
         "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
@@ -302,23 +301,6 @@ def save_feedback(mobile, rating, comments):
         return True
     except Exception:
         return False
-
-# -------------------------------------------------------------
-# DYNAMIC GEOCODING HELPER (OpenStreetMap / Nominatim)
-# -------------------------------------------------------------
-@st.cache_data(ttl=86400, show_spinner=False)
-def geocode_address(query_str):
-    try:
-        url = "https://nominatim.openstreetmap.org/search"
-        params = {"q": query_str, "format": "json", "limit": 1}
-        headers = {"User-Agent": "AgriPrecision-Cadastre-App/2.0"}
-        r = requests.get(url, params=params, headers=headers, timeout=5)
-        data = r.json()
-        if data and len(data) > 0:
-            return float(data[0]["lat"]), float(data[0]["lon"])
-    except Exception:
-        pass
-    return None
 
 # -------------------------------------------------------------
 # LAND CONVERSIONS (Multi-Unit Standards)
@@ -444,6 +426,89 @@ def analyze_plant_disease_image(image_obj):
         }
 
 # -------------------------------------------------------------
+# COMPREHENSIVE CADASTRAL TREE
+# -------------------------------------------------------------
+CADASTRE_DATABASE = {
+    "India": {
+        "Odisha": {
+            "Khordha": {
+                "Jatni": {
+                    "Champeswar GP": {
+                        "Champeswar Village": {
+                            "Bilapadar Mauza": {
+                                "104/1": {"sqft": 65340.0, "lat": 20.1798, "lon": 85.7063, "owner": "Sambit Swain", "crop": "Paddy (Rice)", "soil": "Clayey"},
+                                "104/2": {"sqft": 43560.0, "lat": 20.1812, "lon": 85.7075, "owner": "Balaram Das", "crop": "Maize", "soil": "Loamy"}
+                            },
+                            "Kantia Bahal": {
+                                "208/A": {"sqft": 108900.0, "lat": 20.1785, "lon": 85.7050, "owner": "Ramesh Behera", "crop": "Mustard", "soil": "Red"}
+                            }
+                        },
+                        "Kusumati Village": {
+                            "Kusumati Purba": {
+                                "305/1": {"sqft": 87120.0, "lat": 20.1850, "lon": 85.7120, "owner": "Suresh Mohapatra", "crop": "Groundnut", "soil": "Sandy"}
+                            }
+                        }
+                    },
+                    "Kantara GP": {
+                        "Kantara Village": {
+                            "Nua Sahi Mauza": {
+                                "410": {"sqft": 52272.0, "lat": 20.1920, "lon": 85.6980, "owner": "Prakash Swain", "crop": "Paddy (Rice)", "soil": "Clayey"}
+                            }
+                        }
+                    }
+                },
+                "Bhubaneswar": {
+                    "Chandaka GP": {
+                        "Chandaka Village": {
+                            "Jungle Field Area": {
+                                "501": {"sqft": 95832.0, "lat": 20.3540, "lon": 85.7560, "owner": "Narayan Jena", "crop": "Vegetables", "soil": "Loamy"}
+                            }
+                        }
+                    }
+                }
+            },
+            "Cuttack": {
+                "Salepur": {
+                    "Nischintakoili GP": {
+                        "Nischintakoili Village": {
+                            "Mahanadi Delta Belt": {
+                                "712": {"sqft": 76230.0, "lat": 20.4850, "lon": 86.0120, "owner": "Ashok Nayak", "crop": "Paddy (Rice)", "soil": "Clayey"}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Punjab": {
+            "Ludhiana": {
+                "Jagraon": {
+                    "Sidhwan GP": {
+                        "Sidhwan Village": {
+                            "Sidhu Farm Sector": {
+                                "PB-12": {"sqft": 174240.0, "lat": 30.7850, "lon": 75.4780, "owner": "Gurpreet Singh", "crop": "Wheat", "soil": "Loamy"}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Maharashtra": {
+            "Nashik": {
+                "Niphad": {
+                    "Pimpalgaon GP": {
+                        "Pimpalgaon Village": {
+                            "Godavari River Belt": {
+                                "MH-88": {"sqft": 130680.0, "lat": 20.0850, "lon": 74.0250, "owner": "Sachin Patil", "crop": "Sugarcane", "soil": "Black"}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+# -------------------------------------------------------------
 # SESSION STATE INITIALIZATION
 # -------------------------------------------------------------
 if "step" not in st.session_state:
@@ -465,9 +530,9 @@ defaults = {
     "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
     "lat": 20.1798, "lon": 85.7063,
-    "c_country": "India", "c_state": "Odisha", "c_dist": "Khordha",
-    "c_block": "Jatni", "c_panchayat": "Champeswar", "c_village": "Champeswar",
-    "c_area": "Bilapadar Mouza", "c_plot": "104/1", "selected_plot": "104/1"
+    "sel_c": "India", "sel_s": "Odisha", "sel_d": "Khordha",
+    "sel_b": "Jatni", "sel_gp": "Champeswar GP", "sel_v": "Champeswar Village",
+    "sel_m": "Bilapadar Mauza", "sel_p": "104/1", "selected_plot": "104/1"
 }
 for k, v in defaults.items():
     if k not in st.session_state:
@@ -486,7 +551,7 @@ st.markdown(f"""
             <p>{T['subtitle']}</p>
         </div>
         <div style="background:rgba(255,255,255,0.2); padding:6px 14px; border-radius:10px; font-weight:700; font-size:13px;">
-            🛰️ Global Bhu-Naksha Cadastre Live
+            🛰️ Open Satellite Cadastre (No API Key Required)
         </div>
     </div>
 </div>
@@ -543,7 +608,7 @@ if st.session_state.step == 1:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 2: UNIVERSAL CADASTRAL HIERARCHY SEARCH
+# SCREEN 2: SELECTION BY ADMINISTRATIVE LEVELS (8 TIERS)
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if st.session_state.app_mode == "Diagnostic Only":
@@ -577,10 +642,10 @@ elif st.session_state.step == 2:
             st.rerun()
 
     else:
-        st.subheader("2. 📍 Complete Land Cadastre: Country, State, District, Block, Panchayat, Village & Area")
+        st.subheader("2. 📍 Complete Land Cadastre: Country, State, Dist, Block, GP, Village, Mauza & Plot")
         
         tab_bhumap, tab_camera, tab_land, tab_soil = st.tabs([
-            "🗺️ Universal Bhu-Naksha Address Search", 
+            "🗺️ Bhu-Naksha Dropdown Hierarchy (ଭୂ-ନକ୍ସା ତାଲିକା)", 
             "📷 Optical Camera Scanner", 
             "📐 Land Area Converter & Acreage", 
             "🧪 Soil Nutrient Levels"
@@ -589,81 +654,49 @@ elif st.session_state.step == 2:
         with tab_bhumap:
             st.markdown("""
             <div class="bhu-search-box">
-                <h4 style="margin:0 0 6px 0; color:#1B5E20;">🔍 Universal Cadastral Search (ଦେଶ, ରାଜ୍ୟ, ଜିଲ୍ଲା, ବ୍ଲକ, ପଞ୍ଚାୟତ, ଗ୍ରାମ ଓ ମୌଜା)</h4>
+                <h4 style="margin:0 0 6px 0; color:#1B5E20;">🔍 Bhu-Naksha Cadastral Selector (ଦେଶ ➔ ରାଜ୍ୟ ➔ ଜିଲ୍ଲା ➔ ବ୍ଲକ ➔ ପଞ୍ଚାୟତ ➔ ଗ୍ରାମ ➔ ମୌଜା ➔ ପ୍ଲଟ)</h4>
                 <p style="margin:0; font-size:13px; color:#475569;">
-                    Type or choose <strong>any Country, State, District, Block, Panchayat, Village, and Plot Area</strong> worldwide. The map dynamically geocodes and flies to your farm in real time.
+                    Users can select their exact land plot from the options below. The satellite map automatically updates in real-time with zero API key requirements.
                 </p>
             </div>
             """, unsafe_allow_html=True)
 
-            # ALL COUNTRIES
-            all_countries = [
-                "India", "United States", "United Kingdom", "Canada", "Australia", 
-                "Germany", "France", "Japan", "Brazil", "South Africa", "Nigeria", 
-                "Kenya", "Bangladesh", "Nepal", "Sri Lanka", "Indonesia", "Other / Global"
-            ]
+            # CASCADING LEVEL 1-4
+            t1_c1, t1_c2, t1_c3, t1_c4 = st.columns(4)
+            c_list = list(CADASTRE_DATABASE.keys())
+            st.session_state.sel_c = t1_c1.selectbox("1. Country (ଦେଶ):", c_list)
 
-            # ALL 28 INDIAN STATES + 8 UTs
-            all_india_states = [
-                "Odisha", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", 
-                "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", 
-                "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", 
-                "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Punjab", "Rajasthan", 
-                "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
-                "Uttarakhand", "West Bengal", "Delhi (NCT)", "Jammu and Kashmir", 
-                "Ladakh", "Puducherry", "Chandigarh", "Other State"
-            ]
+            s_list = list(CADASTRE_DATABASE[st.session_state.sel_c].keys())
+            st.session_state.sel_s = t1_c2.selectbox("2. State (ରାଜ୍ୟ):", s_list)
 
-            # ALL 30 ODISHA DISTRICTS + MAJOR ALL-INDIA HUBS
-            all_districts = [
-                "Khordha", "Cuttack", "Puri", "Sambalpur", "Balasore", "Ganjam", 
-                "Bhadrak", "Mayurbhanj", "Jajpur", "Kendrapada", "Jagatsinghpur", 
-                "Dhenkanal", "Angul", "Nayagarh", "Bolangir", "Subarnapur", "Bargarh", 
-                "Jharsuguda", "Sundargarh", "Keonjhar", "Kalahandi", "Nuapada", 
-                "Koraput", "Rayagada", "Nabarangpur", "Malkangiri", "Kandhamal", 
-                "Boudh", "Deogarh", "Gajapati", "Ludhiana", "Nashik", "Varanasi", 
-                "Pune", "Patna", "Other District"
-            ]
+            d_list = list(CADASTRE_DATABASE[st.session_state.sel_c][st.session_state.sel_s].keys())
+            st.session_state.sel_d = t1_c3.selectbox("3. District (ଜିଲ୍ଲା):", d_list)
 
-            # TIER 1: COUNTRY, STATE, DISTRICT
-            c_row1, c_row2, c_row3 = st.columns(3)
-            st.session_state.c_country = c_row1.selectbox("1. Country (ଦେଶ):", all_countries, index=all_countries.index(st.session_state.c_country) if st.session_state.c_country in all_countries else 0)
+            b_list = list(CADASTRE_DATABASE[st.session_state.sel_c][st.session_state.sel_s][st.session_state.sel_d].keys())
+            st.session_state.sel_b = t1_c4.selectbox("4. Block / Tehsil (ବ୍ଲକ):", b_list)
+
+            # CASCADING LEVEL 5-8
+            t2_c1, t2_c2, t2_c3, t2_c4 = st.columns(4)
+            gp_list = list(CADASTRE_DATABASE[st.session_state.sel_c][st.session_state.sel_s][st.session_state.sel_d][st.session_state.sel_b].keys())
+            st.session_state.sel_gp = t2_c1.selectbox("5. Panchayat (ପଞ୍ଚାୟତ):", gp_list)
+
+            v_list = list(CADASTRE_DATABASE[st.session_state.sel_c][st.session_state.sel_s][st.session_state.sel_d][st.session_state.sel_b][st.session_state.sel_gp].keys())
+            st.session_state.sel_v = t2_c2.selectbox("6. Village (ଗ୍ରାମ):", v_list)
+
+            m_list = list(CADASTRE_DATABASE[st.session_state.sel_c][st.session_state.sel_s][st.session_state.sel_d][st.session_state.sel_b][st.session_state.sel_gp][st.session_state.sel_v].keys())
+            st.session_state.sel_m = t2_c3.selectbox("7. Mauza / Area (ମୌଜା):", m_list)
+
+            p_list = list(CADASTRE_DATABASE[st.session_state.sel_c][st.session_state.sel_s][st.session_state.sel_d][st.session_state.sel_b][st.session_state.sel_gp][st.session_state.sel_v][st.session_state.sel_m].keys())
+            st.session_state.sel_p = t2_c4.selectbox("8. Plot No. (ପ୍ଲଟ ନମ୍ବର):", p_list)
+
+            # ACTIVE PLOT EXTRACTION
+            active_p_data = CADASTRE_DATABASE[st.session_state.sel_c][st.session_state.sel_s][st.session_state.sel_d][st.session_state.sel_b][st.session_state.sel_gp][st.session_state.sel_v][st.session_state.sel_m][st.session_state.sel_p]
             
-            if st.session_state.c_country == "India":
-                st.session_state.c_state = c_row2.selectbox("2. State (ରାଜ୍ୟ):", all_india_states, index=all_india_states.index(st.session_state.c_state) if st.session_state.c_state in all_india_states else 0)
-            else:
-                st.session_state.c_state = c_row2.text_input("2. State / Province (ରାଜ୍ୟ):", value=st.session_state.c_state)
+            c_lat = active_p_data["lat"]
+            c_lon = active_p_data["lon"]
+            st.session_state.lat = c_lat
+            st.session_state.lon = c_lon
 
-            st.session_state.c_dist = c_row3.selectbox("3. District (ଜିଲ୍ଲା):", all_districts, index=all_districts.index(st.session_state.c_dist) if st.session_state.c_dist in all_districts else 0)
-
-            # TIER 2: BLOCK, PANCHAYAT, VILLAGE
-            c_row4, c_row5, c_row6 = st.columns(3)
-            st.session_state.c_block = c_row4.text_input("4. Block / Tehsil (ବ୍ଲକ / ତହସିଲ):", value=st.session_state.c_block)
-            st.session_state.c_panchayat = c_row5.text_input("5. Gram Panchayat (ଗ୍ରାମ ପଞ୍ଚାୟତ):", value=st.session_state.c_panchayat)
-            st.session_state.c_village = c_row6.text_input("6. Village / Ward (ଗ୍ରାମ):", value=st.session_state.c_village)
-
-            # TIER 3: MOUZA / AREA & PLOT NUMBER
-            c_row7, c_row8 = st.columns([2, 1])
-            st.session_state.c_area = c_row7.text_input("7. Land Mouza / Field Area Name (ମୌଜା / ଚକ ନାମ):", value=st.session_state.c_area)
-            st.session_state.c_plot = c_row8.text_input("8. Plot / Khasra No. (ପ୍ଲଟ ନମ୍ବର):", value=st.session_state.c_plot)
-
-            # REAL-TIME DYNAMIC GEOCODING QUERY
-            geo_query = f"{st.session_state.c_village}, {st.session_state.c_block}, {st.session_state.c_dist}, {st.session_state.c_state}, {st.session_state.c_country}"
-            coords = geocode_address(geo_query)
-            if not coords:
-                coords = geocode_address(f"{st.session_state.c_dist}, {st.session_state.c_state}, {st.session_state.c_country}")
-            
-            if coords:
-                st.session_state.lat, st.session_state.lon = coords
-
-            # Deterministic plot dimension hash based on the plot and area
-            plot_seed = int(hashlib.md5((st.session_state.c_plot + st.session_state.c_area).encode()).hexdigest()[:6], 16)
-            plot_sqft = 21780.0 + (plot_seed % 65340) # Range between 0.5 Acre and 2.0 Acres
-
-            c_lat = float(st.session_state.lat)
-            c_lon = float(st.session_state.lon)
-
-            # Generate cadastral rectangular polygon for the searched plot
             poly_coords = [
                 [c_lat - 0.0008, c_lon - 0.0010],
                 [c_lat + 0.0010, c_lon - 0.0010],
@@ -671,43 +704,28 @@ elif st.session_state.step == 2:
                 [c_lat - 0.0008, c_lon + 0.0010]
             ]
 
-            # Neighboring plots simulation for context
-            neighbor_poly_1 = [
-                [c_lat - 0.0008, c_lon + 0.0012],
-                [c_lat + 0.0010, c_lon + 0.0012],
-                [c_lat + 0.0010, c_lon + 0.0028],
-                [c_lat - 0.0008, c_lon + 0.0028]
-            ]
-            neighbor_poly_2 = [
-                [c_lat + 0.0012, c_lon - 0.0010],
-                [c_lat + 0.0028, c_lon - 0.0010],
-                [c_lat + 0.0028, c_lon + 0.0010],
-                [c_lat + 0.0012, c_lon + 0.0010]
-            ]
-
-            # BUILD FOLIUM SATELLITE MAP
+            # MAP WITH SATELLITE BASEMAP (No API Key Required)
             f_map = folium.Map(
                 location=[c_lat, c_lon],
                 zoom_start=18,
                 tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-                attr="Esri World Satellite"
+                attr="Esri World Imagery"
             )
-            folium.TileLayer('CartoDB positron', name="Cadastral Overlay", opacity=0.32).add_to(f_map)
 
-            # Neighboring boundaries
-            folium.Polygon(locations=neighbor_poly_1, color="#2E7D32", weight=2, fill=True, fill_color="#4CAF50", fill_opacity=0.3, tooltip="Adjacent Holding").add_to(f_map)
-            folium.Polygon(locations=neighbor_poly_2, color="#2E7D32", weight=2, fill=True, fill_color="#4CAF50", fill_opacity=0.3, tooltip="Adjacent Holding").add_to(f_map)
+            # OpenStreetMap layer alternative (Free, no API key)
+            folium.TileLayer('OpenStreetMap', name="Street Layout", opacity=0.35).add_to(f_map)
 
-            # Active High-Visibility Target Plot
+            # Highlighted Cadastral Polygon for Chosen Plot
             target_popup = f"""
             <div style='font-family:sans-serif; font-size:12px; width:220px;'>
-                <b style='color:#1B5E20; font-size:14px;'>📍 Plot: {st.session_state.c_plot}</b><br/>
-                <b>Area:</b> {st.session_state.c_area}<br/>
-                <b>Village:</b> {st.session_state.c_village}<br/>
-                <b>Panchayat:</b> {st.session_state.c_panchayat}<br/>
-                <b>Block/Tehsil:</b> {st.session_state.c_block}<br/>
-                <b>District:</b> {st.session_state.c_dist}, {st.session_state.c_state}<br/>
-                <b>Size:</b> {plot_sqft/43560:.2f} Acres ({plot_sqft/1089:.1f} Guntha)
+                <b style='color:#1B5E20; font-size:14px;'>📍 Plot: {st.session_state.sel_p}</b><br/>
+                <b>Mauza:</b> {st.session_state.sel_m}<br/>
+                <b>Village:</b> {st.session_state.sel_v}<br/>
+                <b>Panchayat:</b> {st.session_state.sel_gp}<br/>
+                <b>Block:</b> {st.session_state.sel_b}<br/>
+                <b>Owner:</b> {active_p_data['owner']}<br/>
+                <b>Crop:</b> {active_p_data['crop']}<br/>
+                <b>Size:</b> {active_p_data['sqft']/43560:.2f} Acres ({active_p_data['sqft']/1089:.1f} Guntha)
             </div>
             """
             folium.Polygon(
@@ -717,13 +735,13 @@ elif st.session_state.step == 2:
                 fill=True,
                 fill_color="#2E7D32",
                 fill_opacity=0.55,
-                tooltip=f"🌾 Targeted Plot: {st.session_state.c_plot} ({st.session_state.c_area})",
+                tooltip=f"🌾 Selected Plot: {st.session_state.sel_p} ({active_p_data['owner']})",
                 popup=folium.Popup(target_popup, max_width=260)
             ).add_to(f_map)
 
             folium.Marker(
                 [c_lat, c_lon],
-                tooltip=f"📍 Plot #{st.session_state.c_plot}",
+                tooltip=f"Plot #{st.session_state.sel_p} Location",
                 icon=folium.Icon(color="green", icon="leaf")
             ).add_to(f_map)
 
@@ -733,21 +751,22 @@ elif st.session_state.step == 2:
 
             with map_c2:
                 st.markdown("#### 📐 Plot Dimensions & Cadastral Matrix")
-                st.markdown(f"**Target:** <span class='badge-pass'>Plot #{st.session_state.c_plot}</span> in **{st.session_state.c_area}**", unsafe_allow_html=True)
-                st.write(f"🗺️ **Jurisdiction:** {st.session_state.c_village}, GP: {st.session_state.c_panchayat}, Block: {st.session_state.c_block}, Dist: {st.session_state.c_dist}, {st.session_state.c_state}")
-                st.write(f"🛰️ **GPS Coordinates:** {c_lat:.5f}° N, {c_lon:.5f}° E")
+                st.markdown(f"**Selected Parcel:** <span class='badge-pass'>Plot #{st.session_state.sel_p}</span> in **{st.session_state.sel_m}**", unsafe_allow_html=True)
+                st.write(f"🗺️ **Full Hierarchy:** {st.session_state.sel_v}, GP: {st.session_state.sel_gp}, Block: {st.session_state.sel_b}, Dist: {st.session_state.sel_d}, {st.session_state.sel_s}")
+                st.write(f"👤 **Holding Farmer:** {active_p_data['owner']}")
+                st.write(f"🌱 **Crop Registered:** {active_p_data['crop']} | 🧪 **Soil Type:** {active_p_data['soil']}")
 
-                units_df, p_acres, p_ha = compute_all_land_units_from_sqft(plot_sqft)
+                units_df, p_acres, p_ha = compute_all_land_units_from_sqft(active_p_data["sqft"])
                 st.table(units_df)
 
-                # Set session variables
-                st.session_state.selected_plot = st.session_state.c_plot
+                st.session_state.selected_plot = st.session_state.sel_p
                 st.session_state.raw_land_val = p_acres
                 st.session_state.land_unit = "Acre (एकड़ / ଏକର)"
                 st.session_state.land_area = p_ha
+                st.session_state.sel_soil = active_p_data["soil"] if active_p_data["soil"] in soil_encoder.classes_ else list(soil_encoder.classes_)[0]
 
-                if st.button("✅ Apply This Parcel to Input Optimizer"):
-                    st.success(f"Applied Plot #{st.session_state.c_plot} ({p_acres:.2f} Acres / {plot_sqft/1089:.1f} Guntha) into optimization model!")
+                if st.button("✅ Load This Plot into Fertilizer Optimizer"):
+                    st.success(f"Applied Plot #{st.session_state.sel_p} ({p_acres:.2f} Acres) into chemical solver!")
 
         with tab_camera:
             st.markdown("##### Live Soil / Leaf Scan")
@@ -945,7 +964,7 @@ elif st.session_state.step == 7:
     <div class="summary-card">
         <h2 style="color: #1B5E20; margin-top: 0;">🌾 Precision Fertilizer & Input Advisory Card</h2>
         <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Survey Plot No:</strong> {st.session_state.get('selected_plot', 'Custom Plot')}</p>
-        <p><strong>Jurisdiction:</strong> {st.session_state.c_village}, GP: {st.session_state.c_panchayat}, Block: {st.session_state.c_block}, Dist: {st.session_state.c_dist}, {st.session_state.c_state}</p>
+        <p><strong>Jurisdiction:</strong> {st.session_state.sel_v}, {st.session_state.sel_m}, GP: {st.session_state.sel_gp}, Block: {st.session_state.sel_b}, Dist: {st.session_state.sel_d}, {st.session_state.sel_s}</p>
         <p><strong>Field Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
         <p><strong>GPS Coordinates:</strong> {st.session_state.lat:.4f}° N, {st.session_state.lon:.4f}° E</p>
         <hr style="border: 1px solid #A5D6A7;"/>
@@ -960,7 +979,7 @@ elif st.session_state.step == 7:
     </div>
     """, unsafe_allow_html=True)
     
-    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nLocation: {st.session_state.c_village}, {st.session_state.c_block}, {st.session_state.c_dist}\nPlot No: {st.session_state.get('selected_plot', 'Custom')}\nLand: {st.session_state.raw_land_val:.2f} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
+    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nLocation: {st.session_state.sel_v}, {st.session_state.sel_b}, {st.session_state.sel_d}\nPlot No: {st.session_state.get('selected_plot', 'Custom')}\nLand: {st.session_state.raw_land_val:.2f} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
     st.download_button("📥 Download Prescription Record", receipt_txt, file_name="Farmer_Prescription.txt")
 
     st.divider()
