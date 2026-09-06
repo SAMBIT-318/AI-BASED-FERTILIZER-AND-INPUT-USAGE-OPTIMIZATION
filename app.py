@@ -119,12 +119,14 @@ MODELS_DIR = "saved_models"
 
 def ensure_models_exist():
     os.makedirs(MODELS_DIR, exist_ok=True)
-    if not os.path.exists(os.path.join(MODELS_DIR, "crop_model.pkl")):
-        train_crop_recommender()
-    if not os.path.exists(os.path.join(MODELS_DIR, "fert_model.pkl")):
-        train_fertilizer_classifier()
-    if not os.path.exists(os.path.join(MODELS_DIR, "yield_model.pkl")):
-        train_yield_regressor()
+    # Lightweight fallback check to avoid heavy CPU training spikes in the cloud
+    for fname in ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl"]:
+        if not os.path.exists(os.path.join(MODELS_DIR, fname)):
+            from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
+            train_crop_recommender()
+            train_fertilizer_classifier()
+            train_yield_regressor()
+            break
 
 @st.cache_resource(show_spinner="Starting Precision Agronomy System...")
 def load_all_models():
