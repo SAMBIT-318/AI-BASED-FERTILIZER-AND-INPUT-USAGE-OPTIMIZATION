@@ -138,7 +138,7 @@ st.markdown("""
 TRANSLATIONS = {
     "English": {
         "title": "🌾 AI Based Precision Agriculture Advisor",
-        "subtitle": "Scientific 4R Nutrient Stewardship, Field Diagnostic & Crop Prescription",
+        "subtitle": "Scientific 4R Nutrient Stewardship, Budget-Constrained Optimization & Crop Prescription",
         "login_tab": "Farmer Log In",
         "reg_tab": "Register New Farmer",
         "mobile_lbl": "Mobile Number",
@@ -152,13 +152,15 @@ TRANSLATIONS = {
         "btn_reg": "Create Account",
         "btn_back": "⬅️ Back",
         "btn_next": "Continue ➔",
+        "budget_lbl": "Your Maximum Fertilizer Budget (₹)",
+        "budget_help": "Optimization engine ensures total purchase cost stays strictly within this limit.",
         "feedback_title": "🌟 Farmer Feedback & Prescription Rating",
         "feedback_submit": "Submit Feedback & Complete",
-        "land_calc_title": "📐 Land Conversion & Acreage Calculation Table"
+        "land_calc_title": "📐 Land Conversion & Farm Budget Matrix"
     },
     "हिन्दी": {
         "title": "🌾 एआई आधारित सटीक कृषि सलाहकार",
-        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, खेत नैदानिक और फसल सलाह",
+        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, बजट आधारित अनुकूलन और फसल सलाह",
         "login_tab": "किसान लॉगिन",
         "reg_tab": "नया किसान पंजीकरण",
         "mobile_lbl": "मोबाइल नंबर",
@@ -172,13 +174,15 @@ TRANSLATIONS = {
         "btn_reg": "खाता बनाएं",
         "btn_back": "⬅️ पीछे",
         "btn_next": "आगे बढ़ें ➔",
+        "budget_lbl": "आपका अधिकतम उर्वरक बजट (₹)",
+        "budget_help": "यह सुनिश्चित करता है कि कुल उर्वरक खरीद लागत इस बजट सीमा से अधिक न हो।",
         "feedback_title": "🌟 किसान समीक्षा एवं रेटिंग",
         "feedback_submit": "समीक्षा जमा करें और बाहर निकलें",
-        "land_calc_title": "📐 भूमि रूपांतरण और एकड़ गणना तालिका"
+        "land_calc_title": "📐 भूमि रूपांतरण और कृषि बजट तालिका"
     },
     "ଓଡ଼ିଆ": {
         "title": "🌾 ଏଆଇ ଆଧାରିତ ଉନ୍ନତ କୃଷି ଓ ଖତ ପରାମର୍ଶ କେନ୍ଦ୍ର",
-        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, କ୍ଷେତ୍ର ବିଶ୍ଳେଷଣ ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
+        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, ବଜେଟ୍ ଅନୁଯାୟୀ ସାର ପରିଚାଳନା ଏବଂ ଫସଲ ନିର୍ଦ୍ଦେଶାବଳୀ",
         "login_tab": "କୃଷକ ଲଗଇନ୍",
         "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
@@ -192,9 +196,11 @@ TRANSLATIONS = {
         "btn_reg": "ଖାତା ତିଆରି କରନ୍ତୁ",
         "btn_back": "⬅️ ପଛକୁ ଯାଆନ୍ତୁ",
         "btn_next": "ଆଗକୁ ବଢ଼ନ୍ତୁ ➔",
+        "budget_lbl": "ଆପଣଙ୍କ ସର୍ବାଧିକ ସାର ଖର୍ଚ୍ଚ ବଜେଟ୍ (₹)",
+        "budget_help": "ଏହା ନିଶ୍ଚିତ କରେ ଯେ ଆପଣଙ୍କ ସାର ଖର୍ଚ୍ଚ ଏହି ବଜେଟ୍ ସୀମା ଭିତରେ ରହିବ।",
         "feedback_title": "🌟 କୃଷକ ମତାମତ ଓ ରେଟିଂ",
         "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ",
-        "land_calc_title": "📐 ଜମି ମାପ ଓ ଏକର ହିସାବ ସାରଣୀ"
+        "land_calc_title": "📐 ଜମି ମାପ ଓ କୃଷି ବଜେଟ୍ ସାରଣୀ"
     }
 }
 
@@ -398,7 +404,7 @@ def analyze_plant_disease_image(image_obj):
         }
 
 # -------------------------------------------------------------
-# DEFAULTS
+# DEFAULTS (Includes budget_cap)
 # -------------------------------------------------------------
 defaults = {
     "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
@@ -407,7 +413,7 @@ defaults = {
     "land_area": 0.607, "budget_cap": 25000.0, "target_yield": 4.5,
     "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
-    "plot_id": "Field 1"
+    "plot_id": "Plot No. 1"
 }
 for k, v in defaults.items():
     if k not in st.session_state:
@@ -424,7 +430,7 @@ st.markdown(f"""
             <p>{T['subtitle']}</p>
         </div>
         <div style="background:rgba(255,255,255,0.2); padding:6px 14px; border-radius:10px; font-weight:700; font-size:13px;">
-            🌱 Precision Agro-Intelligence
+            💰 Budget & Crop Optimizer Active
         </div>
     </div>
 </div>
@@ -481,7 +487,7 @@ if st.session_state.step == 1:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 2: FIELD SETUP, OPTICAL SCANNER & LAND SIZE
+# SCREEN 2: FIELD SETUP, BUDGET INPUT, OPTICAL SCANNER
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if st.session_state.app_mode == "Diagnostic Only":
@@ -515,16 +521,18 @@ elif st.session_state.step == 2:
             st.rerun()
 
     else:
-        st.subheader("2. 📍 Farm Details, Optical Scanner & Land Area")
+        st.subheader("2. 📍 Land Size, Farmer Budget & Field Telemetry")
         
         tab_land, tab_camera, tab_soil = st.tabs([
-            "📐 Land Area Converter & Acreage", 
+            "📐 Land Area & Farm Budget", 
             "📷 Optical Camera Scanner", 
             "🧪 Soil Nutrient Levels"
         ])
         
         with tab_land:
             st.markdown(f"##### {T['land_calc_title']}")
+            
+            # Row 1: Field ID, Land Size, and Units
             l_col1, l_col2, l_col3 = st.columns([2, 2, 2])
             st.session_state.plot_id = l_col1.text_input("Parcel / Field Identifier:", value=st.session_state.plot_id)
             st.session_state.raw_land_val = l_col2.number_input("Enter Land Size", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
@@ -533,11 +541,32 @@ elif st.session_state.step == 2:
                 list(UNIT_TO_HECTARE.keys()),
                 index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit)
             )
-            
+
+            # Row 2: Direct User Budget Input
+            st.markdown("---")
+            b_col1, b_col2 = st.columns([2, 2])
+            with b_col1:
+                st.session_state.budget_cap = st.number_input(
+                    T["budget_lbl"],
+                    min_value=1000.0,
+                    max_value=1000000.0,
+                    value=float(st.session_state.budget_cap),
+                    step=500.0,
+                    help=T["budget_help"]
+                )
+            with b_col2:
+                st.metric(
+                    "Allocated Budget Ceiling", 
+                    f"₹{st.session_state.budget_cap:,.0f}",
+                    help="Linear programming constraint: c^T x <= Budget"
+                )
+
+            # Multi-Unit Conversion Table
+            st.markdown("---")
             conv_table, ha_val = render_land_conversion_table(st.session_state.raw_land_val, st.session_state.land_unit)
             st.session_state.land_area = ha_val
             st.table(conv_table)
-            st.info(f"Standardized area for chemical dosage: **{ha_val:.3f} Hectares**")
+            st.info(f"Standardized area for chemical dosage: **{ha_val:.3f} Hectares** | Maximum Cost Cap: **₹{st.session_state.budget_cap:,.0f}**")
 
         with tab_camera:
             st.markdown("##### Live Soil / Leaf Scan")
@@ -675,10 +704,11 @@ elif st.session_state.step == 6:
     )
     st.session_state.opt_results = opt
 
-    r1, r2, r3 = st.columns(3)
+    r1, r2, r3, r4 = st.columns(4)
     r1.metric("Optimized Total Cost", f"₹{opt['total_cost']:,.0f}")
-    r2.metric("Land Covered", f"{st.session_state.raw_land_val:.2f} {st.session_state.land_unit.split(' ')[0]}")
-    r3.metric("Budget Utilized", f"{opt['budget_utilized_pct']}%")
+    r2.metric("Input Budget Cap", f"₹{st.session_state.budget_cap:,.0f}")
+    r3.metric("Land Covered", f"{st.session_state.raw_land_val:.2f} {st.session_state.land_unit.split(' ')[0]}")
+    r4.metric("Budget Utilized", f"{opt['budget_utilized_pct']}%")
 
     st.markdown("##### 🛒 Fertilizer Bags Needed for Your Field:")
     st.table(pd.DataFrame({
@@ -721,6 +751,7 @@ elif st.session_state.step == 7:
         <h2 style="color: #1B5E20; margin-top: 0;">🌾 Precision Fertilizer & Input Advisory Card</h2>
         <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel:</strong> {st.session_state.plot_id}</p>
         <p><strong>Field Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
+        <p><strong>Target Yield:</strong> {st.session_state.target_yield} t/ha | <strong>Farmer Budget Limit:</strong> ₹{st.session_state.budget_cap:,.0f}</p>
         <hr style="border: 1px solid #A5D6A7;"/>
         <h3 style="color: #1B5E20;">🛒 Required Purchases:</h3>
         <ul style="font-size: 15px; line-height: 1.8;">
@@ -729,12 +760,26 @@ elif st.session_state.step == 7:
             <li><strong>MOP (Potash):</strong> {opt['mop_kg']} kg (~{round(opt['mop_kg'] / 50.0)} bags of 50kg)</li>
             <li><strong>Organic Compost:</strong> {opt['compost_kg']} kg</li>
         </ul>
-        <h3 style="color: #1B5E20;">💰 Estimated Total Cost: ₹{opt['total_cost']:,.0f}</h3>
+        <h3 style="color: #1B5E20;">💰 Estimated Total Cost: ₹{opt['total_cost']:,.0f} (Within Budget of ₹{st.session_state.budget_cap:,.0f})</h3>
     </div>
     """, unsafe_allow_html=True)
     
-    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nParcel: {st.session_state.plot_id}\nLand: {st.session_state.raw_land_val:.2f} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
-    st.download_button("📥 Download Prescription Record", receipt_txt, file_name="Farmer_Prescription.txt")
+    receipt_txt = (
+        f"AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION\n"
+        f"=================================================\n"
+        f"Farmer Mobile: +91 {st.session_state.user_mobile}\n"
+        f"Parcel ID: {st.session_state.plot_id}\n"
+        f"Land Area: {st.session_state.raw_land_val:.2f} {st.session_state.land_unit}\n"
+        f"Target Harvest: {st.session_state.target_yield} t/ha\n"
+        f"Budget Limit: Rs. {st.session_state.budget_cap:,.0f}\n"
+        f"Total Estimated Input Cost: Rs. {opt['total_cost']:,.0f}\n\n"
+        f"FERTILIZER BAGS TO PURCHASE:\n"
+        f"- Urea: {opt['urea_kg']} kg ({round(opt['urea_kg'] / 50.0)} bags of 50kg)\n"
+        f"- DAP: {opt['dap_kg']} kg ({round(opt['dap_kg'] / 50.0)} bags of 50kg)\n"
+        f"- MOP (Potash): {opt['mop_kg']} kg ({round(opt['mop_kg'] / 50.0)} bags of 50kg)\n"
+        f"- Organic Compost: {opt['compost_kg']} kg\n"
+    )
+    st.download_button("📥 Download Prescription Record", receipt_txt, file_name=f"Prescription_{st.session_state.user_mobile}.txt")
 
     st.divider()
     b1, b2 = st.columns([1, 5])
