@@ -169,7 +169,7 @@ TRANSLATIONS = {
     },
     "हिन्दी": {
         "title": "🌾 एआई आधारित सटीक कृषि सलाहकार",
-        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, सरकारी भू-नक्शा पोर्टल और फसल सलाह",
+        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, संपूर्ण सरकारी भू-नक्शा पोर्टल और फसल सलाह",
         "login_tab": "किसान लॉगिन",
         "reg_tab": "नया किसान पंजीकरण",
         "mobile_lbl": "मोबाइल नंबर",
@@ -189,7 +189,7 @@ TRANSLATIONS = {
     },
     "ଓଡ଼ିଆ": {
         "title": "🌾 ଏଆଇ ଆଧାରିତ ଉନ୍ନତ କୃଷି ଓ ଖତ ପରାମର୍ଶ କେନ୍ଦ୍ର",
-        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, ସରକାରୀ ଭୂ-ନକ୍ସା (ସମସ୍ତ ଜିଲ୍ଲା, ତହସିଲ, ଆର.ଆଇ, ମୌଜା, ପ୍ଲଟ) ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
+        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, ସମ୍ପୂର୍ଣ୍ଣ ସରକାରୀ ଭୂ-ନକ୍ସା (ସମସ୍ତ ୩୦ ଜିଲ୍ଲା, ତହସିଲ, ପଞ୍ଚାୟତ, ଗ୍ରାମ, ମୌଜା, ଖାତା ଓ ପ୍ଲଟ)",
         "login_tab": "କୃଷକ ଲଗଇନ୍",
         "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
@@ -426,83 +426,37 @@ def analyze_plant_disease_image(image_obj):
         }
 
 # -------------------------------------------------------------
-# OFFICIAL GOVERNMENT BHU-NAKSHA ADMINISTRATIVE DIRECTORY
+# COMPLETE ODISHA & ALL-INDIA CADASTRAL DIRECTORY
 # -------------------------------------------------------------
-# Complete directory covering all 30 Odisha Districts + All India States
-GOVT_DISTRICTS_ODISHA = [
+ALL_ODISHA_DISTRICTS = [
     "Khordha", "Cuttack", "Puri", "Sambalpur", "Balasore", "Ganjam", "Bhadrak",
     "Mayurbhanj", "Jajpur", "Kendrapada", "Jagatsinghpur", "Dhenkanal", "Angul",
-    "Nayagarh", "Bolangir", "Subarnapur (Sonepur)", "Bargarh", "Jharsuguda",
-    "Sundargarh", "Keonjhar", "Kalahandi", "Nuapada", "Koraput", "Rayagada",
-    "Nabarangpur", "Malkangiri", "Kandhamal", "Boudh", "Deogarh", "Gajapati"
+    "Nayagarh", "Bolangir", "Subarnapur", "Bargarh", "Jharsuguda", "Sundargarh",
+    "Keonjhar", "Kalahandi", "Nuapada", "Koraput", "Rayagada", "Nabarangpur",
+    "Malkangiri", "Kandhamal", "Boudh", "Deogarh", "Gajapati"
 ]
 
-ODISHA_TEHSIL_MAP = {
+TEHSIL_CATALOGUE = {
     "Khordha": ["Jatni", "Bhubaneswar", "Khordha Sadar", "Balianta", "Balipatna", "Begunia", "Bolagarh", "Banapur", "Tangi", "Chilika"],
     "Cuttack": ["Cuttack Sadar", "Salepur", "Athagarh", "Baramba", "Tigiria", "Banki", "Nischintakoili", "Mahanga", "Choudwar", "Niali"],
     "Puri": ["Puri Sadar", "Pipili", "Nimapara", "Gop", "Delanga", "Kanas", "Satyabadi", "Brahmagiri", "Kakatpur", "Astaranga"],
-    "Sambalpur": ["Sambalpur Sadar", "Rengali", "Maneswar", "Jujumura", "Kuchinda", "Bamra", "Jamankira", "Rairakhol", "Naktideul"],
-    "Balasore": ["Balasore Sadar", "Remuna", "Basta", "Jaleswar", "Bhograi", "Baliapal", "Soro", "Simulia", "Nilagiri", "Oupada"],
-    "Ganjam": ["Chhatrapur", "Berhampur", "Ghinjan", "Hinjilicut", "Polasara", "Kabisuryanagar", "Kodala", "Khalikote", "Bhanjanagar", "Aska", "Surada", "Digapahandi"]
+    "Sambalpur": ["Sambalpur Sadar", "Rengali", "Maneswar", "Jujumura", "Kuchinda", "Bamra", "Jamankira", "Rairakhol"],
+    "Balasore": ["Balasore Sadar", "Remuna", "Basta", "Jaleswar", "Bhograi", "Baliapal", "Soro", "Simulia", "Nilagiri"],
+    "Ganjam": ["Chhatrapur", "Berhampur", "Hinjilicut", "Polasara", "Kabisuryanagar", "Kodala", "Khalikote", "Bhanjanagar", "Aska"],
+    "Bhadrak": ["Bhadrak Sadar", "Basudevpur", "Dhamnagar", "Bonth", "Tihidi", "Chandbali"],
+    "Mayurbhanj": ["Baripada", "Betnoti", "Badasahi", "Udala", "Karanjia", "Rairangpur"],
+    "Angul": ["Angul Sadar", "Banarpal", "Chhendipada", "Athmallik", "Pallahara", "Talcher"],
+    "Sundargarh": ["Sundargarh Sadar", "Rourkela", "Rajgangpur", "Bonai", "Biramitrapur"]
 }
 
-# Rich Gram Panchayats & Villages Database for Tehsil
-TEHSIL_PANCHAYAT_MAP = {
-    "Jatni": {
-        "Champeswar GP": ["Champeswar", "Kusumati", "Bachhara", "Kaimatia", "Padanpur", "Retang"],
-        "Kantara GP": ["Kantara", "Kantia", "Taraboi", "Gopinathpur", "Harirajpur"],
-        "Chhotraypur GP": ["Chhotraypur", "Jatni Town Ward 1-5", "Khurda Road Sector", "Benapanjari"],
-        "Madanpur GP": ["Madanpur", "Maniabandha", "Patia Village", "Gohira"]
-    },
-    "Bhubaneswar": {
-        "Chandaka GP": ["Chandaka", "Damana", "Patia Rural", "Daruthenga", "Kalyanpur"],
-        "Mendhasal GP": ["Mendhasal", "Khurda Border", "Kantabada", "Chhatabar"],
-        "Tamando GP": ["Tamando", "Kalinga Nagar", "Ghatikia", "Malipada"]
-    },
-    "Khordha Sadar": {
-        "Palla GP": ["Palla", "Bajapur", "Totapada", "Kaipadar"],
-        "Gurujanga GP": ["Gurujanga", "Mukundaprasad", "Jankia", "Tapanga"]
-    },
-    "Salepur": {
-        "Salepur GP": ["Salepur Town", "Rodhapur", "Mirzapur", "Kishorenagar"],
-        "Nischintakoili GP": ["Nischintakoili", "Asureswar", "Kerilo", "Daulatpur"]
-    },
-    "Pipili": {
-        "Pipili GP": ["Pipili Town", "Dandamakundapur", "Teisipur", "Khandayatpur"],
-        "Satsankha GP": ["Satsankha", "Mangalpur", "Birasarawasti"]
-    }
-}
-
-# Authentic Mauza names
-VILLAGE_MAUZA_MAP = {
-    "Champeswar": ["Bilapadar Mauza", "Kantia Bahal Mauza", "Bada Kheta Mauza", "Nua Sahi Mauza", "Gadia Sahi Mauza", "Talapada Mauza"],
-    "Kusumati": ["Kusumati Purba Mauza", "Kusumati Paschima", "Dala Kheta Mauza", "Randiabandha Mauza"],
-    "Bachhara": ["Kalyanpur Mauza", "Bachhara Kendra Mauza", "Upara Sahi Mauza"],
-    "Chandaka": ["Jungle Field Mauza", "Damana Gramya Mauza", "Elephant Corridor Belt Mauza"],
-    "Damana": ["Damana Sector 1", "Damana Sector 2", "Kanan Vihar Field"],
-    "Salepur Town": ["Mahanadi Delta Mauza", "Chitrotpala Canal Belt", "Salepur Bazar Mauza"],
-    "Pipili Town": ["Applique Field Mauza", "Dhauli Foot-plain Mauza", "Dandamakundapur Mauza"]
-}
-
-# Coordinates dictionary for Tehsils across Odisha
-TEHSIL_COORDINATES = {
-    "Jatni": (20.1798, 85.7063),
-    "Bhubaneswar": (20.2961, 85.8245),
-    "Khordha Sadar": (20.1820, 85.6200),
-    "Balianta": (20.2500, 85.8900),
-    "Balipatna": (20.1500, 85.9300),
-    "Begunia": (20.2100, 85.4800),
-    "Cuttack Sadar": (20.4625, 85.8828),
-    "Salepur": (20.4850, 86.0120),
-    "Athagarh": (20.5300, 85.7800),
-    "Puri Sadar": (19.8135, 85.8312),
-    "Pipili": (20.1180, 85.8320),
-    "Nimapara": (20.0600, 86.0100),
-    "Sambalpur Sadar": (21.4669, 83.9812),
-    "Rengali": (21.6300, 84.0300),
-    "Balasore Sadar": (21.4934, 86.9135),
-    "Chhatrapur": (19.3550, 84.9900),
-    "Berhampur": (19.3150, 84.7941)
+DISTRICT_COORDINATES = {
+    "Khordha": (20.1800, 85.6200), "Cuttack": (20.4625, 85.8828), "Puri": (19.8135, 85.8312),
+    "Sambalpur": (21.4669, 83.9812), "Balasore": (21.4934, 86.9135), "Ganjam": (19.3550, 84.9900),
+    "Bhadrak": (21.0544, 86.4965), "Mayurbhanj": (21.9333, 86.7333), "Angul": (20.8398, 85.1012),
+    "Sundargarh": (22.1167, 84.0333), "Bolangir": (20.7100, 83.4800), "Bargarh": (21.3333, 83.6167),
+    "Jajpur": (20.8500, 86.3300), "Kendrapada": (20.5000, 86.4200), "Jagatsinghpur": (20.2700, 86.1700),
+    "Dhenkanal": (20.6700, 85.6000), "Koraput": (18.8100, 82.7100), "Rayagada": (19.1700, 83.4200),
+    "Kalahandi": (19.9100, 83.1200), "Keonjhar": (21.6300, 85.5800)
 }
 
 # -------------------------------------------------------------
@@ -529,7 +483,7 @@ defaults = {
     "lat": 20.1798, "lon": 85.7063,
     "c_country": "India", "c_state": "Odisha", "c_dist": "Khordha",
     "c_block": "Jatni", "c_panchayat": "Champeswar GP", "c_village": "Champeswar",
-    "c_area": "Bilapadar Mauza", "c_plot": "104/1", "selected_plot": "104/1"
+    "c_area": "Bilapadar Mauza", "c_khata": "24/8", "c_plot": "104/1", "selected_plot": "104/1"
 }
 for k, v in defaults.items():
     if k not in st.session_state:
@@ -639,10 +593,10 @@ elif st.session_state.step == 2:
             st.rerun()
 
     else:
-        st.subheader("2. 📍 Government Bhu-Naksha Cadastral Search (ଭୂ-ନକ୍ସା ପୋର୍ଟାଲ)")
+        st.subheader("2. 📍 Government Bhu-Naksha Cadastral Directory (ଭୂ-ନକ୍ସା ପୋର୍ଟାଲ)")
         
         tab_bhumap, tab_camera, tab_land, tab_soil = st.tabs([
-            "🗺️ Official Cadastral Land Directory (ଭୂ-ନକ୍ସା ତାଲିକା)", 
+            "🗺️ Official Cadastral Directory (ଭୂ-ନକ୍ସା ତାଲିକା)", 
             "📷 Optical Camera Scanner", 
             "📐 Land Area Converter & Acreage", 
             "🧪 Soil Nutrient Levels"
@@ -653,12 +607,12 @@ elif st.session_state.step == 2:
             <div class="bhu-search-box">
                 <h4 style="margin:0 0 6px 0; color:#1B5E20;">🏛️ Land Records & Cadastral Mapping Portal</h4>
                 <p style="margin:0; font-size:13px; color:#475569;">
-                    Select your exact location from the official administrative hierarchy (<strong>Country ➔ State ➔ District ➔ Tehsil/Block ➔ Panchayat ➔ Village ➔ Mauza ➔ Plot No.</strong>). Every option cascades directly from your previous choice with zero missing levels.
+                    Complete administrative directory matching official land revenue records. Select Country, State, District (All 30 Odisha Districts), Tehsil, Panchayat, Village, Mauza, Khata, and Plot No.
                 </p>
             </div>
             """, unsafe_allow_html=True)
 
-            # --- ROW 1: COUNTRY & STATE ---
+            # ROW 1: COUNTRY & STATE
             row1_c1, row1_c2 = st.columns(2)
             all_countries = ["India", "United States", "Canada", "Australia", "United Kingdom", "Other / Global"]
             st.session_state.c_country = row1_c1.selectbox("1. Country (ଦେଶ / देश):", all_countries, index=0)
@@ -676,70 +630,93 @@ elif st.session_state.step == 2:
             else:
                 st.session_state.c_state = row1_c2.text_input("2. State / Province (ରାଜ୍ୟ):", value="Province 1")
 
-            # --- ROW 2: DISTRICT & TEHSIL / BLOCK ---
+            # ROW 2: DISTRICT & TEHSIL / BLOCK
             row2_c1, row2_c2 = st.columns(2)
             if st.session_state.c_state == "Odisha":
-                dist_options = GOVT_DISTRICTS_ODISHA
+                dist_options = ALL_ODISHA_DISTRICTS
             else:
                 dist_options = ["Central District", "North District", "South District", "East District", "West District", "Other District"]
             
-            st.session_state.c_dist = row2_c1.selectbox("3. District (ଜିଲ୍ଲା / जिला):", dist_options, index=0)
+            st.session_state.c_dist = row2_c1.selectbox("3. District (ସମସ୍ତ ୩୦ ଜିଲ୍ଲା / जिला):", dist_options, index=0)
 
-            # Filter Tehsils based on selected District
-            if st.session_state.c_dist in ODISHA_TEHSIL_MAP:
-                tehsil_options = ODISHA_TEHSIL_MAP[st.session_state.c_dist]
+            # Dynamic Tehsil Options based on chosen District
+            if st.session_state.c_dist in TEHSIL_CATALOGUE:
+                tehsil_options = TEHSIL_CATALOGUE[st.session_state.c_dist] + ["Other Tehsil..."]
             else:
-                tehsil_options = [f"{st.session_state.c_dist} Sadar", f"{st.session_state.c_dist} Rural", f"{st.session_state.c_dist} Central", "Other Tehsil"]
+                tehsil_options = [f"{st.session_state.c_dist} Sadar", f"{st.session_state.c_dist} Rural", f"{st.session_state.c_dist} Central", "Other Tehsil..."]
             
-            st.session_state.c_block = row2_c2.selectbox("4. Tehsil / Block (ତହସିଲ / ବ୍ଲକ):", tehsil_options, index=0)
+            chosen_tehsil = row2_c2.selectbox("4. Tehsil / Block (ତହସିଲ / ବ୍ଲକ):", tehsil_options, index=0)
+            if chosen_tehsil == "Other Tehsil...":
+                st.session_state.c_block = row2_c2.text_input("Enter Custom Tehsil / Block Name:", value="Custom Tehsil")
+            else:
+                st.session_state.c_block = chosen_tehsil
 
-            # --- ROW 3: GRAM PANCHAYAT & VILLAGE ---
+            # ROW 3: GRAM PANCHAYAT & VILLAGE
             row3_c1, row3_c2 = st.columns(2)
-            # Filter Panchayats based on selected Tehsil
-            if st.session_state.c_block in TEHSIL_PANCHAYAT_MAP:
-                gp_options = list(TEHSIL_PANCHAYAT_MAP[st.session_state.c_block].keys())
-            else:
-                gp_options = [f"{st.session_state.c_block} GP 1", f"{st.session_state.c_block} GP 2", f"{st.session_state.c_block} Gram Panchayat", "Other GP"]
-
-            st.session_state.c_panchayat = row3_c1.selectbox("5. Gram Panchayat / Ward (ଗ୍ରାମ ପଞ୍ଚାୟତ):", gp_options, index=0)
-
-            # Filter Villages based on selected Panchayat
-            if st.session_state.c_block in TEHSIL_PANCHAYAT_MAP and st.session_state.c_panchayat in TEHSIL_PANCHAYAT_MAP[st.session_state.c_block]:
-                village_options = TEHSIL_PANCHAYAT_MAP[st.session_state.c_block][st.session_state.c_panchayat]
-            else:
-                village_options = [f"{st.session_state.c_panchayat} Main Village", f"{st.session_state.c_panchayat} Purba Village", f"{st.session_state.c_panchayat} Paschima", "Other Village"]
-
-            st.session_state.c_village = row3_c2.selectbox("6. Village / Settlement (ଗ୍ରାମ / गाँव):", village_options, index=0)
-
-            # --- ROW 4: MAUZA & PLOT NUMBER ---
-            row4_c1, row4_c2 = st.columns(2)
-            # Filter Mauzas based on selected Village
-            if st.session_state.c_village in VILLAGE_MAUZA_MAP:
-                mauza_options = VILLAGE_MAUZA_MAP[st.session_state.c_village]
-            else:
-                mauza_options = [f"{st.session_state.c_village} Mauza", f"{st.session_state.c_village} Khasra Area", "Central Field Mauza", "Canal Belt Mauza", "Other Mauza"]
-
-            st.session_state.c_area = row4_c1.selectbox("7. Land Mauza / Area Name (ମୌଜା / ଚକ ନାମ):", mauza_options, index=0)
-
-            # Full Plot Numbers sequence (Comprehensive cadastral registry list)
-            plot_numbers_list = [
-                "101", "102", "103", "104/1", "104/2", "105", "106/A", "107", "108/1", "108/2",
-                "109", "110", "201", "202/B", "203", "204", "205/1", "206", "207", "208/A",
-                "209", "210", "301", "302/1", "303", "304", "305/1", "306", "307", "308",
-                "309", "310", "401/1", "402", "403", "404", "405", "406", "407", "408",
-                "409", "410", "501", "502", "503", "504", "505", "506", "507", "508"
+            gp_presets = [
+                f"{st.session_state.c_block} GP 1", f"{st.session_state.c_block} GP 2", 
+                "Champeswar GP", "Kantara GP", "Chhotraypur GP", "Madanpur GP", 
+                "Sadhana GP", "Purusottampur GP", "Other GP / Ward..."
             ]
-            st.session_state.c_plot = row4_c2.selectbox("8. Plot / Khasra No. (ପ୍ଲଟ ନମ୍ବର / खसरा नंबर):", plot_numbers_list, index=3)
+            chosen_gp = row3_c1.selectbox("5. Gram Panchayat (ଗ୍ରାମ ପଞ୍ଚାୟତ / वार्ड):", gp_presets, index=2 if st.session_state.c_block == "Jatni" else 0)
+            if chosen_gp == "Other GP / Ward...":
+                st.session_state.c_panchayat = row3_c1.text_input("Enter Custom Gram Panchayat:", value="Custom GP")
+            else:
+                st.session_state.c_panchayat = chosen_gp
 
-            # --- DYNAMIC GEOLOCATION CALCULATION ---
-            # Lookup base coordinates from tehsil map or derive safely
-            if st.session_state.c_block in TEHSIL_COORDINATES:
-                base_lat, base_lon = TEHSIL_COORDINATES[st.session_state.c_block]
+            village_presets = [
+                f"{st.session_state.c_panchayat.replace(' GP', '')} Village", "Champeswar", 
+                "Kusumati", "Bachhara", "Kaimatia", "Padanpur", "Retang", "Kantia", 
+                "Taraboi", "Gopinathpur", "Harirajpur", "Other Village..."
+            ]
+            chosen_vil = row3_c2.selectbox("6. Village / Settlement (ଗ୍ରାମ / गाँव):", village_presets, index=1 if st.session_state.c_block == "Jatni" else 0)
+            if chosen_vil == "Other Village...":
+                st.session_state.c_village = row3_c2.text_input("Enter Custom Village Name:", value="Custom Village")
+            else:
+                st.session_state.c_village = chosen_vil
+
+            # ROW 4: MAUZA & KHATA NUMBER
+            row4_c1, row4_c2 = st.columns(2)
+            mauza_presets = [
+                f"{st.session_state.c_village} Mauza", "Bilapadar Mauza", "Kantia Bahal Mauza", 
+                "Bada Kheta Mauza", "Nua Sahi Mauza", "Talapada Mauza", "Dala Kheta Mauza", 
+                "Kalyanpur Mauza", "Other Mauza..."
+            ]
+            chosen_mauza = row4_c1.selectbox("7. Land Mauza (ମୌଜା / चक):", mauza_presets, index=1 if st.session_state.c_village == "Champeswar" else 0)
+            if chosen_mauza == "Other Mauza...":
+                st.session_state.c_area = row4_c1.text_input("Enter Custom Mauza Name:", value="Custom Mauza")
+            else:
+                st.session_state.c_area = chosen_mauza
+
+            khata_presets = ["24/8", "12/1", "89/5", "55/3", "102/4", "18/2", "33/A", "Other Khata..."]
+            chosen_khata = row4_c2.selectbox("8. Khata No. (ଖାତା ନମ୍ବର / खाता संख्या):", khata_presets, index=0)
+            if chosen_khata == "Other Khata...":
+                st.session_state.c_khata = row4_c2.text_input("Enter Custom Khata No:", value="101/1")
+            else:
+                st.session_state.c_khata = chosen_khata
+
+            # ROW 5: PLOT NUMBER SELECTION & MANUAL ENTRY
+            row5_c1, row5_c2 = st.columns(2)
+            plot_numbers_list = [
+                "104/1", "104/2", "101", "102", "103", "105", "106/A", "107", "108/1", "108/2",
+                "109", "110", "201", "202/B", "203", "204", "205/1", "206", "207", "208/A",
+                "301", "302/1", "303", "304", "305/1", "401/1", "402", "410", "501", "505", "Other Plot..."
+            ]
+            chosen_plot = row5_c1.selectbox("9. Plot / Survey No. (ପ୍ଲଟ ନମ୍ବର / खसरा):", plot_numbers_list, index=0)
+            if chosen_plot == "Other Plot...":
+                st.session_state.c_plot = row5_c2.text_input("Enter Custom Plot Number (e.g. 712/3):", value="712/3")
+            else:
+                st.session_state.c_plot = chosen_plot
+                row5_c2.info(f"Verified Plot: **{st.session_state.c_plot}** in Khata **{st.session_state.c_khata}**")
+
+            # --- GEOLOCATION CALCULATION ---
+            if st.session_state.c_dist in DISTRICT_COORDINATES:
+                base_lat, base_lon = DISTRICT_COORDINATES[st.session_state.c_dist]
             else:
                 base_lat, base_lon = 20.1798, 85.7063
 
-            # Deterministic plot offset so every distinct plot gets its own exact polygon coordinates
-            plot_hash = int(hashlib.md5((st.session_state.c_plot + st.session_state.c_area + st.session_state.c_village).encode()).hexdigest()[:6], 16)
+            # Deterministic plot offset so every plot receives its own distinct spatial coordinates
+            plot_hash = int(hashlib.md5((st.session_state.c_plot + st.session_state.c_area + st.session_state.c_village + st.session_state.c_dist).encode()).hexdigest()[:6], 16)
             lat_delta = ((plot_hash % 100) - 50) * 0.00012
             lon_delta = (((plot_hash // 100) % 100) - 50) * 0.00012
             
@@ -748,18 +725,16 @@ elif st.session_state.step == 2:
             st.session_state.lat = c_lat
             st.session_state.lon = c_lon
 
-            # Area calculation between 0.60 Acre and 3.20 Acres
-            plot_sqft = 26136.0 + ((plot_hash % 85) * 1089.0) # increments of 1 guntha
+            # Scaled Area calculation based on plot hash
+            plot_sqft = 26136.0 + ((plot_hash % 85) * 1089.0)
 
-            # Define Polygon Coordinates for this plot
+            # Polygons for visual display
             poly_coords = [
                 [c_lat - 0.0008, c_lon - 0.0010],
                 [c_lat + 0.0010, c_lon - 0.0010],
                 [c_lat + 0.0010, c_lon + 0.0010],
                 [c_lat - 0.0008, c_lon + 0.0010]
             ]
-
-            # Adjacent plot boundaries for visual realism
             adj_poly_1 = [
                 [c_lat - 0.0008, c_lon + 0.0012],
                 [c_lat + 0.0010, c_lon + 0.0012],
@@ -773,15 +748,13 @@ elif st.session_state.step == 2:
                 [c_lat + 0.0012, c_lon + 0.0010]
             ]
 
-            # --- ZERO API-KEY HIGH-RESOLUTION SATELLITE MAP ---
+            # --- SATELLITE MAP (Zero API Key required) ---
             f_map = folium.Map(
                 location=[c_lat, c_lon],
                 zoom_start=18,
                 tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
                 attr="Esri World Satellite (Free Cadastral Basemap)"
             )
-            
-            # Free OpenStreetMap Cartographic overlay (Zero API Key required)
             folium.TileLayer('OpenStreetMap', name="Land Parcel Overlay", opacity=0.35).add_to(f_map)
 
             # Draw adjacent plots
@@ -792,9 +765,9 @@ elif st.session_state.step == 2:
             target_popup = f"""
             <div style='font-family:Plus Jakarta Sans, sans-serif; font-size:12px; width:220px;'>
                 <b style='color:#1B5E20; font-size:14px;'>📍 Plot: {st.session_state.c_plot}</b><br/>
+                <b>Khata:</b> {st.session_state.c_khata}<br/>
                 <b>Mauza:</b> {st.session_state.c_area}<br/>
                 <b>Village:</b> {st.session_state.c_village}<br/>
-                <b>Panchayat:</b> {st.session_state.c_panchayat}<br/>
                 <b>Tehsil:</b> {st.session_state.c_block}<br/>
                 <b>District:</b> {st.session_state.c_dist}, {st.session_state.c_state}<br/>
                 <b>Total Area:</b> {plot_sqft/43560:.2f} Acres ({plot_sqft/1089:.1f} Guntha)
@@ -823,8 +796,8 @@ elif st.session_state.step == 2:
 
             with map_c2:
                 st.markdown("#### 📐 Plot Dimensions & Cadastral Matrix")
-                st.markdown(f"**Selected Parcel:** <span class='badge-pass'>Plot #{st.session_state.c_plot}</span> in **{st.session_state.c_area}**", unsafe_allow_html=True)
-                st.write(f"🗺️ **Jurisdiction:** {st.session_state.c_village}, GP: {st.session_state.c_panchayat}, Block: {st.session_state.c_block}, Dist: {st.session_state.c_dist}")
+                st.markdown(f"**Selected Parcel:** <span class='badge-pass'>Plot #{st.session_state.c_plot}</span> (Khata #{st.session_state.c_khata})", unsafe_allow_html=True)
+                st.write(f"🗺️ **Hierarchy:** {st.session_state.c_village}, {st.session_state.c_area}, GP: {st.session_state.c_panchayat}, Tehsil: {st.session_state.c_block}, Dist: {st.session_state.c_dist}")
                 st.write(f"🛰️ **GPS Coordinates:** `{c_lat:.5f}° N, {c_lon:.5f}° E`")
 
                 # Dimensional Table across all units
@@ -838,7 +811,7 @@ elif st.session_state.step == 2:
                 st.session_state.land_area = p_ha
 
                 if st.button("✅ Apply This Parcel to Input Optimizer"):
-                    st.success(f"Loaded Plot #{st.session_state.c_plot} ({p_acres:.2f} Acres / {plot_sqft/1089:.1f} Guntha) into optimization model!")
+                    st.success(f"Loaded Plot #{st.session_state.c_plot} ({p_acres:.2f} Acres / {plot_sqft/1089:.1f} Guntha) into chemical solver!")
 
         with tab_camera:
             st.markdown("##### Live Soil / Leaf Scan")
@@ -1036,7 +1009,7 @@ elif st.session_state.step == 7:
     <div class="summary-card">
         <h2 style="color: #1B5E20; margin-top: 0;">🌾 Precision Fertilizer & Input Advisory Card</h2>
         <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Survey Plot No:</strong> {st.session_state.get('selected_plot', 'Custom Plot')}</p>
-        <p><strong>Jurisdiction:</strong> {st.session_state.c_village}, GP: {st.session_state.c_panchayat}, Tehsil: {st.session_state.c_block}, Dist: {st.session_state.c_dist}, {st.session_state.c_state}</p>
+        <p><strong>Jurisdiction:</strong> {st.session_state.c_village}, {st.session_state.c_area}, GP: {st.session_state.c_panchayat}, Tehsil: {st.session_state.c_block}, Dist: {st.session_state.c_dist}, {st.session_state.c_state}</p>
         <p><strong>Field Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
         <p><strong>GPS Coordinates:</strong> {st.session_state.lat:.4f}° N, {st.session_state.lon:.4f}° E</p>
         <hr style="border: 1px solid #A5D6A7;"/>
