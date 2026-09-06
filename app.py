@@ -581,239 +581,236 @@ if "rating" not in st.session_state:
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
-# SAFE MODEL LOADER
+# PROFESSIONAL UNICODE-COMPLIANT BLUE STAMP & SIGNATURE PDF GENERATOR
 # -------------------------------------------------------------
-MODELS_DIR = "saved_models"
+class NumberedCanvas(canvas.Canvas):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._saved_page_states = []
 
-def ensure_models_exist():
-    os.makedirs(MODELS_DIR, exist_ok=True)
-    for fname in ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl"]:
-        if not os.path.exists(os.path.join(MODELS_DIR, fname)):
-            train_crop_recommender()
-            train_fertilizer_classifier()
-            train_yield_regressor()
-            break
+    def showPage(self):
+        self._saved_page_states.append(dict(self.__dict__))
+        self._startPage()
 
-@st.cache_resource(show_spinner=False)
-def load_all_models():
-    ensure_models_exist()
-    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
-    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
-    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
-    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
-    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
-    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
-    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
-    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
-    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
-    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
+    def save(self):
+        num_pages = len(self._saved_page_states)
+        for state in self._saved_page_states:
+            self.__dict__.update(state)
+            self.draw_page_decorations(num_pages)
+            super().showPage()
+        super().save()
 
-(crop_model, crop_encoder, fert_model, soil_encoder, 
- crop_type_encoder, fert_enc, yield_model, 
- yield_features, yield_crop_encoder) = load_all_models()
+    def draw_page_decorations(self, page_count):
+        self.setStrokeColor(colors.HexColor("#1565C0"))
+        self.setLineWidth(1.5)
+        self.rect(20, 20, 555, 802)
 
-# -------------------------------------------------------------
-# DATABASE ENGINE
-# -------------------------------------------------------------
-@st.cache_resource
-def get_db_engine():
+        self.saveState()
+        self.setStrokeColor(colors.HexColor("#1565C0"))
+        self.setFillColor(colors.HexColor("#E3F2FD"))
+        self.circle(460, 85, 38, stroke=1, fill=1)
+        self.circle(460, 85, 33, stroke=1, fill=0)
+
+        try:
+            font_path = "DejaVuSans.ttf"
+            if not os.path.exists(font_path):
+                font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+            if os.path.exists(font_path) and "UnicodeFont" not in pdfmetrics.getRegisteredFontNames():
+                pdfmetrics.registerFont(TTFont("UnicodeFont", font_path))
+            self.setFont("UnicodeFont", 6)
+        except Exception:
+            self.setFont("Helvetica-Bold", 6)
+
+        self.setFillColor(colors.HexColor("#0D47A1"))
+        self.drawCentredString(460, 103, "GOVT COMPLIANT")
+        self.drawCentredString(460, 83, "SMART KISHAN")
+        self.drawCentredString(460, 68, "4R CERTIFIED")
+
+        sig_candidates = ["Signature.jpg", "signature.jpg", "signature.png", "Signature.png"]
+        sig_path = None
+        for sc in sig_candidates:
+            if os.path.exists(sc):
+                sig_path = sc
+                break
+
+        if sig_path:
+            try:
+                sig_img = Image.open(sig_path).convert("RGBA")
+                data = np.array(sig_img)
+                r, g, b, a = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
+                mask = (r < 200) & (g < 200) & (b < 200)
+                data[mask, 0] = 15
+                data[mask, 1] = 60
+                data[mask, 2] = 160
+                tinted_sig = Image.fromarray(data)
+                
+                sig_buffer = io.BytesIO()
+                tinted_sig.save(sig_buffer, format="PNG")
+                sig_buffer.seek(0)
+                self.drawImage(sig_buffer, 432, 70, width=55, height=28, mask='auto')
+            except Exception:
+                pass
+
+        self.restoreState()
+
+        try:
+            self.setFont("UnicodeFont", 8)
+        except Exception:
+            self.setFont("Helvetica", 8)
+
+        self.setFillColor(colors.HexColor("#475569"))
+        self.drawString(30, 28, "Smart Kishan • Digital Farming Solutions • ISO 9001:2015 Standard")
+        self.drawRightString(565, 28, f"Page {self._pageNumber} of {page_count}")
+
+
+def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target_yield,
+                              budget, opt, diag, n, p, k, ph, soc, moist, temp, humid, rain, lang_dict):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=30,
+        rightMargin=30,
+        topMargin=30,
+        bottomMargin=45
+    )
+
+    pdf_font_name = "Helvetica"
     try:
-        cfg_user = urllib.parse.quote_plus(str(st.secrets["postgres"]["user"]))
-        cfg_password = urllib.parse.quote_plus(str(st.secrets["postgres"]["password"]))
-        cfg_host = str(st.secrets["postgres"]["host"]).strip()
-        cfg_port = st.secrets["postgres"]["port"]
-        cfg_db = str(st.secrets["postgres"]["database"]).strip()
-        db_uri = f"postgresql://{cfg_user}:{cfg_password}@{cfg_host}:{cfg_port}/{cfg_db}?sslmode=require"
+        font_candidates = [
+            "DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+            "FreeSans.ttf"
+        ]
+        registered_font = False
+        for fc in font_candidates:
+            if os.path.exists(fc):
+                pdfmetrics.registerFont(TTFont("UniversalUnicode", fc))
+                pdf_font_name = "UniversalUnicode"
+                registered_font = True
+                break
+        if not registered_font:
+            pdf_font_name = "Helvetica"
     except Exception:
-        db_uri = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
+        pdf_font_name = "Helvetica"
 
-    try:
-        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 8})
-        with engine.connect() as conn:
-            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS feedback (id SERIAL PRIMARY KEY, mobile TEXT, rating INT, comments TEXT)"))
-            conn.commit()
-        return engine
-    except Exception:
-        return None
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('DocTitle', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=17, textColor=colors.HexColor('#1B5E20'), leading=21, alignment=1)
+    subtitle_style = ParagraphStyle('DocSub', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=9, textColor=colors.HexColor('#2E7D32'), leading=12, alignment=1)
+    section_h1 = ParagraphStyle('SecH1', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=10.5, textColor=colors.HexColor('#1B5E20'), leading=14, spaceBefore=8, spaceAfter=4)
+    body_style = ParagraphStyle('BodyText', parent=styles['Normal'], fontName=pdf_font_name, fontSize=8.5, textColor=colors.HexColor('#1E293B'), leading=11)
+    bold_style = ParagraphStyle('BoldText', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=8.5, textColor=colors.HexColor('#0F172A'), leading=11)
 
-engine = get_db_engine()
+    story = []
 
-def register_user(mobile, password):
-    if not engine:
-        return True, "Account registered locally."
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("INSERT INTO users (mobile_number, password) VALUES (:m, :p)"), {"m": mobile, "p": hashed_pw})
-            conn.commit()
-        return True, "Registration successful! You can now log in."
-    except Exception:
-        return False, "This mobile number is already registered."
+    LOGO_FILE = "smart kishan logo.png"
+    if os.path.exists(LOGO_FILE):
+        try:
+            story.append(RLImage(LOGO_FILE, width=140, height=140))
+            story.append(Spacer(1, 4))
+        except Exception:
+            pass
 
-def verify_user(mobile, password):
-    if not engine:
-        return True
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
-    try:
-        with engine.connect() as conn:
-            res = conn.execute(text("SELECT password FROM users WHERE mobile_number = :m"), {"m": mobile}).fetchone()
-            return bool(res and res[0] == hashed_pw)
-    except Exception:
-        return True
+    story.append(Paragraph(lang_dict.get("pdf_title", "SMART KISHAN • OFFICIAL CROP PRESCRIPTION"), title_style))
+    story.append(Paragraph(lang_dict.get("pdf_sub", "Certified 4R Nutrient Stewardship & Field Application Dossier"), subtitle_style))
+    story.append(Paragraph(f"Dossier ID: SK-{datetime.now().strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {datetime.now().strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName=pdf_font_name, fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
+    story.append(Spacer(1, 6))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
-def save_feedback(mobile, rating, comments):
-    if not engine:
-        return True
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": rating, "c": comments})
-            conn.commit()
-        return True
-    except Exception:
-        return False
+    # SECTION 1: Farmer & Farm Profile
+    story.append(Paragraph(lang_dict.get("sec_profile", "1. FARMER & LAND PROFILE"), section_h1))
+    profile_data = [
+        [Paragraph("<b>Farmer Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
+        [Paragraph("<b>Target Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Target Harvest:</b>", body_style), Paragraph(f"{target_yield} t/acre", bold_style)],
+        [Paragraph("<b>Land Area:</b>", body_style), Paragraph(f"{raw_land:.2f} {land_unit}", bold_style), Paragraph("<b>Standard Area:</b>", body_style), Paragraph(f"{opt.get('land_area', raw_land*0.404686):.3f} Hectares", bold_style)],
+        [Paragraph("<b>Farmer Budget:</b>", body_style), Paragraph(f"Rs. {budget:,.0f}", bold_style), Paragraph("<b>Optimization Cost:</b>", body_style), Paragraph(f"Rs. {opt['total_cost']:,.0f}", bold_style)],
+    ]
+    t_prof = Table(profile_data, colWidths=[110, 155, 120, 150])
+    t_prof.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F4FBF5')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#C8E6C9')),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+    ]))
+    story.append(t_prof)
 
-# -------------------------------------------------------------
-# LAND CONVERSIONS (Ground-Truth Math)
-# -------------------------------------------------------------
-UNIT_TO_HECTARE = {
-    "Acre (एकड़ / ଏକର)": 0.404686,
-    "Hectare (हेक्टेयर / ହେକ୍ଟର)": 1.0,
-    "Guntha (गुंठा / ଗୁଣ୍ଠ)": 0.010117,
-    "Decimal / Cent (डिसमिल / ଡେସିମିଲ)": 0.004047,
-    "Square Feet (वर्ग फुट / ବର୍ଗ ଫୁଟ)": 0.0000092903
-}
+    # SECTION 2: Baseline Soil & Telemetry
+    story.append(Paragraph(lang_dict.get("sec_soil", "2. SOIL PROFILE & MEASURED ATTRIBUTES"), section_h1))
+    telemetry_data = [
+        [Paragraph("<b>Nitrogen (N):</b>", body_style), Paragraph(f"{n:.1f} mg/kg", bold_style), Paragraph("<b>Soil pH:</b>", body_style), Paragraph(f"{ph:.1f}", bold_style), Paragraph("<b>Ambient Temp:</b>", body_style), Paragraph(f"{temp:.1f} °C", bold_style)],
+        [Paragraph("<b>Phosphorus (P):</b>", body_style), Paragraph(f"{p:.1f} mg/kg", bold_style), Paragraph("<b>Organic Carbon:</b>", body_style), Paragraph(f"{soc:.2f} %", bold_style), Paragraph("<b>Relative Humidity:</b>", body_style), Paragraph(f"{humid:.0f} %", bold_style)],
+        [Paragraph("<b>Potash (K):</b>", body_style), Paragraph(f"{k:.1f} mg/kg", bold_style), Paragraph("<b>Soil Moisture:</b>", body_style), Paragraph(f"{moist:.1f} %", bold_style), Paragraph("<b>Precipitation:</b>", body_style), Paragraph(f"{rain:.0f} mm", bold_style)]
+    ]
+    t_tel = Table(telemetry_data, colWidths=[85, 95, 90, 95, 90, 80])
+    t_tel.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#FFFFFF')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+    ]))
+    story.append(t_tel)
 
-def render_land_conversion_table(entered_val, chosen_unit):
-    ha_base = entered_val * UNIT_TO_HECTARE[chosen_unit]
-    acres = ha_base / 0.404686
-    guntha = acres * 40.0
-    decimals = acres * 100.0
-    sq_ft = acres * 43560.0
-    
-    table_df = pd.DataFrame({
-        "Unit Name": ["Acre (ଏକର)", "Hectare (ହେକ୍ଟର)", "Guntha (ଗୁଣ୍ଠ)", "Decimal (ଡେସିମିଲ)", "Square Feet (Sq Ft)"],
-        "Calculated Size": [f"{acres:.3f} Acres", f"{ha_base:.3f} Ha", f"{guntha:.2f} Guntha", f"{decimals:.1f} Decimals", f"{sq_ft:,.0f} Sq Ft"]
-    })
-    return table_df, ha_base
+    # SECTION 3: Fertilizer Purchases
+    story.append(Paragraph(lang_dict.get("sec_purchases", "3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)"), section_h1))
+    urea_bags = max(1, round(opt['urea_kg'] / 50.0)) if opt['urea_kg'] > 0 else 0
+    dap_bags = max(1, round(opt['dap_kg'] / 50.0)) if opt['dap_kg'] > 0 else 0
+    mop_bags = max(1, round(opt['mop_kg'] / 50.0)) if opt['mop_kg'] > 0 else 0
+    comp_bags = max(1, round(opt['complex_kg'] / 50.0)) if opt.get('complex_kg', 0) > 0 else 0
+    org_bags = round(opt['compost_kg'] / 50.0) if opt['compost_kg'] > 0 else 0
 
-# -------------------------------------------------------------
-# NUTRIENT DEFICIT ENGINE
-# -------------------------------------------------------------
-def calculate_advanced_nutrients(target_yield_per_acre, soil_n, soil_p, soil_k, soc, ph, soil_moist, soil_texture):
-    target_yield_ha = target_yield_per_acre * 2.47105
+    fert_data = [
+        [Paragraph("<b>Fertilizer Product</b>", bold_style), Paragraph("<b>Nutrient Category</b>", bold_style), Paragraph("<b>Total Mass (kg)</b>", bold_style), Paragraph("<b>50kg Bags Required</b>", bold_style)],
+        [Paragraph("Urea", body_style), Paragraph("Synthetic Nitrogen (46% N)", body_style), Paragraph(f"{opt['urea_kg']} kg", body_style), Paragraph(f"<b>{urea_bags} Bags</b>", bold_style)],
+        [Paragraph("DAP", body_style), Paragraph("Phosphatic (18% N + 46% P)", body_style), Paragraph(f"{opt['dap_kg']} kg", body_style), Paragraph(f"<b>{dap_bags} Bags</b>", bold_style)],
+        [Paragraph("MOP", body_style), Paragraph("Potash (60% K2O)", body_style), Paragraph(f"{opt['mop_kg']} kg", body_style), Paragraph(f"<b>{mop_bags} Bags</b>", bold_style)],
+        [Paragraph("Complex 14-35-14", body_style), Paragraph("Balanced N-P-K Mineral", body_style), Paragraph(f"{opt.get('complex_kg', 0.0)} kg", body_style), Paragraph(f"<b>{comp_bags} Bags</b>", bold_style)],
+        [Paragraph("Bio-Compost / Manure", body_style), Paragraph("Organic Humus Restorer", body_style), Paragraph(f"{opt['compost_kg']} kg", body_style), Paragraph(f"<b>{org_bags} Bags</b>", bold_style)],
+    ]
+    t_fert = Table(fert_data, colWidths=[150, 160, 110, 115])
+    t_fert.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E2EEDF')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+    ]))
+    story.append(t_fert)
 
-    demand_n = 22.0 * target_yield_ha
-    demand_p = 4.5 * target_yield_ha
-    demand_k = 19.0 * target_yield_ha
+    # SECTION 4: Timed Application Periods & Methods
+    story.append(Paragraph(lang_dict.get("sec_schedule", "4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS"), section_h1))
+    schedule_data = [
+        [Paragraph("<b>Time Period</b>", bold_style), Paragraph("<b>Nutrient Blend</b>", bold_style), Paragraph("<b>Specific Application Method for Farmer</b>", bold_style)],
+        [
+            Paragraph(f"<b>{lang_dict['stage_1_period']}</b>", body_style),
+            Paragraph("100% Bio-Compost + 100% DAP<br/>+ 1/3 MOP + 1/4 Urea", body_style),
+            Paragraph(lang_dict['stage_1_method'], body_style)
+        ],
+        [
+            Paragraph(f"<b>{lang_dict['stage_2_period']}</b>", body_style),
+            Paragraph("1/2 Urea + 1/3 MOP<br/><i>(Vegetative Dose)</i>", body_style),
+            Paragraph(lang_dict['stage_2_method'], body_style)
+        ],
+        [
+            Paragraph(f"<b>{lang_dict['stage_3_period']}</b>", body_style),
+            Paragraph("Remaining 1/4 Urea<br/>+ Remaining 1/3 MOP", body_style),
+            Paragraph(lang_dict['stage_3_method'], body_style)
+        ]
+    ]
+    t_sched = Table(schedule_data, colWidths=[130, 155, 250])
+    t_sched.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E2EEDF')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
+        ('TOPPADDING', (0,0), (-1,-1), 3.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3.5),
+    ]))
+    story.append(t_sched)
 
-    nue_n = 0.50
-    if "sandy" in str(soil_texture).lower():
-        nue_n -= 0.10
-    if soil_moist < 30.0 or soil_moist > 75.0:
-        nue_n -= 0.08
-
-    ph_p_factor = 1.0 if 6.0 <= ph <= 7.2 else (0.60 if ph < 5.5 or ph > 8.0 else 0.80)
-    soc_n_factor = 1.0 + (soc * 0.15)
-
-    avail_n = (soil_n * 0.45) * soc_n_factor
-    avail_p = (soil_p * 0.35) * ph_p_factor
-    avail_k = (soil_k * 0.50)
-
-    def_n = max(0.0, (demand_n - avail_n) / max(0.3, nue_n))
-    def_p = max(0.0, (demand_p - avail_p) / 0.35)
-    def_k = max(0.0, (demand_k - avail_k) / 0.55)
-
-    return def_n, def_p, def_k
-
-# -------------------------------------------------------------
-# REAL-SOIL OPTICAL DISCRIMINATOR
-# -------------------------------------------------------------
-def verify_genuine_agricultural_soil(image_obj):
-    img_rgb = image_obj.convert("RGB").resize((160, 160))
-    np_img = np.array(img_rgb, dtype=np.float32)
-    
-    R = np_img[:, :, 0]
-    G = np_img[:, :, 1]
-    B = np_img[:, :, 2]
-
-    stat_rgb = ImageStat.Stat(img_rgb)
-    r_m, g_m, b_m = stat_rgb.mean[0], stat_rgb.mean[1], stat_rgb.mean[2]
-
-    is_earth_tone = (r_m >= g_m >= b_m) or (r_m < 90 and g_m < 90 and b_m < 90)
-    
-    gray = img_rgb.convert("L")
-    edges = gray.filter(ImageFilter.FIND_EDGES)
-    edge_stat = ImageStat.Stat(edges)
-    edge_var = edge_stat.var[0]
-
-    if is_earth_tone and edge_var > 20.0 and b_m < r_m:
-        if r_m > 135 and b_m < 95:
-            soil_type = "Red Laterite Soil"
-            est_n, est_p, est_k = 48.0, 22.0, 36.0
-            est_soc, est_ph, est_moist = 0.55, 6.2, 36.0
-        elif r_m < 85 and g_m < 85:
-            soil_type = "Deep Black Soil (Vertisol)"
-            est_n, est_p, est_k = 65.0, 35.0, 48.0
-            est_soc, est_ph, est_moist = 0.82, 7.4, 52.0
-        else:
-            soil_type = "Alluvial Loamy Clay"
-            est_n, est_p, est_k = 55.0, 30.0, 42.0
-            est_soc, est_ph, est_moist = 0.72, 6.6, 45.0
-
-        return {
-            "detected": True,
-            "soil_type": soil_type,
-            "metrics": {
-                "n": est_n, "p": est_p, "k": est_k,
-                "ph": est_ph, "soc": est_soc, "moist": est_moist,
-                "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})"
-            }
-        }
-    else:
-        return {
-            "detected": False,
-            "reason": "Not detected"
-        }
-
-def analyze_plant_disease_image(image_obj):
-    img_rgb = image_obj.convert("RGB").resize((100, 100))
-    arr = np.array(img_rgb)
-    r_mean, g_mean, b_mean = np.mean(arr[:, :, 0]), np.mean(arr[:, :, 1]), np.mean(arr[:, :, 2])
-    
-    if g_mean > r_mean and g_mean > b_mean:
-        return {
-            "health": "Healthy Plant Canopy",
-            "disease": "No critical fungal/bacterial infection",
-            "pest": "Minor sap-feeders / Thrips (<5%)",
-            "symptoms": "Healthy chlorophyll index and vigorous leaves.",
-            "medicine": "Neem Oil Spray (1500 ppm @ 3ml/L) as an organic protector.",
-            "recovery_chance": 95,
-            "will_grow": "Yes, excellent growth expected."
-        }
-    elif r_mean > g_mean and r_mean > 110:
-        return {
-            "health": "Infected Leaf Spots Detected",
-            "disease": "Leaf Rust / Early Blight (Alternaria spp.)",
-            "pest": "Fall Armyworm / Foliar Caterpillar chew marks",
-            "symptoms": "Yellow-brown necrotic spots with leaf edge wilting.",
-            "medicine": "Mancozeb 75% WP (2.5 g/L) + Chlorantraniliprole 18.5% SC (0.4 ml/L)",
-            "recovery_chance": 78,
-            "will_grow": "Yes, if treated within 48 to 72 hours."
-        }
-    else:
-        return {
-            "health": "Chlorosis & Stem Stress",
-            "disease": "Powdery Mildew / Bacterial Leaf Blight",
-            "pest": "Stem Borer / Aphid cluster colony",
-            "symptoms": "Pale whitening of lamina with loss of vigor.",
-            "medicine": "Hexaconazole 5% EC (2 ml/L) + Imidacloprid 17.8% SL (0.5 ml/L)",
-            "recovery_chance": 62,
-            "will_grow": "Moderate; requires immediate systemic spray."
-        }
+    doc.build(story, canvasmaker=NumberedCanvas)
+    buffer.seek(0)
+    return buffer.getvalue()
 
 # -------------------------------------------------------------
-# DEFAULTS
+# DEFAULTS (AFTER MODEL LOADER SO CROP ENCODER IS INITIALIZED)
 # -------------------------------------------------------------
 defaults = {
     "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
@@ -1330,7 +1327,6 @@ elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
     st.write("Please tap the stars below to rate your advisory experience before exiting:")
 
-    # Borderless Star Rating Component (Matching reference image style)
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="star-container">', unsafe_allow_html=True)
     star_cols = st.columns(5)
