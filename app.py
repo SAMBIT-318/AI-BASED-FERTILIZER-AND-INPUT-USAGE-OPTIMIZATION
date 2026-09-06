@@ -801,7 +801,7 @@ def analyze_plant_disease_image(image_obj):
         }
 
 # -------------------------------------------------------------
-# PROFESSIONAL UNICODE-COMPLIANT MULTILINGUAL PDF GENERATOR
+# PROFESSIONAL UNICODE-COMPLIANT BLUE STAMP & SIGNATURE PDF GENERATOR
 # -------------------------------------------------------------
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -821,13 +821,13 @@ class NumberedCanvas(canvas.Canvas):
         super().save()
 
     def draw_page_decorations(self, page_count):
-        self.setStrokeColor(colors.HexColor("#1B5E20"))
+        self.setStrokeColor(colors.HexColor("#1565C0"))
         self.setLineWidth(1.5)
         self.rect(20, 20, 555, 802)
 
         self.saveState()
-        self.setStrokeColor(colors.HexColor("#2E7D32"))
-        self.setFillColor(colors.HexColor("#E8F5E9"))
+        self.setStrokeColor(colors.HexColor("#1565C0")) # Blue stamp border
+        self.setFillColor(colors.HexColor("#E3F2FD"))   # Light blue stamp background
         self.circle(460, 85, 38, stroke=1, fill=1)
         self.circle(460, 85, 33, stroke=1, fill=0)
 
@@ -841,23 +841,28 @@ class NumberedCanvas(canvas.Canvas):
         except Exception:
             self.setFont("Helvetica-Bold", 6)
 
-        self.setFillColor(colors.HexColor("#1B5E20"))
+        self.setFillColor(colors.HexColor("#0D47A1"))
         self.drawCentredString(460, 103, "GOVT COMPLIANT")
         self.drawCentredString(460, 83, "SMART KISHAN")
         self.drawCentredString(460, 68, "4R CERTIFIED")
 
-        # Overlay signature image in blue ink inside the bottom right stamp if available
-        sig_path = "signature.png"
-        if os.path.exists(sig_path):
+        # Overlay user signature image in blue ink inside the bottom right blue stamp
+        sig_candidates = ["Signature.jpg", "signature.jpg", "signature.png", "Signature.png"]
+        sig_path = None
+        for sc in sig_candidates:
+            if os.path.exists(sc):
+                sig_path = sc
+                break
+
+        if sig_path:
             try:
                 sig_img = Image.open(sig_path).convert("RGBA")
-                # Tint signature pixels to a realistic blue ink color (RGB: 20, 70, 160)
                 data = np.array(sig_img)
                 r, g, b, a = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
-                mask = (r < 200) & (g < 200) & (b < 200) # ink strokes
-                data[mask, 0] = 20  # Red
-                data[mask, 1] = 70  # Green
-                data[mask, 2] = 165 # Blue
+                mask = (r < 200) & (g < 200) & (b < 200)
+                data[mask, 0] = 15  # Red
+                data[mask, 1] = 60  # Green
+                data[mask, 2] = 160 # Blue (Blue pen ink)
                 tinted_sig = Image.fromarray(data)
                 
                 sig_buffer = io.BytesIO()
@@ -1083,7 +1088,6 @@ if st.session_state.step == 1:
     
     c_lang, c_mode = st.columns(2)
     
-    # Expanded global language list (English, Hindi, Odia, Marathi, Tamil, Telugu, French, Japanese, Chinese, German)
     available_languages = ["English", "हिन्दी", "ଓଡ଼ିଆ", "मराठी", "தமிழ்", "తెలుగు", "Français", "日本語", "中文", "Deutsch"]
     current_lang_index = available_languages.index(st.session_state.app_lang) if st.session_state.app_lang in available_languages else 0
     
