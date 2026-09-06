@@ -11,7 +11,7 @@ from datetime import datetime
 from PIL import Image, ImageStat, ImageFilter
 from sqlalchemy import create_engine, text
 
-# ReportLab imports for professional PDF generation
+# ReportLab imports for professional PDF generation & Unicode support
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import (
@@ -800,12 +800,13 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
-    # SECTION 1: Farmer & Farm Profile
+    # SECTION 1: Farmer & Farm Profile (Clean English for Land Unit to avoid black blocks)
+    clean_land_unit = land_unit.split(" ")[0] if land_unit else "Acre"
     story.append(Paragraph("1. FARMER & LAND PROFILE", section_h1))
     profile_data = [
         [Paragraph("<b>Farmer Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
         [Paragraph("<b>Target Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Target Harvest:</b>", body_style), Paragraph(f"{target_yield} t/acre", bold_style)],
-        [Paragraph("<b>Land Area:</b>", body_style), Paragraph(f"{raw_land:.2f} {land_unit}", bold_style), Paragraph("<b>Standard Area:</b>", body_style), Paragraph(f"{opt.get('land_area', raw_land*0.404686):.3f} Hectares", bold_style)],
+        [Paragraph("<b>Land Area:</b>", body_style), Paragraph(f"{raw_land:.2f} {clean_land_unit}", bold_style), Paragraph("<b>Standard Area:</b>", body_style), Paragraph(f"{opt.get('land_area', raw_land*0.404686):.3f} Hectares", bold_style)],
         [Paragraph("<b>Farmer Budget:</b>", body_style), Paragraph(f"Rs. {budget:,.0f}", bold_style), Paragraph("<b>Optimization Cost:</b>", body_style), Paragraph(f"Rs. {opt['total_cost']:,.0f}", bold_style)],
     ]
     t_prof = Table(profile_data, colWidths=[110, 155, 120, 150])
@@ -1375,7 +1376,7 @@ elif st.session_state.step == 7:
 
     st.divider()
     if st.button(T["btn_back"]):
-        st.session_state.step = 6
+        st.session_state.step = 5
         st.rerun()
 
 # -------------------------------------------------------------
