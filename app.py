@@ -391,7 +391,7 @@ def save_feedback(mobile, rating, comments):
         return True
     try:
         with engine.connect() as conn:
-            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": r, "c": comments})
+            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": rating, "c": comments})
             conn.commit()
         return True
     except Exception:
@@ -711,7 +711,7 @@ defaults = {
     "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
     "plot_id": "Plot No. 104/1",
-    "soil_source": None, # "scanner" or "manual"
+    "soil_source": None,
     "scanned_soil": None,
     "scanned_diag": {
         "health": "Healthy Plant Canopy",
@@ -845,7 +845,7 @@ elif st.session_state.step == 2:
         
         with tab_camera:
             st.markdown("##### Real-Time Optical Soil Diagnostic Scanner")
-            st.caption("Scan genuine agricultural soil. If soil is detected, you can apply it directly.")
+            st.caption("Scan genuine agricultural soil. If soil is detected, apply it directly.")
             
             cam_c1, cam_c2 = st.columns(2)
             with cam_c1:
@@ -926,14 +926,14 @@ elif st.session_state.step == 2:
         with tab_soil:
             st.markdown("##### Manual Soil Nutrient Input (Alternative to Scanner)")
             s1, s2, s3 = st.columns(3)
-            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n))
-            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
-            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k))
+            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n), key="m_n")
+            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p), key="m_p")
+            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k), key="m_k")
             
             s4, s5, s6 = st.columns(3)
-            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1)
-            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05)
-            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0)
+            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1, key="m_ph")
+            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05, key="m_soc")
+            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0, key="m_moist")
             
             c_s1, c_s2, c_s3 = st.columns(3)
             c_s1.selectbox("Soil Type", list(soil_encoder.classes_), key="sel_soil")
@@ -951,9 +951,8 @@ elif st.session_state.step == 2:
             st.rerun()
             
         if b2.button(T["btn_next"]):
-            # Gatekeeper: Ensure farmer either scanned soil successfully or saved manual values
             if st.session_state.soil_source is None:
-                st.error("⚠️ Please either scan a genuine soil sample in Tab 1 OR save manual soil values in Tab 3 before proceeding.")
+                st.error("⚠️ Please either scan genuine soil in Tab 1 OR save manual soil values in Tab 3 before proceeding.")
             else:
                 st.session_state.step = 3
                 st.rerun()
@@ -1001,10 +1000,10 @@ elif st.session_state.step == 4:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 5: NUTRIENT GAP & CROP PREDICTION
+# SCREEN 5: NUTRIENT GAP & DYNAMIC CROP RECOMMENDATION
 # -------------------------------------------------------------
 elif st.session_state.step == 5:
-    st.subheader("5. ⚠️ Required Nutrient Deficit for Harvest Target")
+    st.subheader("5. ⚠️ Required Nutrient Deficit & Dynamic Crop Recommendation")
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield=st.session_state.target_yield,
         soil_n=st.session_state.soil_n,
@@ -1016,12 +1015,14 @@ elif st.session_state.step == 5:
         soil_texture=st.session_state.sel_soil
     )
     
+    # Run Random Forest crop recommender directly on active soil & climate parameters
     crop_in = pd.DataFrame([{
         'N': st.session_state.soil_n, 'P': st.session_state.soil_p, 'K': st.session_state.soil_k,
         'temperature': st.session_state.temp, 'humidity': st.session_state.humidity,
         'ph': st.session_state.soil_ph, 'rainfall': st.session_state.rainfall
     }])
-    pred_crop = crop_encoder.inverse_transform([crop_model.predict(crop_in)[0]])[0]
+    dynamic_pred_crop = crop_encoder.inverse_transform([crop_model.predict(crop_in)[0]])[0]
+    st.session_state.sel_crop = dynamic_pred_crop
 
     g1, g2 = st.columns(2)
     with g1:
@@ -1030,8 +1031,9 @@ elif st.session_state.step == 5:
         st.warning(f"• **Phosphorus Needed**: {def_p:.1f} kg/ha")
         st.warning(f"• **Potash Needed**: {def_k:.1f} kg/ha")
     with g2:
-        st.markdown("##### Best Crop Match:")
-        st.success(f"🌱 **Recommended Crop**: **{pred_crop.capitalize()}**")
+        st.markdown("##### 🌟 AI Dynamic Crop Recommendation:")
+        st.success(f"🌱 **Best Suited Crop for Scanned/Input Soil**: **{dynamic_pred_crop.capitalize()}**")
+        st.caption(f"Calculated via Machine Learning based on active N={st.session_state.soil_n}, P={st.session_state.soil_p}, K={st.session_state.soil_k}, pH={st.session_state.soil_ph}")
 
     st.divider()
     b1, b2 = st.columns([1, 5])
