@@ -14,7 +14,7 @@ from sqlalchemy import create_engine, text
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, Image as RLImage
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfgen import canvas
@@ -68,46 +68,6 @@ st.markdown("""
         font-weight: 500;
     }
 
-    .smart-kishan-stamp {
-        width: 110px;
-        height: 110px;
-        border: 3.5px double #FFD700;
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        background: radial-gradient(circle, #2E7D32 0%, #1B5E20 100%);
-        box-shadow: 0 0 14px rgba(0, 0, 0, 0.25);
-        transform: rotate(-4deg);
-        user-select: none;
-        padding: 6px;
-    }
-    .stamp-title {
-        font-size: 9.5px;
-        font-weight: 800;
-        letter-spacing: 0.7px;
-        color: #FFFFFF;
-        text-transform: uppercase;
-    }
-    .stamp-center {
-        font-size: 11.5px;
-        font-weight: 900;
-        color: #FFD700;
-        margin: 3px 0;
-        border-top: 1px solid rgba(255,255,255,0.4);
-        border-bottom: 1px solid rgba(255,255,255,0.4);
-        padding: 1px 4px;
-        letter-spacing: 0.5px;
-    }
-    .stamp-footer {
-        font-size: 8px;
-        color: #C8E6C9;
-        font-weight: 700;
-        letter-spacing: 0.4px;
-    }
-
     .metric-card {
         background: #FFFFFF !important;
         border-radius: 14px !important;
@@ -157,7 +117,6 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25) !important;
     }
 
-    /* BORDERLESS CLEAN STAR BUTTON STYLING */
     .star-container button {
         background: transparent !important;
         border: none !important;
@@ -336,24 +295,6 @@ TRANSLATIONS = {
         "soil_not_detected": "Not detected"
     }
 }
-
-# -------------------------------------------------------------
-# SESSION STATE INITIALIZATION & TRANSLATIONS
-# -------------------------------------------------------------
-if "step" not in st.session_state:
-    st.session_state.step = 1
-if "app_mode" not in st.session_state:
-    st.session_state.app_mode = "Full Optimization"
-if "app_lang" not in st.session_state:
-    st.session_state.app_lang = "English"
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "user_mobile" not in st.session_state:
-    st.session_state.user_mobile = ""
-if "rating" not in st.session_state:
-    st.session_state.rating = 5
-
-T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
 # DATABASE ENGINE
@@ -624,6 +565,14 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
 
     story = []
 
+    LOGO_FILE = "smart kishan logo.png"
+    if os.path.exists(LOGO_FILE):
+        try:
+            story.append(RLImage(LOGO_FILE, width=140, height=140))
+            story.append(Spacer(1, 4))
+        except Exception:
+            pass
+
     story.append(Paragraph(lang_dict.get("pdf_title", "SMART KISHAN • OFFICIAL CROP PRESCRIPTION"), title_style))
     story.append(Paragraph(lang_dict.get("pdf_sub", "Certified 4R Nutrient Stewardship & Field Application Dossier"), subtitle_style))
     story.append(Paragraph(f"Dossier ID: SK-{datetime.now().strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {datetime.now().strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
@@ -745,9 +694,9 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # -------------------------------------------------------------
-# APP HERO HEADER WITH SMART KISHAN OFFICIAL BRANDING
+# APP HERO HEADER WITH UPLOADED LOGO BADGE
 # -------------------------------------------------------------
-hero_col1, hero_col2 = st.columns([3, 1])
+hero_col1, hero_col2 = st.columns([3, 1.2])
 with hero_col1:
     st.markdown(f"""
     <div class="farmer-hero">
@@ -757,14 +706,19 @@ with hero_col1:
         </div>
     </div>
     """, unsafe_allow_html=True)
+
 with hero_col2:
-    st.markdown("""
-    <div class="smart-kishan-stamp" style="margin:auto;">
-        <span class="stamp-title">GOVT COMPLIANT</span>
-        <span class="stamp-center">SMART KISHAN</span>
-        <span class="stamp-footer">★ 4R CERTIFIED ★</span>
-    </div>
-    """, unsafe_allow_html=True)
+    LOGO_FILE = "smart kishan logo.png"
+    if os.path.exists(LOGO_FILE):
+        st.image(LOGO_FILE, width=135)
+    else:
+        st.markdown("""
+        <div class="smart-kishan-stamp" style="margin:auto;">
+            <span class="stamp-title">GOVT COMPLIANT</span>
+            <span class="stamp-center">SMART KISHAN</span>
+            <span class="stamp-footer">★ 4R CERTIFIED ★</span>
+        </div>
+        """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
 # SCREEN 1: LOGIN & PREFERENCE
