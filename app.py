@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from PIL import Image, ImageStat, ImageFilter
 from sqlalchemy import create_engine, text
 
@@ -26,7 +26,7 @@ from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
 
 # -------------------------------------------------------------
-# AUTO-DOWNLOAD UNICODE FONT FOR MULTILINGUAL PDF SUPPORT
+# AUTO-DOWNLOAD UNICODE FONT FOR MULTILINGUAL UI/PDF SUPPORT
 # -------------------------------------------------------------
 FONT_FILE = "DejaVuSans.ttf"
 if not os.path.exists(FONT_FILE):
@@ -824,9 +824,13 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
         except Exception:
             pass
 
+    # Correct local time calculation (IST: UTC + 5:30)
+    IST = timezone(timedelta(hours=5, minutes=30))
+    local_now = datetime.now(IST)
+
     story.append(Paragraph("SMART KISHAN • OFFICIAL CROP PRESCRIPTION", title_style))
     story.append(Paragraph("Certified 4R Nutrient Stewardship & Field Application Dossier", subtitle_style))
-    story.append(Paragraph(f"Dossier ID: SK-{datetime.now().strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {datetime.now().strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
+    story.append(Paragraph(f"Dossier ID: SK-{local_now.strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {local_now.strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
