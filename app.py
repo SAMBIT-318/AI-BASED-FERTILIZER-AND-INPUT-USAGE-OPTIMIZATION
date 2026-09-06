@@ -211,8 +211,8 @@ TRANSLATIONS = {
         "stage_2_method": "Side-dress 1/2 urea dose + 1/3 MOP along plant rows. Ensure adequate soil moisture or irrigate within 24 hours.",
         "stage_3_period": "Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)",
         "stage_3_method": "Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.",
-        "soil_detected": "✅ Real Soil Successfully Detected & Analyzed",
-        "soil_not_detected": "❌ Soil Not Detected: Non-soil surface, human subject, or roof detected."
+        "soil_detected": "Soil is detected",
+        "soil_not_detected": "Not detected"
     },
     "हिन्दी": {
         "title": "स्मार्ट किसान | डिजिटल फार्मिंग सॉल्यूशंस",
@@ -247,8 +247,8 @@ TRANSLATIONS = {
         "stage_2_method": "आधी यूरिया और 1/3 पोटाश को जड़ों के पास डालें। मिट्टी में पर्याप्त नमी होना अनिवार्य है या 24 घंटे में हल्की सिंचाई करें।",
         "stage_3_period": "चरण 3: फूल आने और दाना भराव के समय (बुवाई के 45 - 55 दिन बाद)",
         "stage_3_method": "बची हुई यूरिया और पोटाश का छिड़काव करें। भारी बारिश के समय न डालें ताकि खाद बह न जाए।",
-        "soil_detected": "✅ वास्तविक खेत की मिट्टी सफलतापूर्वक पहचानी और जांची गई",
-        "soil_not_detected": "❌ मिट्टी की पहचान नहीं हो सकी! छत, कंक्रीट, दीवार अथवा अकृषि सतह पाई गई।"
+        "soil_detected": "Soil is detected",
+        "soil_not_detected": "Not detected"
     },
     "ଓଡ଼ିଆ": {
         "title": "ସ୍ମାର୍ଟ କିଷାନ | ଡିଜିଟାଲ ଫାର୍ମିଂ ସଲ୍ୟୁସନ୍ସ",
@@ -283,8 +283,8 @@ TRANSLATIONS = {
         "stage_2_method": "ଅଧା ୟୁରିଆ ଓ ୧/୩ ଭାଗ ପଟାସ ଗଛର ମୂଳ ନିକଟରେ ଦିଅନ୍ତୁ। ମାଟିରେ ଉପଯୁକ୍ତ ଓଦାଳିଆ ଅବସ୍ଥା ରହିବା ଦରକାର କିମ୍ବା ୨୪ ଘଣ୍ଟା ମଧ୍ୟରେ ପାଣି ମଡ଼ାନ୍ତୁ।",
         "stage_3_period": "ତୃତୀୟ ପର୍ଯ୍ୟାୟ: ଫୁଲ ଫୁଟିବା ଓ ଶସ୍ୟ ଭରିବା ସମୟ (୪୫ ରୁ ୫୫ ଦିନ)",
         "stage_3_method": "ଅବଶିଷ୍ଟ ୟୁରିଆ ଓ ପଟାସ ପ୍ରୟୋଗ କରନ୍ତୁ। ପ୍ରବଳ ବର୍ଷା ସମୟରେ ସାର ପକାନ୍ତୁ ନାହିଁ ଯାହା ଦ୍ୱାରା ଖତ ଧୋଇ ହୋଇ ନଷ୍ଟ ହେବ ନାହିଁ।",
-        "soil_detected": "✅ ପ୍ରକୃତ କୃଷି ମୃତ୍ତିକା ସଫଳତାର ସହ ଚିହ୍ନଟ ହୋଇଛି",
-        "soil_not_detected": "❌ ମାଟି ଚିହ୍ନଟ ହୋଇପାରିଲା ନାହିଁ! ଛାତ, କଂକ୍ରିଟ୍ ଚଟାଣ କିମ୍ବା ଅଣ-ମୃତ୍ତିକା ବସ୍ତୁ ସ୍କାନ ହୋଇଛି।"
+        "soil_detected": "Soil is detected",
+        "soil_not_detected": "Not detected"
     }
 }
 
@@ -449,14 +449,14 @@ def calculate_advanced_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph, 
     return def_n, def_p, def_k
 
 # -------------------------------------------------------------
-# AUTHENTIC REAL-SOIL OPTICAL DISCRIMINATOR
+# STRICT 5-TIER REAL-SOIL OPTICAL DISCRIMINATOR (REJECTS ROOFS & FACES)
 # -------------------------------------------------------------
 def verify_genuine_agricultural_soil(image_obj):
     """
-    Discriminates genuine agricultural soil from:
-    1. Human faces & skin tones (YCbCr/HSV chromaticity masking).
-    2. Urban concrete roofs, cement plaster, terrace tiles, terracotta.
-    3. Blank screens, walls, paper, and indoor floor materials.
+    Stricter Computer-Vision Check:
+    1. Rejects Human Skin Tones (YCbCr / HSV Face & Skin masking).
+    2. Rejects Roofs, Concrete Slabs, Terracotta Tiles, and Smooth Walls.
+    3. Evaluates high-frequency mineral aggregation and earth chromaticity.
     """
     img_rgb = image_obj.convert("RGB").resize((160, 160))
     np_img = np.array(img_rgb, dtype=np.float32)
@@ -465,60 +465,40 @@ def verify_genuine_agricultural_soil(image_obj):
     G = np_img[:, :, 1]
     B = np_img[:, :, 2]
 
-    # --- TEST 1: HUMAN SKIN REJECTION ---
+    # 1. Human Skin Masking
     Cb = -0.1687 * R - 0.3313 * G + 0.5 * B + 128.0
     Cr = 0.5 * R - 0.4187 * G - 0.0813 * B + 128.0
     skin_mask = (Cr >= 133) & (Cr <= 173) & (Cb >= 77) & (Cb <= 127) & (R > G) & (G > B)
     skin_pct = (np.sum(skin_mask) / (160.0 * 160.0)) * 100.0
 
-    if skin_pct > 25.0:
-        return {
-            "detected": False,
-            "soil_type": "Human Subject",
-            "reason": f"Human subject / skin tone detected ({skin_pct:.1f}% skin chrominance cluster). Please point camera at field topsoil."
-        }
+    if skin_pct > 20.0:
+        return {"detected": False, "reason": "Human subject or face detected."}
 
-    # --- TEST 2: HSV COLOR SPACE CONICAL HULL ---
+    # 2. HSV & Terracotta / Concrete Roof Rejection
     img_hsv = image_obj.convert("HSV").resize((160, 160))
     np_hsv = np.array(img_hsv, dtype=np.float32)
-    H = np_hsv[:, :, 0] # 0 - 255 (maps to 0 - 360 deg)
-    S = np_hsv[:, :, 1] # 0 - 255 (saturation)
-    V = np_hsv[:, :, 2] # 0 - 255 (brightness)
+    H = np_hsv[:, :, 0]
+    S = np_hsv[:, :, 1]
 
-    mean_h = np.mean(H)
     mean_s = np.mean(S)
-    mean_v = np.mean(V)
+    hue_deg = (np.mean(H) / 255.0) * 360.0
 
-    # Convert Hue to degrees (0 - 360)
-    hue_deg = (mean_h / 255.0) * 360.0
+    # Terracotta tiles / roof paint check
+    if hue_deg < 15.0 and mean_s > 120.0:
+        return {"detected": False, "reason": "Terracotta tile or artificial roof surface detected."}
 
-    # Terracotta tiles or bright roof paints have artificial high saturation (S > 135) with Hue < 16 deg
-    if hue_deg < 14.0 and mean_s > 130.0:
-        return {
-            "detected": False,
-            "soil_type": "Terracotta / Roof Tile",
-            "reason": "Artificial clay tile or brick paint detected. The saturation and hue spectrum match ceramic roof tiles, not agricultural soil."
-        }
-
-    # Concrete roof slabs and cement plaster are largely desaturated (grey/neutral)
-    # S < 22 and R ~ G ~ B within 8 points
+    # Concrete roof slab or grey plaster check (low saturation + neutral R/G/B balance)
     diff_rg = np.mean(np.abs(R - G))
     diff_gb = np.mean(np.abs(G - B))
-    if mean_s < 26.0 and diff_rg < 8.0 and diff_gb < 8.0:
-        return {
-            "detected": False,
-            "soil_type": "Concrete / Cement Surface",
-            "reason": "Concrete slab, cement terrace, or plaster floor detected. Surface lacks natural organic humic pigmentation."
-        }
+    if mean_s < 24.0 and diff_rg < 7.0 and diff_gb < 7.0:
+        return {"detected": False, "reason": "Concrete slab or cement terrace floor detected."}
 
-    # --- TEST 3: HIGH-FREQUENCY SOIL AGGREGATION & ROUGHNESS ---
+    # 3. Texture Granularity Check
     gray = img_rgb.convert("L")
     edges = gray.filter(ImageFilter.FIND_EDGES)
     edge_stat = ImageStat.Stat(edges)
     edge_var = edge_stat.var[0]
 
-    # Calculate local texture heterogeneity (Soil clumping has clustered irregularity)
-    # Divide image into 4x4 blocks and compute standard deviation of edge variance
     np_edges = np.array(edges, dtype=np.float32)
     block_vars = []
     for bi in range(4):
@@ -527,55 +507,43 @@ def verify_genuine_agricultural_soil(image_obj):
             block_vars.append(np.var(sub))
     heterogeneity = float(np.std(block_vars))
 
-    # Clean flat roofs, ceilings, walls, or tiles have uniform roughness (low heterogeneity)
-    if edge_var < 28.0 or heterogeneity < 45.0:
-        return {
-            "detected": False,
-            "soil_type": "Artificial Flat Surface",
-            "reason": "Roofing, ceiling, or tiled surface detected. The image exhibits flat geometric regularity without organic topsoil clumping."
-        }
+    if edge_var < 32.0 or heterogeneity < 40.0:
+        return {"detected": False, "reason": "Flat or uniform surface (walls/floors/roofs) detected without soil aggregation."}
 
-    # --- TEST 4: AUTHENTIC MUNSELL EARTH-TONE CHROMATOGRAPHY ---
+    # 4. Earth Spectrum Verification
     stat_rgb = ImageStat.Stat(img_rgb)
     r_m, g_m, b_m = stat_rgb.mean[0], stat_rgb.mean[1], stat_rgb.mean[2]
 
-    # Soil reflection physics: R >= G > B (for red/alluvial/brown/sandy) or very low reflectance for black vertisols
-    is_valid_earth_spectrum = (r_m >= g_m >= b_m) or (r_m < 85 and g_m < 85 and b_m < 85)
-    is_not_sky_or_water = not (b_m > r_m and b_m > g_m)
+    is_valid_earth = (r_m >= g_m >= b_m) or (r_m < 80 and g_m < 80 and b_m < 80)
+    is_not_sky = not (b_m > r_m and b_m > g_m)
 
-    if not is_valid_earth_spectrum or not is_not_sky_or_water:
-        return {
-            "detected": False,
-            "soil_type": "Invalid Material",
-            "reason": "Non-soil chromatic spectrum. The reflected wavelength profile does not match topsoil minerals."
-        }
+    if not is_valid_earth or not is_not_sky:
+        return {"detected": False, "reason": "Non-soil spectrum detected."}
 
-    # --- VALID SOIL CLASSIFICATION ---
+    # Soil Classification
     if r_m > 135 and b_m < 95:
-        soil_type = "Red Laterite (ଅମ୍ଳୀୟ ଲାଲ ମାଟି)"
+        soil_type = "Red Laterite Soil"
         est_n, est_p, est_k = 48.0, 22.0, 36.0
         est_soc, est_ph, est_moist = 0.55, 6.2, 36.0
     elif r_m < 85 and g_m < 85:
-        soil_type = "Deep Black Soil / Vertisol (କଳା ମାଟି)"
+        soil_type = "Deep Black Soil (Vertisol)"
         est_n, est_p, est_k = 65.0, 35.0, 48.0
         est_soc, est_ph, est_moist = 0.82, 7.4, 52.0
     elif r_m > 140 and g_m > 130:
-        soil_type = "Sandy Loam (ବାଲିଆ ଦୋରସା)"
+        soil_type = "Sandy Loam"
         est_n, est_p, est_k = 40.0, 18.0, 30.0
         est_soc, est_ph, est_moist = 0.45, 6.8, 28.0
     else:
-        soil_type = "Alluvial Loamy Clay (ପଟୁ ମଟାଳ ମାଟି)"
+        soil_type = "Alluvial Loamy Clay"
         est_n, est_p, est_k = 55.0, 30.0, 42.0
         est_soc, est_ph, est_moist = 0.72, 6.6, 45.0
 
     return {
         "detected": True,
         "soil_type": soil_type,
-        "reason": "Authentic agricultural topsoil validated via micro-texture and humic absorption spectroscopy.",
         "metrics": {
             "n": est_n, "p": est_p, "k": est_k,
             "ph": est_ph, "soc": est_soc, "moist": est_moist,
-            "clump_index": f"{heterogeneity:.1f} (Authentic Aggregation)",
             "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})"
         }
     }
@@ -926,7 +894,7 @@ elif st.session_state.step == 2:
         
         with tab_camera:
             st.markdown("##### Real-Time Optical Soil Diagnostic Scanner")
-            st.caption("Point camera at ground soil. Roofs, walls, tiles, ceilings, or human faces will be rejected automatically.")
+            st.caption("Point camera at ground soil. Roofs, concrete, tiles, or human faces will be rejected automatically.")
             
             cam_c1, cam_c2 = st.columns(2)
             with cam_c1:
@@ -950,7 +918,6 @@ elif st.session_state.step == 2:
                         <h4 style="color:#1B5E20; margin-top:0;">🌾 Soil Profile Features Verified:</h4>
                         <p style="margin:4px 0;">• <strong>Texture Class:</strong> {soil_eval['soil_type']}</p>
                         <p style="margin:4px 0;">• <strong>Optical Color Signature:</strong> {m['rgb_signature']}</p>
-                        <p style="margin:4px 0;">• <strong>Aggregation / Clump Index:</strong> {m['clump_index']}</p>
                         <p style="margin:4px 0;">• <strong>Calculated Organic Carbon (SOC):</strong> {m['soc']}%</p>
                         <p style="margin:4px 0;">• <strong>Surface Moisture Retention:</strong> {m['moist']}%</p>
                         <p style="margin:4px 0;">• <strong>Derived Active pH:</strong> {m['ph']}</p>
@@ -968,7 +935,7 @@ elif st.session_state.step == 2:
                 else:
                     st.markdown(f"<div class='badge-warn' style='display:inline-block; font-size:15px; margin:8px 0;'>{T['soil_not_detected']}</div>", unsafe_allow_html=True)
                     st.error(f"Reason: {soil_eval['reason']}")
-                    st.info("Tip: Point the camera directly at outdoor agricultural soil or a plant pot in daylight.")
+                    st.info("Tip: Point the camera directly at outdoor agricultural soil or a garden pot in daylight.")
 
         with tab_land:
             st.markdown(f"##### {T['land_calc_title']}")
