@@ -68,10 +68,9 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* UNIQUE AGRICULTURAL FIELD STAMP */
     .smart-kishan-stamp {
-        width: 115px;
-        height: 115px;
+        width: 110px;
+        height: 110px;
         border: 3.5px double #FFD700;
         border-radius: 50%;
         display: flex;
@@ -80,8 +79,8 @@ st.markdown("""
         justify-content: center;
         text-align: center;
         background: radial-gradient(circle, #2E7D32 0%, #1B5E20 100%);
-        box-shadow: 0 0 16px rgba(0, 0, 0, 0.3);
-        transform: rotate(-3deg);
+        box-shadow: 0 0 14px rgba(0, 0, 0, 0.25);
+        transform: rotate(-4deg);
         user-select: none;
         padding: 6px;
     }
@@ -199,8 +198,8 @@ TRANSLATIONS = {
         "btn_next": "Continue ➔",
         "budget_lbl": "Your Maximum Fertilizer Budget (₹)",
         "budget_help": "Optimization engine ensures total purchase cost stays strictly within this limit.",
-        "feedback_title": "🌟 Farmer Feedback & Prescription Rating",
-        "feedback_submit": "Submit Feedback & Complete",
+        "feedback_title": "🌟 Mandatory Farmer Feedback & Star Rating",
+        "feedback_submit": "Submit Feedback & Exit Dashboard ➔",
         "land_calc_title": "📐 Land Unit Selection & Farm Budget Matrix",
         "pdf_title": "SMART KISHAN • OFFICIAL CROP PRESCRIPTION",
         "pdf_sub": "Certified 4R Nutrient Stewardship & Field Application Dossier",
@@ -235,8 +234,8 @@ TRANSLATIONS = {
         "btn_next": "आगे बढ़ें ➔",
         "budget_lbl": "आपका अधिकतम उर्वरक बजट (₹)",
         "budget_help": "यह सुनिश्चित करता है कि कुल उर्वरक खरीद लागत इस बजट सीमा से अधिक न हो।",
-        "feedback_title": "🌟 किसान समीक्षा एवं रेटिंग",
-        "feedback_submit": "समीक्षा जमा करें और बाहर निकलें",
+        "feedback_title": "🌟 अनिवार्य किसान समीक्षा और स्टार रेटिंग",
+        "feedback_submit": "समीक्षा जमा करें और बाहर निकलें ➔",
         "land_calc_title": "📐 भूमि इकाई चयन और कृषि बजट तालिका",
         "pdf_title": "स्मार्ट किसान • आधिकारिक फसल एवं उर्वरक नुस्खा",
         "pdf_sub": "प्रमाणित 4R पोषक तत्व प्रबंधन और कृषि अनुप्रयोग विवरण",
@@ -271,8 +270,8 @@ TRANSLATIONS = {
         "btn_next": "ଆଗକୁ ବଢ଼ନ୍ତୁ ➔",
         "budget_lbl": "ଆପଣଙ୍କ ସର୍ବାଧିକ ସାର ଖର୍ଚ୍ଚ ବଜେଟ୍ (₹)",
         "budget_help": "ଏହା ନିଶ୍ଚିତ କରେ ଯେ ଆପଣଙ୍କ ସାର ଖର୍ଚ୍ଚ ଏହି ବଜେଟ୍ ସୀମା ଭିତରେ ରହିବ।",
-        "feedback_title": "🌟 କୃଷକ ମତାମତ ଓ ରେଟିଂ",
-        "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ",
+        "feedback_title": "🌟 ବାଧ୍ୟତାମୂଳକ କୃଷକ ମତାମତ ଏବଂ ଷ୍ଟାର ରେଟିଂ",
+        "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ ଏବଂ ବାହାରକୁ ଯାଆନ୍ତୁ ➔",
         "land_calc_title": "📐 ଜମି ଏକକ ଏବଂ କୃଷି ବଜେଟ୍ ସାରଣୀ",
         "pdf_title": "ସ୍ମାର୍ଟ କିଷାନ • ସରକାରୀ ଫସଲ ଓ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ (ପ୍ରେସକ୍ରିପସନ)",
         "pdf_sub": "୪ଆର୍ ନିୟମ ଅନୁମୋଦିତ କୃଷି ଓ ମୃତ୍ତିକା ପରିଚାଳନା ପତ୍ର",
@@ -304,6 +303,8 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "user_mobile" not in st.session_state:
     st.session_state.user_mobile = ""
+if "feedback_given" not in st.session_state:
+    st.session_state.feedback_given = False
 
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
@@ -394,7 +395,7 @@ def save_feedback(mobile, rating, comments):
         return True
     try:
         with engine.connect() as conn:
-            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": r, "c": comments})
+            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": rating, "c": comments})
             conn.commit()
         return True
     except Exception:
@@ -1063,7 +1064,7 @@ elif st.session_state.step == 6:
         soc=st.session_state.soc,
         ph=st.session_state.soil_ph,
         soil_moist=st.session_state.soil_moist,
-        soil_texture=st.session_state.sel_soil
+        soil_texture=str(st.session_state.sel_soil)
     )
     opt = optimize_fertilizer_blend(
         req_n=def_n, req_p=def_p, req_k=def_k,
@@ -1212,21 +1213,34 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: FARMER FEEDBACK & LOGOUT
+# SCREEN 8: MANDATORY FARMER FEEDBACK & EXIT GATEKEEPER
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
-    st.write("Please rate the clarity and usefulness of the recommendation:")
+    st.write("Please provide your star rating and feedback comments to complete your session:")
+
+    # Interactive Star Rating Selector
+    col_s1, col_s2 = st.columns([2, 2])
+    with col_s1:
+        star_rating = st.radio(
+            "⭐ Select Star Rating:",
+            options=[1, 2, 3, 4, 5],
+            format_func=lambda x: "⭐" * x,
+            horizontal=True,
+            index=4
+        )
     
-    rating = st.slider("Rating (1 = Poor, 5 = Excellent)", 1, 5, 5)
-    comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):")
-    
+    feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your feedback here...")
+
     if st.button(T["feedback_submit"]):
-        save_feedback(st.session_state.user_mobile, rating, comments)
-        st.success("✅ Thank you! Your feedback has been stored safely.")
-        
-        st.session_state.logged_in = False
-        st.session_state.user_mobile = ""
-        st.session_state.step = 1
-        st.cache_data.clear()
-        st.rerun()
+        if not feedback_comments.strip():
+            st.error("⚠️ Mandatory Feedback Required: Please write your comments before exiting.")
+        else:
+            save_feedback(st.session_state.user_mobile, star_rating, feedback_comments)
+            st.success("✅ Thank you! Your feedback and star rating have been recorded safely. Exiting session...")
+            
+            st.session_state.logged_in = False
+            st.session_state.user_mobile = ""
+            st.session_state.step = 1
+            st.cache_data.clear()
+            st.rerun()
