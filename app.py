@@ -165,7 +165,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# SAFE MODEL LOADER (DEFINED BEFORE DEFAULTS)
+# SAFE MODEL LOADER
 # -------------------------------------------------------------
 MODELS_DIR = "saved_models"
 
@@ -808,29 +808,6 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     doc.build(story, canvasmaker=NumberedCanvas)
     buffer.seek(0)
     return buffer.getvalue()
-
-# -------------------------------------------------------------
-# DEFAULTS (AFTER MODEL LOADER SO CROP ENCODER IS INITIALIZED)
-# -------------------------------------------------------------
-defaults = {
-    "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
-    "soil_moist": 45.0, "soc": 0.70, "temp": 26.5, "humidity": 68.0,
-    "rainfall": 150.0, "raw_land_val": 1.5, "land_unit": "Acre (एकड़ / ଏକର)",
-    "land_area": 0.607, "budget_cap": 25000.0, "target_yield": 2.0,
-    "sel_soil": list(soil_encoder.classes_)[0],
-    "sel_crop": list(crop_type_encoder.classes_)[0],
-    "plot_id": "Plot No. 104/1",
-    "soil_source": None,
-    "scanned_soil": None,
-    "scanned_diag": {
-        "health": "Optimal Vigor", "disease": "None detected", "pest": "None",
-        "symptoms": "Healthy foliage", "medicine": "Prophylactic Neem Spray",
-        "recovery_chance": 95, "will_grow": "Yes"
-    }
-}
-for k, v in defaults.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
 
 # -------------------------------------------------------------
 # APP HERO HEADER WITH UPLOADED LOGO BADGE
