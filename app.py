@@ -303,8 +303,8 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "user_mobile" not in st.session_state:
     st.session_state.user_mobile = ""
-if "feedback_given" not in st.session_state:
-    st.session_state.feedback_given = False
+if "rating" not in st.session_state:
+    st.session_state.rating = 5
 
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
@@ -1213,34 +1213,42 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY FARMER FEEDBACK & EXIT GATEKEEPER
+# SCREEN 8: MANDATORY 5-STAR FEEDBACK & EXIT GATEKEEPER
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
-    st.write("Please provide your star rating and feedback comments to complete your session:")
+    st.write("Please tap the stars to rate your advisory experience and provide comments before exiting:")
 
-    # Interactive Star Rating Selector
-    col_s1, col_s2 = st.columns([2, 2])
-    with col_s1:
-        star_rating = st.radio(
-            "⭐ Select Star Rating:",
-            options=[1, 2, 3, 4, 5],
-            format_func=lambda x: "⭐" * x,
-            horizontal=True,
-            index=4
-        )
+    # Interactive 5 Big Stars Component using 5 separate columns
+    st.markdown("<br>", unsafe_allow_html=True)
+    star_cols = st.columns(5)
     
-    feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your feedback here...")
+    # Initialize rating in session state if missing
+    if "star_selection" not in st.session_state:
+        st.session_state.star_selection = 5
+
+    for i in range(1, 6):
+        with star_cols[i-1]:
+            star_label = "⭐" if i <= st.session_state.star_selection else "☆"
+            if st.button(star_label, key=f"star_btn_{i}", use_container_width=True):
+                st.session_state.star_selection = i
+                st.rerun()
+
+    st.markdown(f"<h4 style='text-align: center; color: #2E7D32;'>Rating Selected: {st.session_state.star_selection} / 5 Stars</h4>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your suggestions here...")
 
     if st.button(T["feedback_submit"]):
         if not feedback_comments.strip():
-            st.error("⚠️ Mandatory Feedback Required: Please write your comments before exiting.")
+            st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
-            save_feedback(st.session_state.user_mobile, star_rating, feedback_comments)
-            st.success("✅ Thank you! Your feedback and star rating have been recorded safely. Exiting session...")
+            save_feedback(st.session_state.user_mobile, st.session_state.star_selection, feedback_comments)
+            st.success("✅ Thank you! Your 5-star rating and feedback have been recorded safely. Exiting session...")
             
             st.session_state.logged_in = False
             st.session_state.user_mobile = ""
+            st.session_state.feedback_given = True
             st.session_state.step = 1
             st.cache_data.clear()
             st.rerun()
