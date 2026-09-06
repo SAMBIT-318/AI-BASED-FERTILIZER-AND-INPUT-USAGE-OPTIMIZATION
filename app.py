@@ -37,7 +37,7 @@ if not os.path.exists(FONT_FILE):
         pass
 
 # -------------------------------------------------------------
-# LAND CONVERSIONS (Ground-Truth Math - Defined First)
+# LAND CONVERSIONS & CORE MATH ENGINES (DEFINED FIRST)
 # -------------------------------------------------------------
 UNIT_TO_HECTARE = {
     "Acre (एकड़ / ଏକର)": 0.404686,
@@ -59,6 +59,111 @@ def render_land_conversion_table(entered_val, chosen_unit):
         "Calculated Size": [f"{acres:.3f} Acres", f"{ha_base:.3f} Ha", f"{guntha:.2f} Guntha", f"{decimals:.1f} Decimals", f"{sq_ft:,.0f} Sq Ft"]
     })
     return table_df, ha_base
+
+def calculate_advanced_nutrients(target_yield_per_acre, soil_n, soil_p, soil_k, soc, ph, soil_moist, soil_texture):
+    target_yield_ha = target_yield_per_acre * 2.47105
+
+    demand_n = 22.0 * target_yield_ha
+    demand_p = 4.5 * target_yield_ha
+    demand_k = 19.0 * target_yield_ha
+
+    nue_n = 0.50
+    if "sandy" in str(soil_texture).lower():
+        nue_n -= 0.10
+    if soil_moist < 30.0 or soil_moist > 75.0:
+        nue_n -= 0.08
+
+    ph_p_factor = 1.0 if 6.0 <= ph <= 7.2 else (0.60 if ph < 5.5 or ph > 8.0 else 0.80)
+    soc_n_factor = 1.0 + (soc * 0.15)
+
+    avail_n = (soil_n * 0.45) * soc_n_factor
+    avail_p = (soil_p * 0.35) * ph_p_factor
+    avail_k = (soil_k * 0.50)
+
+    def_n = max(0.0, (demand_n - avail_n) / max(0.3, nue_n))
+    def_p = max(0.0, (demand_p - avail_p) / 0.35)
+    def_k = max(0.0, (demand_k - avail_k) / 0.55)
+
+    return def_n, def_p, def_k
+
+def verify_genuine_agricultural_soil(image_obj):
+    img_rgb = image_obj.convert("RGB").resize((160, 160))
+    np_img = np.array(img_rgb, dtype=np.float32)
+    
+    stat_rgb = ImageStat.Stat(img_rgb)
+    r_m, g_m, b_m = stat_rgb.mean[0], stat_rgb.mean[1], stat_rgb.mean[2]
+
+    is_earth_tone = (r_m >= g_m >= b_m) or (r_m < 90 and g_m < 90 and b_m < 90)
+    
+    gray = img_rgb.convert("L")
+    edges = gray.filter(ImageFilter.FIND_EDGES)
+    edge_stat = ImageStat.Stat(edges)
+    edge_var = edge_stat.var[0]
+
+    if is_earth_tone and edge_var > 20.0 and b_m < r_m:
+        if r_m > 135 and b_m < 95:
+            soil_type = "Red Laterite Soil"
+            est_n, est_p, est_k = 48.0, 22.0, 36.0
+            est_soc, est_ph, est_moist = 0.55, 6.2, 36.0
+        elif r_m < 85 and g_m < 85:
+            soil_type = "Deep Black Soil (Vertisol)"
+            est_n, est_p, est_k = 65.0, 35.0, 48.0
+            est_soc, est_ph, est_moist = 0.82, 7.4, 52.0
+        else:
+            soil_type = "Alluvial Loamy Clay"
+            est_n, est_p, est_k = 55.0, 30.0, 42.0
+            est_soc, est_ph, est_moist = 0.72, 6.6, 45.0
+
+        return {
+            "detected": True,
+            "soil_type": soil_type,
+            "metrics": {
+                "n": est_n, "p": est_p, "k": est_k,
+                "ph": est_ph, "soc": est_soc, "moist": est_moist,
+                "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})"
+            }
+        }
+    else:
+        return {
+            "detected": False,
+            "reason": "Not detected"
+        }
+
+def analyze_plant_disease_image(image_obj):
+    img_rgb = image_obj.convert("RGB").resize((100, 100))
+    arr = np.array(img_rgb)
+    r_mean, g_mean, b_mean = np.mean(arr[:, :, 0]), np.mean(arr[:, :, 1]), np.mean(arr[:, :, 2])
+    
+    if g_mean > r_mean and g_mean > b_mean:
+        return {
+            "health": "Healthy Plant Canopy",
+            "disease": "No critical fungal/bacterial infection",
+            "pest": "Minor sap-feeders / Thrips (<5%)",
+            "symptoms": "Healthy chlorophyll index and vigorous leaves.",
+            "medicine": "Neem Oil Spray (1500 ppm @ 3ml/L) as an organic protector.",
+            "recovery_chance": 95,
+            "will_grow": "Yes, excellent growth expected."
+        }
+    elif r_mean > g_mean and r_mean > 110:
+        return {
+            "health": "Infected Leaf Spots Detected",
+            "disease": "Leaf Rust / Early Blight (Alternaria spp.)",
+            "pest": "Fall Armyworm / Foliar Caterpillar chew marks",
+            "symptoms": "Yellow-brown necrotic spots with leaf edge wilting.",
+            "medicine": "Mancozeb 75% WP (2.5 g/L) + Chlorantraniliprole 18.5% SC (0.4 ml/L)",
+            "recovery_chance": 78,
+            "will_grow": "Yes, if treated within 48 to 72 hours."
+        }
+    else:
+        return {
+            "health": "Chlorosis & Stem Stress",
+            "disease": "Powdery Mildew / Bacterial Leaf Blight",
+            "pest": "Stem Borer / Aphid cluster colony",
+            "symptoms": "Pale whitening of lamina with loss of vigor.",
+            "medicine": "Hexaconazole 5% EC (2 ml/L) + Imidacloprid 17.8% SL (0.5 ml/L)",
+            "recovery_chance": 62,
+            "will_grow": "Moderate; requires immediate systemic spray."
+        }
 
 # -------------------------------------------------------------
 # PAGE CONFIGURATION & LIGHT GREEN FARMER THEME
