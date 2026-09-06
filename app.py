@@ -14,7 +14,7 @@ from sqlalchemy import create_engine, text
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, Image as RLImage
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfgen import canvas
@@ -69,8 +69,8 @@ st.markdown("""
     }
 
     .smart-kishan-stamp {
-        width: 105px;
-        height: 105px;
+        width: 110px;
+        height: 110px;
         border: 3.5px double #FFFFFF;
         border-radius: 50%;
         display: flex;
@@ -78,20 +78,20 @@ st.markdown("""
         align-items: center;
         justify-content: center;
         text-align: center;
-        background: rgba(255, 255, 255, 0.12);
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        transform: rotate(-5deg);
+        background: rgba(27, 94, 32, 0.85);
+        box-shadow: 0 0 14px rgba(0, 0, 0, 0.25);
+        transform: rotate(-4deg);
         user-select: none;
     }
     .stamp-title {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 800;
         letter-spacing: 0.8px;
         color: #FFFFFF;
         text-transform: uppercase;
     }
     .stamp-center {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 900;
         color: #FFD700;
         margin: 2px 0;
@@ -449,7 +449,7 @@ def calculate_advanced_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph, 
     return def_n, def_p, def_k
 
 # -------------------------------------------------------------
-# ROBUST REAL-SOIL DETECTOR (STRICT NATURAL EARTH SPECTRUM)
+# REAL-SOIL OPTICAL DISCRIMINATOR
 # -------------------------------------------------------------
 def verify_genuine_agricultural_soil(image_obj):
     img_rgb = image_obj.convert("RGB").resize((160, 160))
@@ -711,6 +711,7 @@ defaults = {
     "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
     "plot_id": "Plot No. 104/1",
+    "soil_source": None, # "scanner" or "manual"
     "scanned_soil": None,
     "scanned_diag": {
         "health": "Healthy Plant Canopy",
@@ -741,10 +742,10 @@ with hero_col1:
     """, unsafe_allow_html=True)
 with hero_col2:
     st.markdown("""
-    <div class="smart-kishan-stamp" style="background:#2E7D32; border-color:#FFD700; margin:auto;">
-        <span class="stamp-title" style="color:#FFFFFF;">SMART KISHAN</span>
-        <span class="stamp-center" style="color:#FFD700;">★ VERIFIED ★</span>
-        <span class="stamp-footer" style="color:#E8F5E9;">4R CERTIFIED</span>
+    <div class="smart-kishan-stamp" style="margin:auto;">
+        <span class="stamp-title">GOVT COMPLIANT</span>
+        <span class="stamp-center">SMART KISHAN</span>
+        <span class="stamp-footer">★ 4R CERTIFIED ★</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -799,7 +800,7 @@ if st.session_state.step == 1:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 2: OPTICAL SCANNER & FIELD SETUP
+# SCREEN 2: MUTUALLY EXCLUSIVE SOIL SCANNER OR MANUAL INPUT
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if st.session_state.app_mode == "Diagnostic Only":
@@ -834,17 +835,17 @@ elif st.session_state.step == 2:
             st.rerun()
 
     else:
-        st.subheader("2. 📍 Soil Optical Scanner, Land Size & Farmer Budget")
+        st.subheader("2. 📍 Land Size, Budget & Soil Input (Scanner OR Manual)")
         
         tab_camera, tab_land, tab_soil = st.tabs([
-            "📷 Optical Soil Scanner (Realtime Detection)", 
+            "📷 Option A: Optical Soil Scanner", 
             "📐 Land Area & Farm Budget", 
-            "🧪 Soil Nutrient Levels"
+            "🧪 Option B: Manual Soil Input"
         ])
         
         with tab_camera:
             st.markdown("##### Real-Time Optical Soil Diagnostic Scanner")
-            st.caption("Point camera at ground soil. Non-soil objects, roofs, or walls will show 'Not detected'.")
+            st.caption("Scan genuine agricultural soil. If soil is detected, you can apply it directly.")
             
             cam_c1, cam_c2 = st.columns(2)
             with cam_c1:
@@ -865,26 +866,27 @@ elif st.session_state.step == 2:
                     
                     st.markdown(f"""
                     <div class="metric-card">
-                        <h4 style="color:#1B5E20; margin-top:0;">🌾 Soil Profile Features Verified:</h4>
+                        <h4 style="color:#1B5E20; margin-top:0;">🌾 Scanned Soil Successfully Detected & Analyzed:</h4>
                         <p style="margin:4px 0;">• <strong>Texture Class:</strong> {soil_eval['soil_type']}</p>
                         <p style="margin:4px 0;">• <strong>Optical Color Signature:</strong> {m['rgb_signature']}</p>
-                        <p style="margin:4px 0;">• <strong>Calculated Organic Carbon (SOC):</strong> {m['soc']}%</p>
-                        <p style="margin:4px 0;">• <strong>Surface Moisture Retention:</strong> {m['moist']}%</p>
-                        <p style="margin:4px 0;">• <strong>Derived Active pH:</strong> {m['ph']}</p>
+                        <p style="margin:4px 0;">• <strong>Organic Carbon (SOC):</strong> {m['soc']}%</p>
+                        <p style="margin:4px 0;">• <strong>Surface Moisture:</strong> {m['moist']}%</p>
+                        <p style="margin:4px 0;">• <strong>Active pH:</strong> {m['ph']}</p>
                     </div>
                     """, unsafe_allow_html=True)
 
-                    if st.button("Apply Scanned Soil Features to Fertilizer Optimizer"):
+                    if st.button("Apply Scanned Soil Features"):
                         st.session_state.soil_n = m["n"]
                         st.session_state.soil_p = m["p"]
                         st.session_state.soil_k = m["k"]
                         st.session_state.soil_ph = m["ph"]
                         st.session_state.soc = m["soc"]
                         st.session_state.soil_moist = m["moist"]
-                        st.success("✅ Model calibrated with live optical soil features!")
-                        st.rerun()
+                        st.session_state.soil_source = "scanner"
+                        st.success("✅ Scanned soil successfully applied! You can now continue.")
                 else:
                     st.markdown(f"<div class='badge-warn' style='display:inline-block; font-size:16px; margin:10px 0;'>{T['soil_not_detected']}</div>", unsafe_allow_html=True)
+                    st.warning("No agricultural soil detected in image. Please provide a genuine soil sample or use Manual Soil Input.")
 
         with tab_land:
             st.markdown(f"##### {T['land_calc_title']}")
@@ -922,29 +924,39 @@ elif st.session_state.step == 2:
             st.info(f"Standardized area for chemical dosage: **{ha_val:.3f} Hectares** | Maximum Cost Cap: **₹{st.session_state.budget_cap:,.0f}**")
 
         with tab_soil:
+            st.markdown("##### Manual Soil Nutrient Input (Alternative to Scanner)")
             s1, s2, s3 = st.columns(3)
-            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n), key="dyn_n")
-            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p), key="dyn_p")
-            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k), key="dyn_k")
+            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n))
+            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
+            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k))
             
             s4, s5, s6 = st.columns(3)
-            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1, key="dyn_ph")
-            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05, key="dyn_soc")
-            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0, key="dyn_moist")
+            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1)
+            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05)
+            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0)
             
             c_s1, c_s2, c_s3 = st.columns(3)
             c_s1.selectbox("Soil Type", list(soil_encoder.classes_), key="sel_soil")
             c_s2.selectbox("Planned Crop", list(crop_type_encoder.classes_), key="sel_crop")
             st.session_state.target_yield = c_s3.number_input("Target Harvest (t/ha)", 1.0, 15.0, float(st.session_state.target_yield), 0.5)
 
+            if st.button("Save Manual Soil Values"):
+                st.session_state.soil_source = "manual"
+                st.success("✅ Manual soil values saved successfully! You can now continue.")
+
         st.divider()
         b1, b2 = st.columns([1, 5])
         if b1.button(T["btn_back"]):
             st.session_state.step = 1
             st.rerun()
+            
         if b2.button(T["btn_next"]):
-            st.session_state.step = 3
-            st.rerun()
+            # Gatekeeper: Ensure farmer either scanned soil successfully or saved manual values
+            if st.session_state.soil_source is None:
+                st.error("⚠️ Please either scan a genuine soil sample in Tab 1 OR save manual soil values in Tab 3 before proceeding.")
+            else:
+                st.session_state.step = 3
+                st.rerun()
 
 # -------------------------------------------------------------
 # SCREEN 3: SOIL HEALTH EVALUATION
