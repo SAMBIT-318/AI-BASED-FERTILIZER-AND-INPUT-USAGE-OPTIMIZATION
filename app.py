@@ -7,8 +7,6 @@ import streamlit as st
 import hashlib
 from PIL import Image
 from sqlalchemy import create_engine, text
-import folium
-from streamlit_folium import st_folium
 
 from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
@@ -140,7 +138,7 @@ st.markdown("""
 TRANSLATIONS = {
     "English": {
         "title": "🌾 AI Based Precision Agriculture Advisor",
-        "subtitle": "Scientific 4R Nutrient Stewardship, Field Mapping & Crop Prescription",
+        "subtitle": "Scientific 4R Nutrient Stewardship, Field Diagnostic & Crop Prescription",
         "login_tab": "Farmer Log In",
         "reg_tab": "Register New Farmer",
         "mobile_lbl": "Mobile Number",
@@ -160,7 +158,7 @@ TRANSLATIONS = {
     },
     "हिन्दी": {
         "title": "🌾 एआई आधारित सटीक कृषि सलाहकार",
-        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, खेत मानचित्र और फसल सलाह",
+        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, खेत नैदानिक और फसल सलाह",
         "login_tab": "किसान लॉगिन",
         "reg_tab": "नया किसान पंजीकरण",
         "mobile_lbl": "मोबाइल नंबर",
@@ -180,7 +178,7 @@ TRANSLATIONS = {
     },
     "ଓଡ଼ିଆ": {
         "title": "🌾 ଏଆଇ ଆଧାରିତ ଉନ୍ନତ କୃଷି ଓ ଖତ ପରାମର୍ଶ କେନ୍ଦ୍ର",
-        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, କ୍ଷେତ୍ର ମାନଚିତ୍ର ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
+        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, କ୍ଷେତ୍ର ବିଶ୍ଳେଷଣ ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
         "login_tab": "କୃଷକ ଲଗଇନ୍",
         "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
@@ -320,40 +318,6 @@ UNIT_TO_HECTARE = {
     "Square Feet (वर्ग फुट / ବର୍ଗ ଫୁଟ)": 0.0000092903
 }
 
-def compute_accurate_land_units(acre_val):
-    acres = float(acre_val)
-    hectares = acres * 0.404686
-    guntha = acres * 40.0
-    decimals = acres * 100.0
-    sqft_area = acres * 43560.0
-    
-    breadth_ft = np.sqrt(sqft_area / 1.6)
-    length_ft = breadth_ft * 1.6
-    breadth_m = breadth_ft * 0.3048
-    length_m = length_ft * 0.3048
-
-    df = pd.DataFrame({
-        "Measurement Unit": [
-            "Acre (ଏକର / एकड़)",
-            "Guntha (ଗୁଣ୍ଠ / गुंठा)",
-            "Decimal / Cent (ଡେସିମିଲ / डिसमिल)",
-            "Hectare (ହେକ୍ଟର / हेक्टेयर)",
-            "Square Feet (ବର୍ଗ ଫୁଟ / वर्ग फुट)",
-            "Length (ଲମ୍ବ / लंबाई)",
-            "Breadth (ଓସାର / चौड़ाई)"
-        ],
-        "Calculated Size": [
-            f"{acres:.3f} Acres",
-            f"{guntha:.2f} Guntha",
-            f"{decimals:.1f} Decimals",
-            f"{hectares:.4f} Ha",
-            f"{sqft_area:,.1f} sq ft",
-            f"{length_ft:.1f} ft ({length_m:.1f} m)",
-            f"{breadth_ft:.1f} ft ({breadth_m:.1f} m)"
-        ]
-    })
-    return df, acres, hectares
-
 def render_land_conversion_table(entered_val, chosen_unit):
     ha_base = entered_val * UNIT_TO_HECTARE[chosen_unit]
     acres = ha_base / 0.404686
@@ -443,8 +407,7 @@ defaults = {
     "land_area": 0.607, "budget_cap": 25000.0, "target_yield": 4.5,
     "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
-    "lat": 20.1798, "lon": 85.7063,
-    "plot_name": "Plot No. 1"
+    "plot_id": "Field 1"
 }
 for k, v in defaults.items():
     if k not in st.session_state:
@@ -461,7 +424,7 @@ st.markdown(f"""
             <p>{T['subtitle']}</p>
         </div>
         <div style="background:rgba(255,255,255,0.2); padding:6px 14px; border-radius:10px; font-weight:700; font-size:13px;">
-            🛰️ Field GPS & Optical Intelligence
+            🌱 Precision Agro-Intelligence
         </div>
     </div>
 </div>
@@ -518,7 +481,7 @@ if st.session_state.step == 1:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 2: SATELLITE FIELD MAP, CAMERA SCANNER & LAND SIZE
+# SCREEN 2: FIELD SETUP, OPTICAL SCANNER & LAND SIZE
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if st.session_state.app_mode == "Diagnostic Only":
@@ -552,75 +515,20 @@ elif st.session_state.step == 2:
             st.rerun()
 
     else:
-        st.subheader("2. 📍 Farm Parcel Location & Field Details")
+        st.subheader("2. 📍 Farm Details, Optical Scanner & Land Area")
         
-        tab_map, tab_camera, tab_land, tab_soil = st.tabs([
-            "🗺️ Satellite Parcel Map", 
-            "📷 Optical Camera Scanner", 
+        tab_land, tab_camera, tab_soil = st.tabs([
             "📐 Land Area Converter & Acreage", 
+            "📷 Optical Camera Scanner", 
             "🧪 Soil Nutrient Levels"
         ])
         
-        with tab_map:
-            st.markdown("##### 🛰️ Field Coordinates & Interactive Satellite View")
-            
-            mc1, mc2, mc3 = st.columns(3)
-            st.session_state.plot_name = mc1.text_input("Parcel / Field Identifier:", value=st.session_state.plot_name)
-            st.session_state.lat = mc2.number_input("Field Latitude:", value=float(st.session_state.lat), format="%.5f")
-            st.session_state.lon = mc3.number_input("Field Longitude:", value=float(st.session_state.lon), format="%.5f")
-
-            c_lat = float(st.session_state.lat)
-            c_lon = float(st.session_state.lon)
-
-            # Define parcel boundary polygon around the selected coordinates
-            poly_coords = [
-                [c_lat - 0.0008, c_lon - 0.0010],
-                [c_lat + 0.0010, c_lon - 0.0010],
-                [c_lat + 0.0010, c_lon + 0.0010],
-                [c_lat - 0.0008, c_lon + 0.0010]
-            ]
-
-            # Satellite basemap (Zero API Key required)
-            f_map = folium.Map(
-                location=[c_lat, c_lon],
-                zoom_start=18,
-                tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-                attr="Esri World Satellite"
-            )
-            folium.TileLayer('OpenStreetMap', name="Street Overlay", opacity=0.35).add_to(f_map)
-
-            # Draw parcel boundary polygon
-            folium.Polygon(
-                locations=poly_coords,
-                color="#FFD700",
-                weight=4,
-                fill=True,
-                fill_color="#2E7D32",
-                fill_opacity=0.45,
-                tooltip=f"🌾 {st.session_state.plot_name}",
-                popup=folium.Popup(f"<b>Field:</b> {st.session_state.plot_name}<br/><b>Coordinates:</b> {c_lat:.5f}, {c_lon:.5f}", max_width=250)
-            ).add_to(f_map)
-
-            folium.Marker(
-                [c_lat, c_lon],
-                tooltip="Selected Field Location",
-                icon=folium.Icon(color="green", icon="leaf")
-            ).add_to(f_map)
-
-            st_folium(f_map, height=400, width="100%", returned_objects=[])
-
-        with tab_camera:
-            st.markdown("##### Live Soil / Leaf Scan")
-            cam_feed = st.camera_input("Snap Picture of Field Soil")
-            if cam_feed:
-                st.image(Image.open(cam_feed), caption="Captured Field Soil", width=250)
-                st.success("Analysis complete: Calibrated organic matter and root-zone moisture.")
-
         with tab_land:
             st.markdown(f"##### {T['land_calc_title']}")
-            l_col1, l_col2 = st.columns(2)
-            st.session_state.raw_land_val = l_col1.number_input("Enter Land Size", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
-            st.session_state.land_unit = l_col2.selectbox(
+            l_col1, l_col2, l_col3 = st.columns([2, 2, 2])
+            st.session_state.plot_id = l_col1.text_input("Parcel / Field Identifier:", value=st.session_state.plot_id)
+            st.session_state.raw_land_val = l_col2.number_input("Enter Land Size", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
+            st.session_state.land_unit = l_col3.selectbox(
                 "Measuring Unit", 
                 list(UNIT_TO_HECTARE.keys()),
                 index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit)
@@ -630,6 +538,13 @@ elif st.session_state.step == 2:
             st.session_state.land_area = ha_val
             st.table(conv_table)
             st.info(f"Standardized area for chemical dosage: **{ha_val:.3f} Hectares**")
+
+        with tab_camera:
+            st.markdown("##### Live Soil / Leaf Scan")
+            cam_feed = st.camera_input("Snap Picture of Field Soil")
+            if cam_feed:
+                st.image(Image.open(cam_feed), caption="Captured Field Soil", width=250)
+                st.success("Analysis complete: Calibrated organic matter and root-zone moisture.")
 
         with tab_soil:
             s1, s2, s3 = st.columns(3)
@@ -804,9 +719,8 @@ elif st.session_state.step == 7:
     st.markdown(f"""
     <div class="summary-card">
         <h2 style="color: #1B5E20; margin-top: 0;">🌾 Precision Fertilizer & Input Advisory Card</h2>
-        <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel:</strong> {st.session_state.plot_name}</p>
+        <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel:</strong> {st.session_state.plot_id}</p>
         <p><strong>Field Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
-        <p><strong>GPS Coordinates:</strong> {st.session_state.lat:.4f}° N, {st.session_state.lon:.4f}° E</p>
         <hr style="border: 1px solid #A5D6A7;"/>
         <h3 style="color: #1B5E20;">🛒 Required Purchases:</h3>
         <ul style="font-size: 15px; line-height: 1.8;">
@@ -819,7 +733,7 @@ elif st.session_state.step == 7:
     </div>
     """, unsafe_allow_html=True)
     
-    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nParcel: {st.session_state.plot_name}\nLand: {st.session_state.raw_land_val:.2f} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
+    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nParcel: {st.session_state.plot_id}\nLand: {st.session_state.raw_land_val:.2f} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
     st.download_button("📥 Download Prescription Record", receipt_txt, file_name="Farmer_Prescription.txt")
 
     st.divider()
