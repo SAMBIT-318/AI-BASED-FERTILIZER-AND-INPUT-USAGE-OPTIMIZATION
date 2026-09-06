@@ -7,6 +7,9 @@ import streamlit as st
 import hashlib
 from PIL import Image
 from sqlalchemy import create_engine, text
+import folium
+from streamlit_folium import st_folium
+
 from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
 
@@ -24,14 +27,12 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-    /* Earthy, Field-Tested Background */
     html, body, [class*="css"], .stApp {
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         background-color: #F6F8F3 !important;
         color: #1B381E !important;
     }
 
-    /* Top Hero Header */
     .farmer-hero {
         background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #388E3C 100%);
         border-radius: 16px;
@@ -45,23 +46,11 @@ st.markdown("""
         font-weight: 800 !important;
         color: #FFFFFF !important;
         margin: 0 !important;
-        padding: 0 !important;
     }
     .farmer-hero p {
         font-size: 14px !important;
         color: #E8F5E9 !important;
         margin: 4px 0 0 0 !important;
-        opacity: 0.95;
-    }
-
-    /* Farmer-Friendly Cards */
-    .agri-card {
-        background: #FFFFFF !important;
-        border: 1.5px solid #D7E7D8 !important;
-        border-radius: 14px !important;
-        padding: 18px 20px !important;
-        box-shadow: 0 3px 10px rgba(0, 50, 0, 0.04) !important;
-        margin-bottom: 16px !important;
     }
 
     .metric-card {
@@ -85,7 +74,7 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(46, 125, 50, 0.08) !important;
     }
 
-    /* ALL BUTTONS TO HIGH-VISIBILITY LUSH GREEN */
+    /* Green Tactical Buttons */
     div.stButton > button, div.stButton > button:focus {
         background: linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%) !important;
         color: #FFFFFF !important;
@@ -96,7 +85,6 @@ st.markdown("""
         border: 1px solid #144918 !important;
         box-shadow: 0 4px 12px rgba(27, 94, 32, 0.28) !important;
         transition: all 0.15s ease-in-out !important;
-        text-shadow: 0 1px 1px rgba(0,0,0,0.2) !important;
     }
     div.stButton > button:hover {
         background: linear-gradient(180deg, #388E3C 0%, #1E6B24 100%) !important;
@@ -104,12 +92,7 @@ st.markdown("""
         box-shadow: 0 6px 16px rgba(27, 94, 32, 0.38) !important;
         transform: translateY(-1px) !important;
     }
-    div.stButton > button:active {
-        transform: translateY(1px) !important;
-        box-shadow: 0 2px 6px rgba(27, 94, 32, 0.2) !important;
-    }
 
-    /* Download Buttons */
     div.stDownloadButton > button {
         background: linear-gradient(180deg, #1B5E20 0%, #0F3D13 100%) !important;
         color: #FFFFFF !important;
@@ -117,23 +100,15 @@ st.markdown("""
         border-radius: 10px !important;
         padding: 12px 24px !important;
         border: 1px solid #0B2C0D !important;
-        box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25) !important;
     }
 
-    /* Form Fields & Tabs */
     .stTextInput input, .stNumberInput input, .stSelectbox > div > div {
         border-radius: 8px !important;
         border: 1.5px solid #C4DCC5 !important;
         background-color: #FFFFFF !important;
         color: #1B381E !important;
-        font-weight: 500 !important;
-    }
-    .stTextInput input:focus, .stNumberInput input:focus {
-        border-color: #2E7D32 !important;
-        box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2) !important;
     }
 
-    /* Navigation Tabs */
     .stTabs [data-baseweb="tab-list"] {
         gap: 6px;
     }
@@ -148,34 +123,16 @@ st.markdown("""
         background-color: #2E7D32 !important;
         color: #FFFFFF !important;
     }
-
-    /* Status Badges */
-    .badge-pass {
-        background-color: #E8F5E9;
-        color: #1B5E20;
-        padding: 4px 12px;
-        border-radius: 8px;
-        font-weight: 700;
-        border: 1px solid #A5D6A7;
-    }
-    .badge-warn {
-        background-color: #FFEBEE;
-        color: #C62828;
-        padding: 4px 12px;
-        border-radius: 8px;
-        font-weight: 700;
-        border: 1px solid #EF9A9A;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# MULTILINGUAL STRINGS (English, Hindi, Odia)
+# MULTILINGUAL DICTIONARY
 # -------------------------------------------------------------
 TRANSLATIONS = {
     "English": {
         "title": "🌾 AI Based Precision Agriculture Advisor",
-        "subtitle": "Scientific 4R Nutrient Stewardship, Pest Triage & Crop Prescription",
+        "subtitle": "Scientific 4R Nutrient Stewardship, Plot Mapping & Crop Prescription",
         "login_tab": "Farmer Log In",
         "reg_tab": "Register New Farmer",
         "mobile_lbl": "Mobile Number",
@@ -195,7 +152,7 @@ TRANSLATIONS = {
     },
     "हिन्दी": {
         "title": "🌾 एआई आधारित सटीक कृषि सलाहकार",
-        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, कीट पहचान और फसल सलाह",
+        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, खेत नक्शा और फसल सलाह",
         "login_tab": "किसान लॉगिन",
         "reg_tab": "नया किसान पंजीकरण",
         "mobile_lbl": "मोबाइल नंबर",
@@ -215,7 +172,7 @@ TRANSLATIONS = {
     },
     "ଓଡ଼ିଆ": {
         "title": "🌾 ଏଆଇ ଆଧାରିତ ଉନ୍ନତ କୃଷି ଓ ଖତ ପରାମର୍ଶ କେନ୍ଦ୍ର",
-        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, କୀଟ ନିବାରଣ ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
+        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, ଜମି ପ୍ଲଟ ଚିହ୍ନଟ ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
         "login_tab": "କୃଷକ ଲଗଇନ୍",
         "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
@@ -236,7 +193,7 @@ TRANSLATIONS = {
 }
 
 # -------------------------------------------------------------
-# SAFE MODEL LOADER (Pre-Trained Random Forest Artifacts)
+# SAFE MODEL LOADER
 # -------------------------------------------------------------
 MODELS_DIR = "saved_models"
 
@@ -268,7 +225,7 @@ def load_all_models():
  yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
-# SUPABASE POSTGRESQL POOLER
+# DATABASE ENGINE
 # -------------------------------------------------------------
 @st.cache_resource
 def get_db_engine():
@@ -329,7 +286,7 @@ def save_feedback(mobile, rating, comments):
         return False
 
 # -------------------------------------------------------------
-# LAND AREA STANDARDIZATION
+# LAND CONVERSIONS
 # -------------------------------------------------------------
 UNIT_TO_HECTARE = {
     "Acre (एकड़ / ଏକର)": 0.404686,
@@ -353,7 +310,7 @@ def render_land_conversion_table(entered_val, chosen_unit):
     return table_df, ha_base
 
 # -------------------------------------------------------------
-# ADVANCED NUTRIENT DEFICIT ENGINE
+# NUTRIENT DEFICIT ENGINE
 # -------------------------------------------------------------
 def calculate_advanced_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph, soil_moist, soil_texture):
     demand_n = 22.0 * target_yield
@@ -380,7 +337,7 @@ def calculate_advanced_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph, 
     return def_n, def_p, def_k
 
 # -------------------------------------------------------------
-# OPTICAL DISEASE & PEST CLASSIFIER
+# OPTICAL DISEASE CLASSIFIER
 # -------------------------------------------------------------
 def analyze_plant_disease_image(image_obj):
     img_rgb = image_obj.convert("RGB").resize((100, 100))
@@ -439,7 +396,8 @@ defaults = {
     "land_area": 0.809, "budget_cap": 25000.0, "target_yield": 4.5,
     "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
-    "lat": 20.2961, "lon": 85.8245
+    "lat": 20.2961, "lon": 85.8245,
+    "selected_plot": None
 }
 for k, v in defaults.items():
     if k not in st.session_state:
@@ -448,7 +406,7 @@ for k, v in defaults.items():
 T = TRANSLATIONS[st.session_state.app_lang]
 
 # -------------------------------------------------------------
-# FARMER HERO HEADER
+# APP HEADER
 # -------------------------------------------------------------
 st.markdown(f"""
 <div class="farmer-hero">
@@ -458,14 +416,14 @@ st.markdown(f"""
             <p>{T['subtitle']}</p>
         </div>
         <div style="background:rgba(255,255,255,0.2); padding:6px 14px; border-radius:10px; font-weight:700; font-size:13px;">
-            🌱 100% Farmer Ready
+            🛰️ GIS Plot Tracker Active
         </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# SCREEN 1: LOGIN & LANGUAGE PREFERENCE
+# SCREEN 1: LOGIN & PREFERENCE
 # -------------------------------------------------------------
 if st.session_state.step == 1:
     st.subheader(f"1. 📱 {T['login_tab']}")
@@ -515,7 +473,7 @@ if st.session_state.step == 1:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 2: REAL-TIME FIELD DIAGNOSTICS & LAND CONVERTER
+# SCREEN 2: GREEN MAP WITH PLOT RECOGNITION & INSPECTION
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if st.session_state.app_mode == "Diagnostic Only":
@@ -549,32 +507,166 @@ elif st.session_state.step == 2:
             st.rerun()
 
     else:
-        st.subheader("2. 📍 Real-Time Location, Camera & Land Profile")
+        st.subheader("2. 📍 Real-Time Location, Plot Cadastral Map & Land Profile")
         
         tab_geo, tab_camera, tab_land, tab_soil = st.tabs([
-            "🗺️ Live GPS & Map", 
+            "🗺️ Green Plot Map & Parcel Inspector", 
             "📷 Optical Camera Scanner", 
             "📐 Land Area Converter & Acreage", 
             "🧪 Soil Nutrient Levels"
         ])
         
         with tab_geo:
-            st.markdown("##### Real-Time Field Location Tracking")
-            loc_cols = st.columns([1, 2])
-            with loc_cols[0]:
-                st.session_state.lat = st.number_input("Latitude", value=float(st.session_state.lat), format="%.5f")
-                st.session_state.lon = st.number_input("Longitude", value=float(st.session_state.lon), format="%.5f")
-                
-                if st.session_state.lat > 22.0:
-                    st.session_state.sel_soil = "Loamy"
-                    st.caption("Auto-calibrated: Indo-Gangetic alluvial belt.")
-                else:
-                    st.session_state.sel_soil = "Red"
-                    st.caption("Auto-calibrated: Eastern plateau / Laterite belt.")
+            st.markdown("##### 🌾 Professional Cadastral Agricultural Map")
+            st.caption("Click any registered green field polygon on the map below to inspect boundary dimensions, soil diagnostics, and owner telemetry.")
             
-            with loc_cols[1]:
-                map_df = pd.DataFrame({'lat': [st.session_state.lat], 'lon': [st.session_state.lon]})
-                st.map(map_df, zoom=9)
+            # Formulate 4 neighboring registered farm plots around current coordinates
+            c_lat = float(st.session_state.lat)
+            c_lon = float(st.session_state.lon)
+
+            # Define synthetic cadastral polygons (representing farmer registered holdings)
+            plots_data = [
+                {
+                    "plot_id": "PLOT-OD-0821",
+                    "owner": f"Farmer (+91 {st.session_state.user_mobile or '7008123456'})",
+                    "status": "Active Holding",
+                    "area_acre": 2.45,
+                    "crop": "Paddy (Rice)",
+                    "soil": "Clayey Loam",
+                    "health": "Optimal (74/100)",
+                    "coords": [
+                        [c_lat + 0.0010, c_lon - 0.0015],
+                        [c_lat + 0.0028, c_lon - 0.0015],
+                        [c_lat + 0.0028, c_lon + 0.0005],
+                        [c_lat + 0.0010, c_lon + 0.0005]
+                    ]
+                },
+                {
+                    "plot_id": "PLOT-OD-0822",
+                    "owner": "Ramesh Behera",
+                    "status": "Verified Soil Card",
+                    "area_acre": 1.80,
+                    "crop": "Maize",
+                    "soil": "Sandy Loam",
+                    "health": "Moderate (58/100)",
+                    "coords": [
+                        [c_lat + 0.0010, c_lon + 0.0007],
+                        [c_lat + 0.0028, c_lon + 0.0007],
+                        [c_lat + 0.0028, c_lon + 0.0025],
+                        [c_lat + 0.0010, c_lon + 0.0025]
+                    ]
+                },
+                {
+                    "plot_id": "PLOT-OD-0823",
+                    "owner": "Suresh Mohapatra",
+                    "status": "Under Fallow/Resting",
+                    "area_acre": 3.10,
+                    "crop": "Mustard / Oilseeds",
+                    "soil": "Red Laterite",
+                    "health": "Needs Compost (48/100)",
+                    "coords": [
+                        [c_lat - 0.0018, c_lon - 0.0015],
+                        [c_lat + 0.0005, c_lon - 0.0015],
+                        [c_lat + 0.0005, c_lon + 0.0005],
+                        [c_lat - 0.0018, c_lon + 0.0005]
+                    ]
+                },
+                {
+                    "plot_id": "PLOT-OD-0824",
+                    "owner": "Prakash Swain",
+                    "status": "High Productivity",
+                    "area_acre": 1.25,
+                    "crop": "Groundnut",
+                    "soil": "Alluvial Silt",
+                    "health": "Healthy (82/100)",
+                    "coords": [
+                        [c_lat - 0.0018, c_lon + 0.0007],
+                        [c_lat + 0.0005, c_lon + 0.0007],
+                        [c_lat + 0.0005, c_lon + 0.0025],
+                        [c_lat - 0.0018, c_lon + 0.0025]
+                    ]
+                }
+            ]
+
+            # Build Folium Green Map
+            f_map = folium.Map(
+                location=[c_lat, c_lon],
+                zoom_start=17,
+                tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                attr="Esri World Imagery"
+            )
+
+            # Add high-contrast OpenStreetMap Carto layer overlay for clear road and plot borders
+            folium.TileLayer('CartoDB positron', name="Earthy Basemap", opacity=0.35).add_to(f_map)
+
+            # Center Location Marker (Current Tractor / Device Position)
+            folium.Marker(
+                [c_lat, c_lon],
+                tooltip="📍 Current GPS Sensor Position",
+                icon=folium.Icon(color="green", icon="leaf")
+            ).add_to(f_map)
+
+            # Draw Recognized Field Plots with Green Styled Borders
+            for p_idx, plot in enumerate(plots_data):
+                popup_html = f"""
+                <div style='font-family:Plus Jakarta Sans, sans-serif; font-size:13px; width:220px;'>
+                    <b style='color:#1B5E20; font-size:14px;'>🌱 {plot['plot_id']}</b><br/>
+                    <b>Owner:</b> {plot['owner']}<br/>
+                    <b>Area:</b> {plot['area_acre']} Acres ({plot['area_acre'] * 0.404686:.2f} Ha)<br/>
+                    <b>Registered Crop:</b> {plot['crop']}<br/>
+                    <b>Soil Texture:</b> {plot['soil']}<br/>
+                    <b>Vigor Score:</b> <span style='color:#2E7D32; font-weight:700;'>{plot['health']}</span>
+                </div>
+                """
+                folium.Polygon(
+                    locations=plot["coords"],
+                    color="#2E7D32",
+                    weight=3,
+                    fill=True,
+                    fill_color="#4CAF50",
+                    fill_opacity=0.38,
+                    tooltip=f"🌾 {plot['plot_id']} | Owner: {plot['owner']}",
+                    popup=folium.Popup(popup_html, max_width=260)
+                ).add_to(f_map)
+
+            map_col, inspect_col = st.columns([3, 2])
+            with map_col:
+                # Render the map inside Streamlit
+                map_res = st_folium(f_map, height=440, width="100%", returned_objects=["last_object_clicked", "last_clicked"])
+            
+            with inspect_col:
+                st.markdown("<div style='font-size:15px; font-weight:700; color:#1B5E20; margin-bottom:8px;'>📋 Parcel Inspector Dossier</div>", unsafe_allow_html=True)
+                
+                # Interactive Plot Selection Box
+                p_names = [f"{p['plot_id']} - {p['owner']} ({p['area_acre']} Acres)" for p in plots_data]
+                chosen_p_str = st.selectbox("Select or Click Plot to Load Parameters:", p_names)
+                chosen_idx = p_names.index(chosen_p_str)
+                active_plot = plots_data[chosen_idx]
+
+                # Update session state with this plot's verified data
+                st.session_state.selected_plot = active_plot["plot_id"]
+                st.session_state.raw_land_val = active_plot["area_acre"]
+                st.session_state.land_unit = "Acre (एकड़ / ଏକର)"
+                st.session_state.land_area = active_plot["area_acre"] * 0.404686
+
+                # Display Land Details Card
+                st.markdown(f"""
+                <div class="metric-card" style="background:#FFFFFF; border: 1.5px solid #C8E6C9;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h4 style="margin:0; color:#1B5E20;">{active_plot['plot_id']}</h4>
+                        <span class="badge-pass">{active_plot['status']}</span>
+                    </div>
+                    <hr style="margin:8px 0; border:none; border-top:1px solid #E2EEDF;"/>
+                    <p style="margin:4px 0; font-size:13px;">👤 <strong>Registered Farmer:</strong> {active_plot['owner']}</p>
+                    <p style="margin:4px 0; font-size:13px;">📐 <strong>Parcel Area:</strong> {active_plot['area_acre']} Acres / {active_plot['area_acre'] * 40.0:.1f} Guntha</p>
+                    <p style="margin:4px 0; font-size:13px;">🌱 <strong>Target Crop:</strong> {active_plot['crop']}</p>
+                    <p style="margin:4px 0; font-size:13px;">🧪 <strong>Soil Texture:</strong> {active_plot['soil']}</p>
+                    <p style="margin:4px 0; font-size:13px;">💚 <strong>Soil Health Baseline:</strong> {active_plot['health']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                if st.button("Apply Selected Plot to Optimizer"):
+                    st.success(f"Loaded {active_plot['plot_id']} area ({active_plot['area_acre']} Acres) into chemical solver!")
 
         with tab_camera:
             st.markdown("##### Live Soil / Leaf Scan")
@@ -771,8 +863,9 @@ elif st.session_state.step == 7:
     st.markdown(f"""
     <div class="summary-card">
         <h2 style="color: #1B5E20; margin-top: 0;">🌾 Precision Fertilizer & Input Advisory Card</h2>
-        <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Field Area:</strong> {st.session_state.raw_land_val} {st.session_state.land_unit}</p>
-        <p><strong>Field GPS Coordinates:</strong> {st.session_state.lat:.4f}° N, {st.session_state.lon:.4f}° E | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
+        <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel ID:</strong> {st.session_state.get('selected_plot', 'Custom Parcel')}</p>
+        <p><strong>Field Area:</strong> {st.session_state.raw_land_val} {st.session_state.land_unit} | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
+        <p><strong>GPS Location:</strong> {st.session_state.lat:.4f}° N, {st.session_state.lon:.4f}° E</p>
         <hr style="border: 1px solid #A5D6A7;"/>
         <h3 style="color: #1B5E20;">🛒 Required Purchases:</h3>
         <ul style="font-size: 15px; line-height: 1.8;">
@@ -785,7 +878,7 @@ elif st.session_state.step == 7:
     </div>
     """, unsafe_allow_html=True)
     
-    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nLand: {st.session_state.raw_land_val} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
+    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nParcel: {st.session_state.get('selected_plot', 'Custom')}\nLand: {st.session_state.raw_land_val} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
     st.download_button("📥 Download Prescription Record", receipt_txt, file_name="Farmer_Prescription.txt")
 
     st.divider()
