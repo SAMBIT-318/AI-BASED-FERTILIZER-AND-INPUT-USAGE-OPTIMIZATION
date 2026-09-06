@@ -581,7 +581,7 @@ if "rating" not in st.session_state:
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
-# PROFESSIONAL UNICODE-COMPLIANT BLUE STAMP & SIGNATURE PDF GENERATOR
+# PROFESSIONAL UNICODE-COMPLIANT BLUE STAMP PDF GENERATOR
 # -------------------------------------------------------------
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -625,31 +625,6 @@ class NumberedCanvas(canvas.Canvas):
         self.drawCentredString(460, 103, "GOVT COMPLIANT")
         self.drawCentredString(460, 83, "SMART KISHAN")
         self.drawCentredString(460, 68, "4R CERTIFIED")
-
-        sig_candidates = ["Signature.jpg", "signature.jpg", "signature.png", "Signature.png"]
-        sig_path = None
-        for sc in sig_candidates:
-            if os.path.exists(sc):
-                sig_path = sc
-                break
-
-        if sig_path:
-            try:
-                sig_img = Image.open(sig_path).convert("RGBA")
-                data = np.array(sig_img)
-                r, g, b, a = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
-                mask = (r < 200) & (g < 200) & (b < 200)
-                data[mask, 0] = 15
-                data[mask, 1] = 60
-                data[mask, 2] = 160
-                tinted_sig = Image.fromarray(data)
-                
-                sig_buffer = io.BytesIO()
-                tinted_sig.save(sig_buffer, format="PNG")
-                sig_buffer.seek(0)
-                self.drawImage(sig_buffer, 432, 70, width=55, height=28, mask='auto')
-            except Exception:
-                pass
 
         self.restoreState()
 
@@ -808,6 +783,29 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     doc.build(story, canvasmaker=NumberedCanvas)
     buffer.seek(0)
     return buffer.getvalue()
+
+# -------------------------------------------------------------
+# DEFAULTS
+# -------------------------------------------------------------
+defaults = {
+    "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
+    "soil_moist": 45.0, "soc": 0.70, "temp": 26.5, "humidity": 68.0,
+    "rainfall": 150.0, "raw_land_val": 1.5, "land_unit": "Acre (एकड़ / ଏକର)",
+    "land_area": 0.607, "budget_cap": 25000.0, "target_yield": 2.0,
+    "sel_soil": list(soil_encoder.classes_)[0],
+    "sel_crop": list(crop_type_encoder.classes_)[0],
+    "plot_id": "Plot No. 104/1",
+    "soil_source": None,
+    "scanned_soil": None,
+    "scanned_diag": {
+        "health": "Optimal Vigor", "disease": "None detected", "pest": "None",
+        "symptoms": "Healthy foliage", "medicine": "Prophylactic Neem Spray",
+        "recovery_chance": 95, "will_grow": "Yes"
+    }
+}
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 # -------------------------------------------------------------
 # APP HERO HEADER WITH UPLOADED LOGO BADGE
