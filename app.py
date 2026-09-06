@@ -10,179 +10,66 @@ from sqlalchemy import create_engine, text
 from optimizer import optimize_fertilizer_blend
 
 # -------------------------------------------------------------
-# 1. AGRICULTURAL FIELD-TESTED DESIGN SYSTEM (High Sunlight Contrast)
+# PAGE CONFIGURATION
 # -------------------------------------------------------------
 st.set_page_config(
-    page_title="AI Based Fertilizer and Input Usage Optimization",
-    page_icon="🌾",
+    page_title="AI Based Fertilizer & Input Usage Optimization",
+    page_icon="🌱",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
+# -------------------------------------------------------------
+# CUSTOM CSS / THEME STYLING
+# -------------------------------------------------------------
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
-
-    /* Global Foundation: Anti-glare field background & high-contrast charcoal typography */
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-        background-color: #F5F7F5 !important;
-        color: #1B1B1B !important;
+    .main-header {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1E4620;
+        text-align: center;
+        margin-bottom: 0.5rem;
     }
-    .main {
-        background-color: #F5F7F5 !important;
+    .sub-header {
+        font-size: 1.1rem;
+        color: #386641;
+        text-align: center;
+        margin-bottom: 2rem;
     }
-    
-    /* Headers matching mobile field design */
-    h1, h2, h3, h4 {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-weight: 700 !important;
-        color: #1B1B1B !important;
+    .metric-card {
+        background-color: #F4F9F4;
+        border-radius: 10px;
+        padding: 15px;
+        border-left: 5px solid #2E7D32;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 10px;
     }
-
-    /* Top Navigation / Status Header */
-    .app-header {
-        background: #FFFFFF;
-        border-radius: 16px;
-        padding: 16px 24px;
-        margin-bottom: 20px;
-        border: 1px solid #E2E8E2;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    }
-    
-    /* Field-Tested Mobile Card Component */
-    .field-card {
-        background: #FFFFFF;
-        border-radius: 20px;
-        padding: 22px;
-        margin-bottom: 18px;
-        border: 1px solid #E5EAE5;
-        box-shadow: 0 4px 12px rgba(27, 94, 32, 0.04);
-    }
-
-    /* Weather Hero Widget */
-    .weather-widget {
-        background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
-        color: white !important;
-        border-radius: 18px;
-        padding: 18px 24px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 18px;
-    }
-
-    /* 0-100 Gauge Container */
-    .health-gauge-box {
+    .gauge-container {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        text-align: center;
-        padding: 15px;
+        background: #FFFFFF;
+        border: 2px solid #C8E6C9;
+        border-radius: 12px;
+        padding: 20px;
     }
-    .score-circle-svg {
-        width: 130px;
-        height: 130px;
-    }
-
-    /* Action Banner */
-    .action-badge {
-        background: #E8F5E9;
-        color: #1E5E2A;
-        font-weight: 700;
-        font-size: 13px;
-        padding: 6px 14px;
-        border-radius: 30px;
-        display: inline-block;
-        border: 1px solid #C8E6C9;
-        margin-bottom: 10px;
-    }
-    
-    .alert-badge {
-        background: #FFF8E1;
-        color: #B78103;
-        font-weight: 700;
-        font-size: 13px;
-        padding: 6px 14px;
-        border-radius: 30px;
-        display: inline-block;
-        border: 1px solid #FFE082;
-        margin-bottom: 10px;
-    }
-
-    /* Primary Big-Tap Action Buttons */
     .stButton>button {
-        background: #1E5E2A !important;
-        color: #FFFFFF !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-weight: 700 !important;
-        font-size: 16px !important;
-        border-radius: 12px !important;
-        padding: 12px 24px !important;
-        min-height: 52px !important;
-        border: none !important;
-        width: 100%;
-        box-shadow: 0 4px 10px rgba(30, 94, 42, 0.2) !important;
-        transition: transform 0.1s ease;
+        background-color: #2E7D32;
+        color: white;
+        font-weight: 600;
+        border-radius: 8px;
     }
     .stButton>button:hover {
-        background: #164720 !important;
-        transform: translateY(-1px);
-    }
-    .stButton>button:active {
-        transform: translateY(1px);
-    }
-
-    /* Tab Layout Tuning */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: transparent;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background: #FFFFFF;
-        border-radius: 10px;
-        border: 1px solid #E0E0E0;
-        padding: 8px 18px;
-        font-weight: 600;
-        color: #424242;
-    }
-    .stTabs [aria-selected="true"] {
-        background: #1E5E2A !important;
-        color: #FFFFFF !important;
-        border-color: #1E5E2A !important;
+        background-color: #1B5E20;
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
 
-MODELS_DIR = "saved_models"
-
 # -------------------------------------------------------------
-# 2. LOW-CPU MODEL LOADER (Avoids Cloud Throttling)
-# -------------------------------------------------------------
-@st.cache_resource(show_spinner=False)
-def load_all_models():
-    os.makedirs(MODELS_DIR, exist_ok=True)
-    
-    # Safe check: Only import & train if artifacts are entirely missing
-    for f in ["crop_model.pkl", "crop_encoder.pkl", "soil_encoder.pkl", "crop_type_encoder.pkl"]:
-        if not os.path.exists(os.path.join(MODELS_DIR, f)):
-            from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
-            train_crop_recommender()
-            train_fertilizer_classifier()
-            train_yield_regressor()
-            break
-
-    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
-    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
-    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
-    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
-    return crop_m, crop_enc, soil_enc, crop_type_enc
-
-crop_model, crop_encoder, soil_encoder, crop_type_encoder = load_all_models()
-
-# -------------------------------------------------------------
-# 3. SUPABASE SECURE DATABASE CONNECTOR
+# DATABASE CONNECTION (Supabase Pooler)
 # -------------------------------------------------------------
 @st.cache_resource
 def get_db_engine():
@@ -197,7 +84,7 @@ def get_db_engine():
         db_uri = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
 
     try:
-        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 6})
+        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 8})
         with engine.connect() as conn:
             conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
             conn.commit()
@@ -206,6 +93,18 @@ def get_db_engine():
         return None
 
 engine = get_db_engine()
+
+def register_user(mobile, password):
+    if not engine:
+        return True, "Registered locally."
+    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("INSERT INTO users (mobile_number, password) VALUES (:m, :p)"), {"m": mobile, "p": hashed_pw})
+            conn.commit()
+        return True, "Registration successful."
+    except Exception:
+        return False, "User already exists or connection issue."
 
 def verify_user(mobile, password):
     if not engine:
@@ -219,34 +118,70 @@ def verify_user(mobile, password):
         return True
 
 # -------------------------------------------------------------
-# 4. FIELD-LEVEL SOIL HEALTH INDEX (0-100 Circular Gauge)
+# LOAD ML MODEL ARTIFACTS
 # -------------------------------------------------------------
-def compute_soil_score(n, p, k, ph, moisture, soc):
-    score = 0.0
-    score += min(25.0, (n / 80.0) * 25.0)
-    score += min(20.0, (p / 40.0) * 20.0)
-    score += min(20.0, (k / 55.0) * 20.0)
-    ph_dist = abs(ph - 6.6)
-    score += max(0.0, 20.0 - (ph_dist * 12.0))
-    score += min(15.0, (soc / 0.75) * 15.0)
-    return int(np.clip(round(score), 5, 100))
+MODELS_DIR = "saved_models"
 
-# Session State defaults
+def ensure_models_exist():
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    required = ["crop_model.pkl", "crop_encoder.pkl", "fert_model.pkl", "soil_encoder.pkl", 
+                "crop_type_encoder.pkl", "fert_encoder.pkl", "yield_model.pkl", "yield_features.pkl", "yield_crop_encoder.pkl"]
+    missing = [f for f in required if not os.path.exists(os.path.join(MODELS_DIR, f))]
+    if missing:
+        from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
+        train_crop_recommender()
+        train_fertilizer_classifier()
+        train_yield_regressor()
+
+@st.cache_resource(show_spinner=False)
+def load_all_models():
+    ensure_models_exist()
+    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
+    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
+    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
+    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
+    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
+    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
+    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
+    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
+    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
+    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
+
+(crop_model, crop_encoder, fert_model, soil_encoder, 
+ crop_type_encoder, fert_encoder, yield_model, 
+ yield_features, yield_crop_encoder) = load_all_models()
+
+# -------------------------------------------------------------
+# SOIL HEALTH SCORING FUNCTION
+# -------------------------------------------------------------
+def compute_soil_health_score(n, p, k, ph, moisture, soc):
+    score = 0.0
+    score += min(25.0, (n / 75.0) * 25.0)
+    score += min(20.0, (p / 35.0) * 20.0)
+    score += min(20.0, (k / 50.0) * 20.0)
+    ph_dist = abs(ph - 6.7)
+    score += max(0.0, 20.0 - (ph_dist * 10.0))
+    score += min(15.0, (soc / 0.8) * 15.0)
+    return int(np.clip(round(score), 0, 100))
+
+# -------------------------------------------------------------
+# SESSION STATE MANAGEMENT
+# -------------------------------------------------------------
 if "step" not in st.session_state:
     st.session_state.step = 1
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "user_mobile" not in st.session_state:
-    st.session_state.user_mobile = "9876543210"
+    st.session_state.user_mobile = ""
 
 defaults = {
-    "soil_n": 52.0, "soil_p": 28.0, "soil_k": 38.0, "soil_ph": 6.6,
-    "soil_moist": 45.0, "soc": 0.70, "temp": 28.0, "humidity": 70.0,
-    "rainfall": 140.0, "land_area": 2.0, "budget_cap": 25000.0,
-    "target_yield": 4.5, "sel_soil": list(soil_encoder.classes_)[0],
+    "soil_n": 50.0, "soil_p": 25.0, "soil_k": 35.0, "soil_ph": 6.5,
+    "soil_moist": 45.0, "soc": 0.70, "temp": 28.0, "humidity": 65.0,
+    "rainfall": 120.0, "land_area": 1.0, "budget_cap": 15000.0,
+    "target_yield": 4.0, "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
     "chat_history": [
-        {"role": "assistant", "content": "👋 Namaste! I am your AI Field Agronomist. Ask me anytime about soil fertilizer doses, pest alerts, or rainfall timing."}
+        {"role": "assistant", "content": "Hello! I am your AI Agronomist. How can I assist you with your soil or crop management today?"}
     ]
 }
 for k, v in defaults.items():
@@ -254,254 +189,322 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # -------------------------------------------------------------
-# 5. TOP APP BAR (Easy Navigation & Mobile Field Header)
+# HEADER & NAVIGATION
 # -------------------------------------------------------------
-with st.container():
-    h_col1, h_col2 = st.columns([3, 1])
-    with h_col1:
-        st.markdown("<h2 style='margin:0; font-size:24px;'>🌾 AI Based Fertilizer and Input Usage Optimization</h2>", unsafe_allow_html=True)
-        st.markdown("<span style='font-size:13px; color:#555;'>Field-Tested Mobile Agronomy Platform • 7 Adoption Principles</span>", unsafe_allow_html=True)
-    with h_col2:
-        if st.session_state.logged_in:
-            st.markdown(f"<div style='text-align:right; font-size:13px;'>📱 <strong>+91 {st.session_state.user_mobile}</strong></div>", unsafe_allow_html=True)
-            if st.button("Log Out", key="logout_btn"):
-                st.session_state.logged_in = False
-                st.session_state.step = 1
-                st.rerun()
+st.markdown("<div class='main-header'>🌱 AI Based Fertilizer & Input Usage Optimization</div>", unsafe_allow_html=True)
+st.markdown("<div class='sub-header'>Scientific 4R Nutrient Stewardship & Crop Decision Support System</div>", unsafe_allow_html=True)
 
+steps = ["Step 1: Authentication", "Step 2: Soil & Environment", "Step 3: Health Scorecard", 
+         "Step 4: Soil Diagnostic", "Step 5: Yield Gap", "Step 6: Optimized Inputs", "Step 7: Plan & Chat"]
+
+st.progress(st.session_state.step / 7.0)
+st.caption(f"Current Phase: **{steps[st.session_state.step - 1]}**")
 st.write("")
 
 # -------------------------------------------------------------
-# SCREEN 1: LOGIN (Simple Phone Number Gate)
+# STEP 1: AUTHENTICATION
 # -------------------------------------------------------------
 if st.session_state.step == 1:
-    c_left, c_center, c_right = st.columns([1, 2, 1])
-    with c_center:
-        st.markdown("""
-        <div class="field-card">
-            <span class="action-badge">PRINCIPLE 1: FIELD ACCESSIBLE</span>
-            <h3 style="margin-top:5px;">Farmer Fast-Access</h3>
-            <p style="color:#666; font-size:14px;">Enter your 10-digit mobile number to access your field's real-time nutrient scorecard.</p>
-        """, unsafe_allow_html=True)
-        
-        m_in = st.text_input("Mobile Number", value=st.session_state.user_mobile, max_chars=10, placeholder="e.g. 9876543210")
-        p_in = st.text_input("Field Security PIN / Password", type="password", value="12345")
-        
-        if st.button("Open Farm Dashboard ➔", type="primary"):
-            if len(m_in.strip()) == 10:
-                st.session_state.logged_in = True
-                st.session_state.user_mobile = m_in.strip()
-                st.session_state.step = 2
-                st.rerun()
+    st.subheader("Farmer Authentication")
+    if not st.session_state.logged_in:
+        auth_mode = st.radio("Choose Mode", ["Login", "Register"], horizontal=True)
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            mobile = st.text_input("Mobile Number", max_chars=10)
+            password = st.text_input("Password", type="password")
+            if auth_mode == "Login":
+                if st.button("Login"):
+                    if len(mobile) == 10 and verify_user(mobile, password):
+                        st.session_state.logged_in = True
+                        st.session_state.user_mobile = mobile
+                        st.session_state.step = 2
+                        st.rerun()
+                    else:
+                        st.error("Invalid mobile number or credentials.")
             else:
-                st.error("Please enter a valid 10-digit mobile number.")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# -------------------------------------------------------------
-# SCREEN 2: THE MOBILE FIELD DASHBOARD (Matches Reference Image)
-# -------------------------------------------------------------
-elif st.session_state.step == 2:
-    # 3-Column Layout: Left (Live Telemetry & Scanner) | Middle (Actionable Cards) | Right (Chat Helper)
-    col_left, col_mid, col_right = st.columns([1.1, 1.3, 1.0], gap="medium")
-
-    # ------------------ LEFT COLUMN: REAL-TIME METRICS & SCANNER ------------------
-    with col_left:
-        # Weather Banner
-        st.markdown(f"""
-        <div class="weather-widget">
-            <div>
-                <div style="font-size:13px; text-transform:uppercase; letter-spacing:1px; opacity:0.9;">Field Weather</div>
-                <div style="font-size:32px; font-weight:800; font-family:'Plus Jakarta Sans';">{st.session_state.temp:.0f}°C</div>
-                <div style="font-size:14px; opacity:0.95;">Humidity: {st.session_state.humidity:.0f}% • Rain: {st.session_state.rainfall:.0f}mm</div>
-            </div>
-            <div style="font-size:42px;">⛅</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # AI Soil Scanner
-        st.markdown("""
-        <div class="field-card">
-            <span class="action-badge">PRINCIPLE 5: REDUCE TYPING</span>
-            <h4 style="margin:4px 0 10px 0;">AI Soil & Leaf Scanner</h4>
-        """, unsafe_allow_html=True)
-        
-        scan_opt = st.radio("Choose Input Mode:", ["📸 Snap Camera Photo", "📁 Upload Soil Card/Photo"], horizontal=True)
-        if "Camera" in scan_opt:
-            cam_pic = st.camera_input("Point camera at soil sample or crop leaf")
-            if cam_pic:
-                st.session_state.soil_n = 58.0
-                st.session_state.soil_p = 32.0
-                st.session_state.soil_k = 42.0
-                st.success("✅ Chromatic scan analyzed! NPK levels updated.")
-        else:
-            up_pic = st.file_uploader("Upload image or PDF card", type=["png", "jpg", "jpeg", "csv"])
-            if up_pic:
-                st.session_state.soil_n = 55.0
-                st.session_state.soil_p = 30.0
-                st.session_state.soil_k = 40.0
-                st.info("✅ Upload calibrated with local loamy profile.")
-                
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # Field Parameters Input
-        with st.expander("⚙️ Fine-Tune Soil & Land Inputs", expanded=False):
-            st.session_state.soil_n = st.number_input("Nitrogen (N) [mg/kg]", 0.0, 250.0, float(st.session_state.soil_n))
-            st.session_state.soil_p = st.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
-            st.session_state.soil_k = st.number_input("Potash (K) [mg/kg]", 0.0, 250.0, float(st.session_state.soil_k))
-            st.session_state.soil_ph = st.slider("Soil pH Level", 4.0, 9.0, float(st.session_state.soil_ph), 0.1)
-            st.session_state.soil_moist = st.slider("Soil Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0)
-            st.session_state.land_area = st.number_input("Land Area (Hectares)", 0.2, 50.0, float(st.session_state.land_area), 0.2)
-            st.session_state.target_yield = st.number_input("Target Harvest (Tonnes/Ha)", 1.0, 15.0, float(st.session_state.target_yield), 0.5)
-
-    # ------------------ MIDDLE COLUMN: CROP HEALTH GAUGE & ACTIONS ------------------
-    with col_mid:
-        # 1. Soil Health Circle Score
-        score = compute_soil_score(
-            st.session_state.soil_n, st.session_state.soil_p, st.session_state.soil_k,
-            st.session_state.soil_ph, st.session_state.soil_moist, st.session_state.soc
-        )
-        gauge_color = "#1E5E2A" if score >= 70 else ("#E68A00" if score >= 50 else "#D32F2F")
-
-        st.markdown(f"""
-        <div class="field-card">
-            <span class="action-badge">PRINCIPLE 3: DATA INTO DECISIONS</span>
-            <h4 style="margin:4px 0 12px 0;">Overall Soil Health Index</h4>
-            <div style="display:flex; align-items:center; justify-content:space-around;">
-                <div class="health-gauge-box">
-                    <svg class="score-circle-svg" viewBox="0 0 36 36">
-                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                            fill="none" stroke="#E0E0E0" stroke-width="3.5" />
-                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                            fill="none" stroke="{gauge_color}" stroke-dasharray="{score}, 100" stroke-width="3.5" stroke-linecap="round" />
-                        <text x="18" y="21" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="9.5" text-anchor="middle" fill="{gauge_color}">{score}</text>
-                    </svg>
-                    <div style="font-size:12px; font-weight:700; color:#555; margin-top:6px;">SCORE / 100</div>
-                </div>
-                <div style="flex:1; padding-left:20px;">
-                    <div style="font-size:17px; font-weight:800; color:{gauge_color};">
-                        {"Soil Condition is Optimal" if score >= 70 else ("Needs Nutrient Rebalancing" if score >= 50 else "High Fertilizer Deficit")}
-                    </div>
-                    <div style="font-size:13px; color:#555; margin-top:4px;">
-                        pH is <strong>{st.session_state.soil_ph}</strong> • Moisture at <strong>{st.session_state.soil_moist:.0f}%</strong>
-                    </div>
-                    <div style="font-size:13px; color:#1E5E2A; font-weight:600; margin-top:8px;">
-                        ✓ Root-zone readiness verified
-                    </div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # 2. Action Plan & Fertilizer Scheduler (Linear Programming Engine)
-        r_n = 22.0 * st.session_state.target_yield
-        r_p = 4.5 * st.session_state.target_yield
-        r_k = 19.0 * st.session_state.target_yield
-
-        avail_n = (st.session_state.soil_n * 0.45) * (1.0 + (st.session_state.soc * 0.15))
-        avail_p = (st.session_state.soil_p * 0.35) * (1.0 if 6.0 <= st.session_state.soil_ph <= 7.2 else 0.75)
-        avail_k = (st.session_state.soil_k * 0.50)
-
-        def_n = max(0.0, (r_n - avail_n) / 0.50)
-        def_p = max(0.0, (r_p - avail_p) / 0.35)
-        def_k = max(0.0, (r_k - avail_k) / 0.55)
-
-        opt = optimize_fertilizer_blend(
-            req_n=def_n, req_p=def_p, req_k=def_k,
-            budget_cap=st.session_state.budget_cap,
-            land_area=st.session_state.land_area,
-            soil_texture=str(st.session_state.sel_soil),
-            rainfall_mm=st.session_state.rainfall,
-            soc=st.session_state.soc
-        )
-        savings = opt['total_cost'] * 0.32
-
-        st.markdown(f"""
-        <div class="field-card">
-            <span class="action-badge">PRINCIPLE 4: LARGE TOUCH TARGETS</span>
-            <h4 style="margin:4px 0 6px 0;">Prescribed Application Schedule</h4>
-            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                <div><strong>Planned Crop:</strong> {st.session_state.sel_crop}</div>
-                <div><strong>Field Area:</strong> {st.session_state.land_area} ha</div>
-            </div>
-            
-            <div style="background:#F1F8E9; border-left:4px solid #1E5E2A; padding:12px; border-radius:8px; margin-bottom:12px;">
-                <div style="font-weight:700; color:#1E5E2A; font-size:14px;">⚡ Immediate Action: Stage 1 (Base Dose)</div>
-                <div style="font-size:13px; color:#333; margin-top:2px;">
-                    Apply <strong>100% DAP ({opt['dap_kg']} kg)</strong> + <strong>1/3 Potash ({round(opt['mop_kg']/3)} kg)</strong> + <strong>All Compost</strong> directly at sowing.
-                </div>
-            </div>
-            
-            <div style="display:flex; justify-content:space-between; background:#FAFAFA; border:1px solid #EEE; padding:10px 14px; border-radius:8px; margin-bottom:14px;">
-                <div><span style="color:#666; font-size:12px;">TOTAL INPUT COST</span><br><strong style="font-size:18px; color:#1B1B1B;">₹{opt['total_cost']:,.0f}</strong></div>
-                <div><span style="color:#1E5E2A; font-size:12px;">MONEY SAVED (VS BLANKET)</span><br><strong style="font-size:18px; color:#1E5E2A;">₹{savings:,.0f}</strong></div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("Download Printable Action Card (Receipt) 📥", type="primary"):
-            receipt_data = (
-                f"AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION\n"
-                f"FIELD PRESCRIPTION & SCHEDULE\n"
-                f"---------------------------------------------------\n"
-                f"Mobile: +91 {st.session_state.user_mobile}\n"
-                f"Crop: {st.session_state.sel_crop} | Land: {st.session_state.land_area} ha\n"
-                f"Estimated Investment: Rs. {opt['total_cost']:,.0f}\n"
-                f"Calculated Money Saved: Rs. {savings:,.0f}\n\n"
-                f"SHOPPING BAGS (50kg bags):\n"
-                f"- Urea: {opt['urea_kg']} kg (~{round(opt['urea_kg']/50)} bags)\n"
-                f"- DAP: {opt['dap_kg']} kg (~{round(opt['dap_kg']/50)} bags)\n"
-                f"- MOP: {opt['mop_kg']} kg (~{round(opt['mop_kg']/50)} bags)\n"
-                f"- Compost: {opt['compost_kg']} kg\n"
-            )
-            st.download_button("Click to Confirm File Download", receipt_data, f"Action_Plan_{st.session_state.user_mobile}.txt", "text/plain")
-
-    # ------------------ RIGHT COLUMN: REAL-TIME FARM ANALYTICS & CHATBOT ------------------
-    with col_right:
-        st.markdown("""
-        <div class="field-card">
-            <span class="action-badge">PRINCIPLE 6: TRANSPARENCY</span>
-            <h4 style="margin:4px 0 10px 0;">50 kg Bag Calculator</h4>
-        """, unsafe_allow_html=True)
-
-        bag_df = pd.DataFrame({
-            "Input": ["Urea", "DAP", "MOP (Potash)"],
-            "Amount": [f"{opt['urea_kg']} kg", f"{opt['dap_kg']} kg", f"{opt['mop_kg']} kg"],
-            "50kg Bags": [
-                f"{max(1, round(opt['urea_kg']/50.0))} bags" if opt['urea_kg'] > 0 else "0",
-                f"{max(1, round(opt['dap_kg']/50.0))} bags" if opt['dap_kg'] > 0 else "0",
-                f"{max(1, round(opt['mop_kg']/50.0))} bags" if opt['mop_kg'] > 0 else "0"
-            ]
-        })
-        st.table(bag_df)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # AI Agronomist Chatbot
-        st.markdown("""
-        <div class="field-card">
-            <h4 style="margin:0 0 8px 0;">💬 AI Agronomist Helper</h4>
-            <div style="font-size:12px; color:#666; margin-bottom:12px;">Instant guidance on watering, pest prevention & dosing.</div>
-        """, unsafe_allow_html=True)
-
-        chat_container = st.container()
-        with chat_container:
-            for m in st.session_state.chat_history[-3:]:
-                with st.chat_message(m["role"]):
-                    st.write(m["content"])
-
-        user_msg = st.chat_input("Ask question (e.g. When should I irrigate?)")
-        if user_msg:
-            st.session_state.chat_history.append({"role": "user", "content": user_msg})
-            q = user_msg.lower()
-            if "water" in q or "irrigate" in q:
-                ans = "Give light irrigation 24 hours after applying Stage 1 DAP. Do not flood if rainfall exceeds 50mm."
-            elif "pest" in q or "disease" in q:
-                ans = "Inspect leaf undersides for aphid colonies. Apply neem-oil emulsion (5ml/L) if spotting occurs."
-            elif "save" in q or "cost" in q:
-                ans = f"By applying according to your specific soil test deficit, you save ₹{savings:,.0f} compared to uncalibrated broadcasting."
-            else:
-                ans = f"For your {st.session_state.sel_crop} crop, following the 3-stage split application will ensure maximum Nutrient Use Efficiency (NUE)."
-            
-            st.session_state.chat_history.append({"role": "assistant", "content": ans})
+                conf_password = st.text_input("Confirm Password", type="password")
+                if st.button("Register"):
+                    if len(mobile) == 10 and password == conf_password and len(password) > 0:
+                        ok, msg = register_user(mobile, password)
+                        if ok:
+                            st.success(msg)
+                        else:
+                            st.error(msg)
+                    else:
+                        st.warning("Please check details and passwords match.")
+    else:
+        st.success(f"Logged in as: {st.session_state.user_mobile}")
+        if st.button("Proceed to Field Diagnostic"):
+            st.session_state.step = 2
             st.rerun()
 
-        st.markdown("</div>", unsafe_allow_html=True)
+# -------------------------------------------------------------
+# STEP 2: FIELD & SOIL INPUTS
+# -------------------------------------------------------------
+elif st.session_state.step == 2:
+    st.subheader("Field Parameters & Optical Scanner")
+    tab1, tab2, tab3, tab4 = st.tabs(["AI Scanner", "Lab Data", "Weather", "Farm Setup"])
+
+    with tab1:
+        st.write("Scan soil or crop using camera or upload a soil card:")
+        cam_pic = st.camera_input("Take a photo of soil or crop")
+        if cam_pic:
+            st.image(Image.open(cam_pic), width=300)
+            st.success("Image received: Calibrating standard loamy profile.")
+        upload_pic = st.file_uploader("Upload Image or Soil Health Card", type=["jpg", "png", "jpeg"])
+        if upload_pic:
+            st.success(f"Loaded: {upload_pic.name}")
+
+    with tab2:
+        c1, c2, c3 = st.columns(3)
+        st.session_state.soil_n = c1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n))
+        st.session_state.soil_p = c2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
+        st.session_state.soil_k = c3.number_input("Potassium (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k))
+
+        c4, c5, c6 = st.columns(3)
+        st.session_state.soil_ph = c4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1)
+        st.session_state.soc = c5.slider("Soil Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05)
+        st.session_state.soil_moist = c6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0)
+
+    with tab3:
+        w1, w2, w3 = st.columns(3)
+        st.session_state.temp = w1.slider("Temperature (°C)", 10.0, 48.0, float(st.session_state.temp))
+        st.session_state.humidity = w2.slider("Relative Humidity (%)", 15.0, 100.0, float(st.session_state.humidity))
+        st.session_state.rainfall = w3.slider("Rainfall (mm)", 10.0, 500.0, float(st.session_state.rainfall))
+
+    with tab4:
+        cp1, cp2 = st.columns(2)
+        s_list = list(soil_encoder.classes_)
+        c_list = list(crop_type_encoder.classes_)
+        st.session_state.sel_soil = cp1.selectbox("Soil Type", s_list, index=s_list.index(st.session_state.sel_soil) if st.session_state.sel_soil in s_list else 0)
+        st.session_state.sel_crop = cp2.selectbox("Target Crop", c_list, index=c_list.index(st.session_state.sel_crop) if st.session_state.sel_crop in c_list else 0)
+
+        cp3, cp4, cp5 = st.columns(3)
+        st.session_state.land_area = cp3.number_input("Land Area (ha)", 0.2, 50.0, float(st.session_state.land_area), 0.2)
+        st.session_state.target_yield = cp4.number_input("Target Yield (t/ha)", 1.0, 15.0, float(st.session_state.target_yield), 0.5)
+        st.session_state.budget_cap = cp5.number_input("Budget Cap (INR)", 2000.0, 500000.0, float(st.session_state.budget_cap), 1000.0)
+
+    col_b1, col_b2 = st.columns([1, 4])
+    if col_b1.button("Back"):
+        st.session_state.step = 1
+        st.rerun()
+    if col_b2.button("Compute Soil Health Score"):
+        st.session_state.step = 3
+        st.rerun()
+
+# -------------------------------------------------------------
+# STEP 3: SOIL HEALTH GAUGE
+# -------------------------------------------------------------
+elif st.session_state.step == 3:
+    st.subheader("Soil Health Evaluation")
+    score = compute_soil_health_score(
+        st.session_state.soil_n, st.session_state.soil_p, st.session_state.soil_k,
+        st.session_state.soil_ph, st.session_state.soil_moist, st.session_state.soc
+    )
+
+    g_col, stat_col = st.columns([1, 2])
+    with g_col:
+        badge = "#2E7D32" if score >= 70 else ("#F9A825" if score >= 50 else "#C62828")
+        st.markdown(f"""
+        <div class="gauge-container">
+            <h1 style="font-size: 4rem; color: {badge}; margin: 0;">{score}</h1>
+            <p style="font-weight: 600; color: #555;">Overall Score (0–100)</p>
+            <h3 style="color: {badge}; margin: 0;">{"Optimal" if score >= 70 else ("Moderate" if score >= 50 else "Critical")}</h3>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with stat_col:
+        st.markdown(f"""
+        <div class="metric-card">
+            <h4>Diagnostic Highlights</h4>
+            <p><strong>Active pH:</strong> {st.session_state.soil_ph} (Optimal range: 6.0 - 7.5)</p>
+            <p><strong>Organic Carbon:</strong> {st.session_state.soc}% ({'Sufficient' if st.session_state.soc >= 0.75 else 'Low - Add Compost'})</p>
+            <p><strong>Root-Zone Moisture:</strong> {st.session_state.soil_moist}%</p>
+            <p><strong>Precipitation Hazard:</strong> {'High Leaching Risk' if st.session_state.rainfall > 200 else 'Normal'}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    col_b1, col_b2 = st.columns([1, 4])
+    if col_b1.button("Back"):
+        st.session_state.step = 2
+        st.rerun()
+    if col_b2.button("View Diagnostic Chart"):
+        st.session_state.step = 4
+        st.rerun()
+
+# -------------------------------------------------------------
+# STEP 4: SOIL DIAGNOSTIC CHART
+# -------------------------------------------------------------
+elif st.session_state.step == 4:
+    st.subheader("Soil Diagnostic Reserve vs Target")
+    df_chart = pd.DataFrame({
+        "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potassium (K)"],
+        "Available Level (kg/ha)": [st.session_state.soil_n * 2.24, st.session_state.soil_p * 2.24, st.session_state.soil_k * 2.24],
+        "Recommended Level (kg/ha)": [280.0, 60.0, 150.0]
+    }).set_index("Nutrient")
+    st.bar_chart(df_chart)
+
+    col_b1, col_b2 = st.columns([1, 4])
+    if col_b1.button("Back"):
+        st.session_state.step = 3
+        st.rerun()
+    if col_b2.button("Calculate Yield Gap"):
+        st.session_state.step = 5
+        st.rerun()
+
+# -------------------------------------------------------------
+# STEP 5: YIELD GAP & CROP PREDICTION
+# -------------------------------------------------------------
+elif st.session_state.step == 5:
+    st.subheader("Yield Gap & AI Crop Recommendation")
+    
+    r_n = 22.0 * st.session_state.target_yield
+    r_p = 4.5 * st.session_state.target_yield
+    r_k = 19.0 * st.session_state.target_yield
+
+    avail_n = (st.session_state.soil_n * 0.45) * (1.0 + (st.session_state.soc * 0.15))
+    avail_p = (st.session_state.soil_p * 0.35) * (1.0 if 6.0 <= st.session_state.soil_ph <= 7.2 else 0.75)
+    avail_k = (st.session_state.soil_k * 0.50)
+
+    def_n = max(0.0, (r_n - avail_n) / 0.50)
+    def_p = max(0.0, (r_p - avail_p) / 0.35)
+    def_k = max(0.0, (r_k - avail_k) / 0.55)
+
+    crop_in = pd.DataFrame([{
+        'N': st.session_state.soil_n, 'P': st.session_state.soil_p, 'K': st.session_state.soil_k,
+        'temperature': st.session_state.temp, 'humidity': st.session_state.humidity,
+        'ph': st.session_state.soil_ph, 'rainfall': st.session_state.rainfall
+    }])
+    pred_crop = crop_encoder.inverse_transform([crop_model.predict(crop_in)[0]])[0]
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <h4>Nutrient Shortage (Target: {st.session_state.target_yield} t/ha)</h4>
+            <p><strong>N Deficit:</strong> {def_n:.1f} kg/ha</p>
+            <p><strong>P Deficit:</strong> {def_p:.1f} kg/ha</p>
+            <p><strong>K Deficit:</strong> {def_k:.1f} kg/ha</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <h4>Recommended Crop</h4>
+            <h3 style="color: #2E7D32;">{pred_crop.capitalize()}</h3>
+            <p>Best suitability for current weather and baseline parameters.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    col_b1, col_b2 = st.columns([1, 4])
+    if col_b1.button("Back"):
+        st.session_state.step = 4
+        st.rerun()
+    if col_b2.button("Run Input Optimization"):
+        st.session_state.step = 6
+        st.rerun()
+
+# -------------------------------------------------------------
+# STEP 6: INPUT OPTIMIZATION & FERTILIZER BAGS
+# -------------------------------------------------------------
+elif st.session_state.step == 6:
+    st.subheader("Optimized Fertilizer Allocation")
+    
+    r_n = 22.0 * st.session_state.target_yield
+    r_p = 4.5 * st.session_state.target_yield
+    r_k = 19.0 * st.session_state.target_yield
+
+    avail_n = (st.session_state.soil_n * 0.45) * (1.0 + (st.session_state.soc * 0.15))
+    avail_p = (st.session_state.soil_p * 0.35) * (1.0 if 6.0 <= st.session_state.soil_ph <= 7.2 else 0.75)
+    avail_k = (st.session_state.soil_k * 0.50)
+
+    def_n = max(0.0, (r_n - avail_n) / 0.50)
+    def_p = max(0.0, (r_p - avail_p) / 0.35)
+    def_k = max(0.0, (r_k - avail_k) / 0.55)
+
+    opt = optimize_fertilizer_blend(
+        req_n=def_n, req_p=def_p, req_k=def_k,
+        budget_cap=st.session_state.budget_cap,
+        land_area=st.session_state.land_area,
+        soil_texture=str(st.session_state.sel_soil),
+        rainfall_mm=st.session_state.rainfall,
+        soc=st.session_state.soc
+    )
+    st.session_state.opt_results = opt
+
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Optimized Cost", f"₹{opt['total_cost']:,.0f}")
+    m2.metric("Money Saved", f"₹{(opt['total_cost'] * 0.32):,.0f}", "vs Conventional")
+    m3.metric("Budget Used", f"{opt['budget_utilized_pct']}%")
+
+    st.write("### Recommended Fertilizer Bags (50kg Standard):")
+    st.table(pd.DataFrame({
+        "Product": ["Urea", "DAP", "MOP", "Complex (14-35-14)", "Bio-Compost"],
+        "Total Quantity": [f"{opt['urea_kg']} kg", f"{opt['dap_kg']} kg", f"{opt['mop_kg']} kg", f"{opt['complex_kg']} kg", f"{opt['compost_kg']} kg"],
+        "50kg Bags": [
+            f"{max(1, round(opt['urea_kg'] / 50.0))} bags" if opt['urea_kg'] > 0 else "0",
+            f"{max(1, round(opt['dap_kg'] / 50.0))} bags" if opt['dap_kg'] > 0 else "0",
+            f"{max(1, round(opt['mop_kg'] / 50.0))} bags" if opt['mop_kg'] > 0 else "0",
+            f"{max(1, round(opt['complex_kg'] / 50.0))} bags" if opt['complex_kg'] > 0 else "0",
+            f"{round(opt['compost_kg'] / 50.0)} bags" if opt['compost_kg'] > 0 else "0"
+        ]
+    }))
+
+    col_b1, col_b2 = st.columns([1, 4])
+    if col_b1.button("Back"):
+        st.session_state.step = 5
+        st.rerun()
+    if col_b2.button("View Prescription & Action Plan"):
+        st.session_state.step = 7
+        st.rerun()
+
+# -------------------------------------------------------------
+# STEP 7: ACTION PLAN, RECEIPT & AGRONOMIST CHATBOT
+# -------------------------------------------------------------
+elif st.session_state.step == 7:
+    st.subheader("Field Prescription & Agronomist Support")
+    opt = st.session_state.get("opt_results", {
+        "urea_kg": 0.0, "dap_kg": 0.0, "mop_kg": 0.0, "complex_kg": 0.0, "compost_kg": 0.0, "total_cost": 0.0
+    })
+
+    st.markdown(f"""
+    <div class="metric-card">
+        <h3>Official Prescription Record</h3>
+        <p><strong>Mobile:</strong> {st.session_state.user_mobile} | <strong>Land:</strong> {st.session_state.land_area} ha | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
+        <p><strong>Total Investment:</strong> ₹{opt['total_cost']:,.0f}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    receipt = (
+        f"PRESCRIPTION REPORT\n"
+        f"Mobile: {st.session_state.user_mobile}\n"
+        f"Crop: {st.session_state.sel_crop}\n"
+        f"Land Area: {st.session_state.land_area} ha\n"
+        f"Estimated Cost: INR {opt['total_cost']:,.0f}\n"
+        f"Urea: {opt['urea_kg']} kg\n"
+        f"DAP: {opt['dap_kg']} kg\n"
+        f"MOP: {opt['mop_kg']} kg\n"
+        f"Compost: {opt['compost_kg']} kg\n"
+    )
+    st.download_button("Download Prescription (TXT)", receipt, file_name="Prescription.txt")
+
+    st.write("---")
+    st.subheader("AI Agronomist Chat")
+    for msg in st.session_state.chat_history:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    q = st.chat_input("Ask a question regarding application timing or fertilizer types...")
+    if q:
+        st.session_state.chat_history.append({"role": "user", "content": q})
+        with st.chat_message("user"):
+            st.markdown(q)
+
+        ans = f"For {st.session_state.sel_crop}, ensure basal phosphorus and potassium are placed at 5-7 cm depth during planting, and split nitrogen across tillering and flowering stages."
+        st.session_state.chat_history.append({"role": "assistant", "content": ans})
+        with st.chat_message("assistant"):
+            st.markdown(ans)
+
+    if st.button("Start Over"):
+        st.session_state.step = 1
+        st.rerun()
