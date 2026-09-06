@@ -68,42 +68,45 @@ st.markdown("""
         font-weight: 500;
     }
 
+    /* UNIQUE AGRICULTURAL FIELD STAMP */
     .smart-kishan-stamp {
-        width: 110px;
-        height: 110px;
-        border: 3.5px double #FFFFFF;
+        width: 115px;
+        height: 115px;
+        border: 3.5px double #FFD700;
         border-radius: 50%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
-        background: rgba(27, 94, 32, 0.85);
-        box-shadow: 0 0 14px rgba(0, 0, 0, 0.25);
-        transform: rotate(-4deg);
+        background: radial-gradient(circle, #2E7D32 0%, #1B5E20 100%);
+        box-shadow: 0 0 16px rgba(0, 0, 0, 0.3);
+        transform: rotate(-3deg);
         user-select: none;
+        padding: 6px;
     }
     .stamp-title {
-        font-size: 10px;
+        font-size: 9.5px;
         font-weight: 800;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.7px;
         color: #FFFFFF;
         text-transform: uppercase;
     }
     .stamp-center {
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 900;
         color: #FFD700;
-        margin: 2px 0;
+        margin: 3px 0;
         border-top: 1px solid rgba(255,255,255,0.4);
         border-bottom: 1px solid rgba(255,255,255,0.4);
         padding: 1px 4px;
+        letter-spacing: 0.5px;
     }
     .stamp-footer {
         font-size: 8px;
-        color: #E8F5E9;
+        color: #C8E6C9;
         font-weight: 700;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
     }
 
     .metric-card {
@@ -425,7 +428,6 @@ def render_land_conversion_table(entered_val, chosen_unit):
 # NUTRIENT DEFICIT ENGINE
 # -------------------------------------------------------------
 def calculate_advanced_nutrients(target_yield_per_acre, soil_n, soil_p, soil_k, soc, ph, soil_moist, soil_texture):
-    # Convert t/acre target yield to t/ha for internal botanical stoichiometry (1 acre = 2.47105 ha)
     target_yield_ha = target_yield_per_acre * 2.47105
 
     demand_n = 22.0 * target_yield_ha
