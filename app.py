@@ -197,67 +197,6 @@ def load_all_models():
  yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
-# DATABASE ENGINE & AUTH HELPERS (DEFINED EARLY)
-# -------------------------------------------------------------
-@st.cache_resource
-def get_db_engine():
-    try:
-        cfg_user = urllib.parse.quote_plus(str(st.secrets["postgres"]["user"]))
-        cfg_password = urllib.parse.quote_plus(str(st.secrets["postgres"]["password"]))
-        cfg_host = str(st.secrets["postgres"]["host"]).strip()
-        cfg_port = st.secrets["postgres"]["port"]
-        cfg_db = str(st.secrets["postgres"]["database"]).strip()
-        db_uri = f"postgresql://{cfg_user}:{cfg_password}@{cfg_host}:{cfg_port}/{cfg_db}?sslmode=require"
-    except Exception:
-        db_uri = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
-
-    try:
-        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 8})
-        with engine.connect() as conn:
-            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS feedback (id SERIAL PRIMARY KEY, mobile TEXT, rating INT, comments TEXT)"))
-            conn.commit()
-        return engine
-    except Exception:
-        return None
-
-engine = get_db_engine()
-
-def register_user(mobile, password):
-    if not engine:
-        return True, "Account registered locally."
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("INSERT INTO users (mobile_number, password) VALUES (:m, :p)"), {"m": mobile, "p": hashed_pw})
-            conn.commit()
-        return True, "Registration successful! You can now log in."
-    except Exception:
-        return False, "This mobile number is already registered."
-
-def verify_user(mobile, password):
-    if not engine:
-        return True
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
-    try:
-        with engine.connect() as conn:
-            res = conn.execute(text("SELECT password FROM users WHERE mobile_number = :m"), {"m": mobile}).fetchone()
-            return bool(res and res[0] == hashed_pw)
-    except Exception:
-        return True
-
-def save_feedback(mobile, rating, comments):
-    if not engine:
-        return True
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": rating, "c": comments})
-            conn.commit()
-        return True
-    except Exception:
-        return False
-
-# -------------------------------------------------------------
 # GLOBAL MULTILINGUAL DICTIONARY
 # -------------------------------------------------------------
 TRANSLATIONS = {
@@ -844,6 +783,29 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     doc.build(story, canvasmaker=NumberedCanvas)
     buffer.seek(0)
     return buffer.getvalue()
+
+# -------------------------------------------------------------
+# DEFAULTS
+# -------------------------------------------------------------
+defaults = {
+    "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
+    "soil_moist": 45.0, "soc": 0.70, "temp": 26.5, "humidity": 68.0,
+    "rainfall": 150.0, "raw_land_val": 1.5, "land_unit": "Acre (एकड़ / ଏକର)",
+    "land_area": 0.607, "budget_cap": 25000.0, "target_yield": 2.0,
+    "sel_soil": list(soil_encoder.classes_)[0],
+    "sel_crop": list(crop_type_encoder.classes_)[0],
+    "plot_id": "Plot No. 104/1",
+    "soil_source": None,
+    "scanned_soil": None,
+    "scanned_diag": {
+        "health": "Optimal Vigor", "disease": "None detected", "pest": "None",
+        "symptoms": "Healthy foliage", "medicine": "Prophylactic Neem Spray",
+        "recovery_chance": 95, "will_grow": "Yes"
+    }
+}
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 # -------------------------------------------------------------
 # APP HERO HEADER WITH UPLOADED LOGO BADGE
