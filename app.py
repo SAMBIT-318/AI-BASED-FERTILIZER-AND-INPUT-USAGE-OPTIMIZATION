@@ -499,7 +499,7 @@ TRANSLATIONS = {
         "budget_lbl": "कमाल खत बजेट (₹)",
         "budget_help": "खत खरेदी खर्च या मर्यादेत राहतो.",
         "feedback_title": "🌟 शेतकरी अभिप्राय आणि स्टार रेटिंग",
-        "feedback_submit": "अभिप्राय सबमिट करा आणि बाहेर पडा ➔",
+        "feedback_submit": "अभिप्राय सबमिट करा आणि बाहर पडा ➔",
         "land_calc_title": "📐 जमीन रूपांतरण आणि बजेट तक्ता",
         "stage_1_period": "पायरी १: पेरणीच्या वेळी (दिवस 0 - मूळ खत)",
         "stage_1_method": "कंपोस्ट, डीएपी आणि १/३ पोटॅश जमिनीत मिसळा.",
@@ -824,21 +824,11 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
-    clean_unit = "Acre"
-    if "Hectare" in str(land_unit):
-        clean_unit = "Hectare"
-    elif "Guntha" in str(land_unit):
-        clean_unit = "Guntha"
-    elif "Decimal" in str(land_unit):
-        clean_unit = "Decimal"
-    elif "Square" in str(land_unit):
-        clean_unit = "Sq Ft"
-
     story.append(Paragraph("1. FARMER & LAND PROFILE", section_h1))
     profile_data = [
         [Paragraph("<b>Farmer Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
         [Paragraph("<b>Target Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Target Harvest:</b>", body_style), Paragraph(f"{target_yield} t/acre", bold_style)],
-        [Paragraph("<b>Land Area:</b>", body_style), Paragraph(f"{raw_land:.2f} {clean_unit}", bold_style), Paragraph("<b>Standard Area:</b>", body_style), Paragraph(f"{opt.get('land_area', raw_land*0.404686):.3f} Hectares", bold_style)],
+        [Paragraph("<b>Land Area:</b>", body_style), Paragraph(f"{raw_land:.2f} Acre", bold_style), Paragraph("<b>Standard Area:</b>", body_style), Paragraph(f"{opt.get('land_area', raw_land*0.404686):.3f} Hectares", bold_style)],
         [Paragraph("<b>Farmer Budget:</b>", body_style), Paragraph(f"Rs. {budget:,.0f}", bold_style), Paragraph("<b>Optimization Cost:</b>", body_style), Paragraph(f"Rs. {opt['total_cost']:,.0f}", bold_style)],
     ]
     t_prof = Table(profile_data, colWidths=[110, 155, 120, 150])
@@ -1332,7 +1322,7 @@ elif st.session_state.step == 7:
         <hr style="border: 1px solid #A5D6A7; margin: 12px 0;"/>
         <p style="margin:4px 0;"><strong>Farmer Mobile:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel ID:</strong> {st.session_state.plot_id}</p>
         <p style="margin:4px 0;"><strong>Cultivated Crop:</strong> {st.session_state.sel_crop} | <strong>Target Harvest:</strong> {st.session_state.target_yield} t/acre</p>
-        <p style="margin:4px 0;"><strong>Land Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} ({st.session_state.land_area:.3f} Ha)</p>
+        <p style="margin:4px 0;"><strong>Land Area:</strong> {st.session_state.raw_land_val:.2f} Acre ({st.session_state.land_area:.3f} Ha)</p>
         <hr style="border: 1px solid #A5D6A7; margin: 15px 0;"/>
         <h4 style="color: #1B5E20; margin-bottom: 6px;">🛒 Required Commercial Purchases:</h4>
         <ul style="font-size: 15px; line-height: 1.8;">
@@ -1394,7 +1384,7 @@ elif st.session_state.step == 7:
     with p_col1:
         st.download_button(
             label="📄 Download PDF Prescription (English)",
-            data=v := pdf_bytes,
+            data=pdf_bytes,
             file_name=pdf_filename,
             mime="application/pdf"
         )
@@ -1441,7 +1431,7 @@ elif st.session_state.step == 8:
             st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
             save_feedback(st.session_state.user_mobile, st.session_state.star_selection, feedback_comments)
-            st.success("✅ Thank you! Your star rating and feedback have been recorded safely. End of session...")
+            st.success("✅ Thank you! Your star rating and feedback have been recorded safely. Exiting session...")
             
             st.session_state.logged_in = False
             st.session_state.user_mobile = ""
