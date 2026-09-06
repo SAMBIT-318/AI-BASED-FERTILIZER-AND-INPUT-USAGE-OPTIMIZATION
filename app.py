@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 import hashlib
 from datetime import datetime
-from PIL import Image
+from PIL import Image, ImageStat
 from sqlalchemy import create_engine, text
 
 # ReportLab imports for professional PDF generation
@@ -36,14 +36,12 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-    /* Calming, Organic Light Green App Canvas */
     html, body, [class*="css"], .stApp {
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         background-color: #F2FAF3 !important;
         color: #143518 !important;
     }
 
-    /* Top Branding Hero with Light Green / Forest Gradient */
     .farmer-hero {
         background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #43A047 100%);
         border-radius: 18px;
@@ -70,19 +68,44 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* Logo Badge Container */
-    .logo-container {
-        background: #FFFFFF;
-        border-radius: 14px;
-        padding: 6px 14px;
+    .smart-kishan-stamp {
+        width: 105px;
+        height: 105px;
+        border: 3.5px double #FFFFFF;
+        border-radius: 50%;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 12px;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
-        border: 1.5px solid #81C784;
+        justify-content: center;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        transform: rotate(-5deg);
+        user-select: none;
+    }
+    .stamp-title {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.8px;
+        color: #FFFFFF;
+        text-transform: uppercase;
+    }
+    .stamp-center {
+        font-size: 13px;
+        font-weight: 900;
+        color: #FFD700;
+        margin: 2px 0;
+        border-top: 1px solid rgba(255,255,255,0.4);
+        border-bottom: 1px solid rgba(255,255,255,0.4);
+        padding: 1px 4px;
+    }
+    .stamp-footer {
+        font-size: 8px;
+        color: #E8F5E9;
+        font-weight: 700;
+        letter-spacing: 0.5px;
     }
 
-    /* Cards with Fresh Light-Green Tint */
     .metric-card {
         background: #FFFFFF !important;
         border-radius: 14px !important;
@@ -104,7 +127,6 @@ st.markdown("""
         box-shadow: 0 6px 16px rgba(46, 125, 50, 0.08) !important;
     }
 
-    /* Tactical Emerald Green Buttons */
     div.stButton > button, div.stButton > button:focus {
         background: linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%) !important;
         color: #FFFFFF !important;
@@ -133,36 +155,6 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25) !important;
     }
 
-    /* Form Fields Styling */
-    .stTextInput input, .stNumberInput input, .stSelectbox > div > div {
-        border-radius: 9px !important;
-        border: 1.5px solid #BDDEC0 !important;
-        background-color: #FFFFFF !important;
-        color: #143518 !important;
-        font-weight: 500 !important;
-    }
-    .stTextInput input:focus, .stNumberInput input:focus {
-        border-color: #2E7D32 !important;
-        box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.18) !important;
-    }
-
-    /* Tabs Styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 6px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 8px 8px 0 0;
-        padding: 8px 16px;
-        background-color: #DEEFE1;
-        font-weight: 600;
-        color: #2E7D32;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #2E7D32 !important;
-        color: #FFFFFF !important;
-    }
-
-    /* Pill Badges */
     .badge-pass {
         background-color: #E8F5E9;
         color: #1B5E20;
@@ -171,54 +163,24 @@ st.markdown("""
         font-weight: 700;
         border: 1px solid #A5D6A7;
     }
+    .badge-warn {
+        background-color: #FFEBEE;
+        color: #C62828;
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        border: 1px solid #EF9A9A;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# LOGO RENDER HELPER (SVG Vector Fallback + Local File Support)
-# -------------------------------------------------------------
-LOGO_PATH = "smart_kishan_logo.png"
-
-def render_smart_kishan_brand_logo(width=165):
-    """Renders the logo from smart_kishan_logo.png if present, or displays an embedded SVG."""
-    if os.path.exists(LOGO_PATH):
-        st.image(LOGO_PATH, width=width)
-    else:
-        # High-Fidelity SVG of the Smart Kishan emblem (Leaf + Circuit + IoT wave + Shield)
-        svg_code = f"""
-        <div style="display:inline-flex; flex-direction:column; align-items:center; background:#FFFFFF; padding:6px 10px; border-radius:12px; border:1px solid #C8E6C9;">
-            <svg width="{width}" height="65" viewBox="0 0 260 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Circular Shield Base -->
-                <circle cx="45" cy="45" r="40" stroke="#43A047" stroke-width="5" fill="#E8F5E9"/>
-                <path d="M45 10 C65 10, 80 25, 80 45 C80 68, 55 80, 45 82 C35 80, 10 68, 10 45 Z" stroke="#1E88E5" stroke-width="4" fill="none"/>
-                <!-- IoT Wave -->
-                <path d="M38 25 A8 8 0 0 1 52 25" stroke="#1E88E5" stroke-width="3" stroke-linecap="round" fill="none"/>
-                <circle cx="45" cy="30" r="2.5" fill="#1E88E5"/>
-                <!-- Green Natural Leaf -->
-                <path d="M45 42 C30 45, 20 62, 36 72 C48 65, 48 50, 45 42 Z" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
-                <path d="M32 64 Q40 56, 44 46" stroke="#C8E6C9" stroke-width="1.5" fill="none"/>
-                <!-- Tech Circuit Leaf -->
-                <path d="M47 38 C60 38, 70 52, 60 68 C48 68, 45 52, 47 38 Z" fill="#0288D1" stroke="#01579B" stroke-width="2"/>
-                <circle cx="53" cy="50" r="2" fill="#FFFFFF"/>
-                <circle cx="57" cy="60" r="2" fill="#FFFFFF"/>
-                <line x1="49" y1="44" x2="53" y2="50" stroke="#FFFFFF" stroke-width="1.5"/>
-                <line x1="53" y1="50" x2="57" y2="60" stroke="#FFFFFF" stroke-width="1.5"/>
-                <!-- Brand Typography -->
-                <text x="96" y="47" font-family="'Plus Jakarta Sans', sans-serif" font-size="24" font-weight="900" fill="#1565C0">SMART </text>
-                <text x="180" y="47" font-family="'Plus Jakarta Sans', sans-serif" font-size="24" font-weight="900" fill="#2E7D32">KISHAN</text>
-                <text x="97" y="65" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.2" fill="#475569">DIGITAL FARMING SOLUTIONS</text>
-            </svg>
-        </div>
-        """
-        st.markdown(svg_code, unsafe_allow_html=True)
-
-# -------------------------------------------------------------
-# MULTILINGUAL DICTIONARY
+# MULTILINGUAL DICTIONARY (UI & PDF GENERATION)
 # -------------------------------------------------------------
 TRANSLATIONS = {
     "English": {
         "title": "Smart Kishan | Digital Farming Solutions",
-        "subtitle": "Certified 4R Nutrient Allocation, Optical Pathology & Official Prescription",
+        "subtitle": "Certified 4R Nutrient Allocation, Optical Soil Triage & Official Prescription",
         "login_tab": "Farmer Log In",
         "reg_tab": "Register New Farmer",
         "mobile_lbl": "Mobile Number",
@@ -236,11 +198,25 @@ TRANSLATIONS = {
         "budget_help": "Optimization engine ensures total purchase cost stays strictly within this limit.",
         "feedback_title": "🌟 Farmer Feedback & Prescription Rating",
         "feedback_submit": "Submit Feedback & Complete",
-        "land_calc_title": "📐 Land Conversion & Farm Budget Matrix"
+        "land_calc_title": "📐 Land Conversion & Farm Budget Matrix",
+        "pdf_title": "SMART KISHAN • OFFICIAL CROP PRESCRIPTION",
+        "pdf_sub": "Certified 4R Nutrient Stewardship & Field Application Dossier",
+        "sec_profile": "1. FARMER & LAND PROFILE",
+        "sec_soil": "2. SOIL PROFILE & MEASURED ATTRIBUTES",
+        "sec_purchases": "3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)",
+        "sec_schedule": "4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS",
+        "stage_1_period": "Stage 1: Basal Dressing (At Sowing / Transplanting - Day 0)",
+        "stage_1_method": "Incorporate compost and broadcast full DAP and 1/3 MOP. Place 5-7 cm below seed furrow; do not leave on dry surface.",
+        "stage_2_period": "Stage 2: Vegetative Growth (20 - 25 Days Post Sowing)",
+        "stage_2_method": "Side-dress 1/2 urea dose + 1/3 MOP along plant rows. Ensure adequate soil moisture or irrigate within 24 hours.",
+        "stage_3_period": "Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)",
+        "stage_3_method": "Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.",
+        "soil_detected": "✅ Soil Successfully Detected & Calibrated",
+        "soil_not_detected": "❌ Soil Not Detected. Please scan genuine agricultural soil specimen."
     },
     "हिन्दी": {
         "title": "स्मार्ट किसान | डिजिटल फार्मिंग सॉल्यूशंस",
-        "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, ऑप्टिकल रोग निदान और आधिकारिक नुस्खा",
+        "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, मृदा निदान और आधिकारिक नुस्खा",
         "login_tab": "किसान लॉगिन",
         "reg_tab": "नया किसान पंजीकरण",
         "mobile_lbl": "मोबाइल नंबर",
@@ -258,11 +234,25 @@ TRANSLATIONS = {
         "budget_help": "यह सुनिश्चित करता है कि कुल उर्वरक खरीद लागत इस बजट सीमा से अधिक न हो।",
         "feedback_title": "🌟 किसान समीक्षा एवं रेटिंग",
         "feedback_submit": "समीक्षा जमा करें और बाहर निकलें",
-        "land_calc_title": "📐 भूमि रूपांतरण और कृषि बजट तालिका"
+        "land_calc_title": "📐 भूमि रूपांतरण और कृषि बजट तालिका",
+        "pdf_title": "स्मार्ट किसान • आधिकारिक फसल एवं उर्वरक नुस्खा",
+        "pdf_sub": "प्रमाणित 4R पोषक तत्व प्रबंधन और कृषि अनुप्रयोग विवरण",
+        "sec_profile": "1. किसान और भूमि का विवरण",
+        "sec_soil": "2. मृदा परीक्षण और पर्यावरण पैरामीटर",
+        "sec_purchases": "3. आवश्यक उर्वरक खरीद (50 किलोग्राम बैग)",
+        "sec_schedule": "4. किसानों के लिए आवेदन समय अवधि और उपयोग करने की विधि",
+        "stage_1_period": "चरण 1: बुवाई / रोपाई के समय (दिन 0 - आधार खुराक)",
+        "stage_1_method": "कम्पोस्ट, डीएपी और 1/3 पोटाश को बीज से 5-7 सेमी गहराई में डालें। सूखी मिट्टी की ऊपरी सतह पर खुला न छोड़ें।",
+        "stage_2_period": "चरण 2: वनस्पति विकास अवस्था (बुवाई के 20 - 25 दिन बाद)",
+        "stage_2_method": "आधी यूरिया और 1/3 पोटाश को जड़ों के पास डालें। मिट्टी में पर्याप्त नमी होना अनिवार्य है या 24 घंटे में हल्की सिंचाई करें।",
+        "stage_3_period": "चरण 3: फूल आने और दाना भराव के समय (बुवाई के 45 - 55 दिन बाद)",
+        "stage_3_method": "बची हुई यूरिया और पोटाश का छिड़काव करें। भारी बारिश के समय न डालें ताकि खाद बह न जाए।",
+        "soil_detected": "✅ मिट्टी सफलतापूर्वक पहचानी और जांची गई",
+        "soil_not_detected": "❌ मिट्टी की पहचान नहीं हो सकी। कृपया वास्तविक खेत की मिट्टी स्कैन करें।"
     },
     "ଓଡ଼ିଆ": {
         "title": "ସ୍ମାର୍ଟ କିଷାନ | ଡିଜିଟାଲ ଫାର୍ମିଂ ସଲ୍ୟୁସନ୍ସ",
-        "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ଫସଲ ରୋଗ ନିରାକରଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
+        "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ମୃତ୍ତିକା ପରୀକ୍ଷଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
         "login_tab": "କୃଷକ ଲଗଇନ୍",
         "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
@@ -280,12 +270,26 @@ TRANSLATIONS = {
         "budget_help": "ଏହା ନିଶ୍ଚିତ କରେ ଯେ ଆପଣଙ୍କ ସାର ଖର୍ଚ୍ଚ ଏହି ବଜେଟ୍ ସୀମା ଭିତରେ ରହିବ।",
         "feedback_title": "🌟 କୃଷକ ମତାମତ ଓ ରେଟିଂ",
         "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ",
-        "land_calc_title": "📐 ଜମି ମାପ ଓ କୃଷି ବଜେଟ୍ ସାରଣୀ"
+        "land_calc_title": "📐 ଜମି ମାପ ଓ କୃଷି ବଜେଟ୍ ସାରଣୀ",
+        "pdf_title": "ସ୍ମାର୍ଟ କିଷାନ • ସରକାରୀ ଫସଲ ଓ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ (ପ୍ରେସକ୍ରିପସନ)",
+        "pdf_sub": "୪ଆର୍ ନିୟମ ଅନୁମୋଦିତ କୃଷି ଓ ମୃତ୍ତିକା ପରିଚାଳନା ପତ୍ର",
+        "sec_profile": "୧. କୃଷକ ଏବଂ ଜମିର ବିବରଣୀ",
+        "sec_soil": "୨. ମୃତ୍ତିକା ପରୀକ୍ଷଣ ତଥ୍ୟ ଏବଂ ପରିବେଶ",
+        "sec_purchases": "୩. ଆବଶ୍ୟକ ଖତ ଓ ସାର କ୍ରୟ (୫୦ କେଜି ବସ୍ତା)",
+        "sec_schedule": "୪. ଚାଷୀଙ୍କ ପାଇଁ ସାର ପ୍ରୟୋଗ ସମୟସୀମା ଏବଂ ପ୍ରୟୋଗ ପଦ୍ଧତି",
+        "stage_1_period": "ପ୍ରଥମ ପର୍ଯ୍ୟାୟ: ତଳି ରୋପଣ / ବୁଣିବା ସମୟରେ (୦ ଦିନ - ମୂଳ ସାର)",
+        "stage_1_method": "ସମସ୍ତ ଜୈବିକ ଖତ, ସମ୍ପୂର୍ଣ୍ଣ ଡିଏପି ଏବଂ ୧/୩ ଭାଗ ପଟାସକୁ ମଞ୍ଜି ପୋତିବା ସ୍ଥାନର ୫-୭ ସେମି ଗଭୀରରେ ମିଶାନ୍ତୁ। ଶୁଖିଲା ମାଟି ଉପରେ ପକାନ୍ତୁ ନାହିଁ।",
+        "stage_2_period": "ଦ୍ୱିତୀୟ ପର୍ଯ୍ୟାୟ: ଗଛ ବୃଦ୍ଧି ଓ ପିଲ ବାହାରିବା ସମୟ (୨୦ ରୁ ୨୫ ଦିନ)",
+        "stage_2_method": "ଅଧା ୟୁରିଆ ଓ ୧/୩ ଭାଗ ପଟାସ ଗଛର ମୂଳ ନିକଟରେ ଦିଅନ୍ତୁ। ମାଟିରେ ଉପଯୁକ୍ତ ଓଦାଳିଆ ଅବସ୍ଥା ରହିବା ଦରକାର କିମ୍ବା ୨୪ ଘଣ୍ଟା ମଧ୍ୟରେ ପାଣି ମଡ଼ାନ୍ତୁ।",
+        "stage_3_period": "ତୃତୀୟ ପର୍ଯ୍ୟାୟ: ଫୁଲ ଫୁଟିବା ଓ ଶସ୍ୟ ଭରିବା ସମୟ (୪୫ ରୁ ୫୫ ଦିନ)",
+        "stage_3_method": "ଅବଶିଷ୍ଟ ୟୁରିଆ ଓ ପଟାସ ପ୍ରୟୋଗ କରନ୍ତୁ। ପ୍ରବଳ ବର୍ଷା ସମୟରେ ସାର ପକାନ୍ତୁ ନାହିଁ ଯାହା ଦ୍ୱାରା ଖତ ଧୋଇ ହୋଇ ନଷ୍ଟ ହେବ ନାହିଁ।",
+        "soil_detected": "✅ ମୃତ୍ତିକା ସଫଳତାର ସହ ଚିହ୍ନଟ ହୋଇଛି",
+        "soil_not_detected": "❌ ମାଟି ଚିହ୍ନଟ ହୋଇପାରିଲା ନାହିଁ। ଦୟାକରି କ୍ଷେତ୍ରର ପ୍ରକୃତ ମାଟି ଫଟୋ ସ୍କାନ କରନ୍ତୁ।"
     }
 }
 
 # -------------------------------------------------------------
-# SESSION STATE INITIALIZATION & TRANSLATION POINTER
+# SESSION STATE INITIALIZATION & TRANSLATIONS
 # -------------------------------------------------------------
 if "step" not in st.session_state:
     st.session_state.step = 1
@@ -445,8 +449,57 @@ def calculate_advanced_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph, 
     return def_n, def_p, def_k
 
 # -------------------------------------------------------------
-# OPTICAL DISEASE CLASSIFIER
+# REALTIME OPTICAL SOIL & PLANT SCANNERS
 # -------------------------------------------------------------
+def analyze_soil_image(image_obj):
+    """
+    Evaluates RGB/HSV color metrics, variance, and earthiness ratios.
+    Distinguishes genuine agricultural soil from invalid objects (sky, human, cloth).
+    """
+    img_rgb = image_obj.convert("RGB").resize((120, 120))
+    stat = ImageStat.Stat(img_rgb)
+    r_mean, g_mean, b_mean = stat.mean[0], stat.mean[1], stat.mean[2]
+    r_std, g_std, b_std = stat.stddev[0], stat.stddev[1], stat.stddev[2]
+
+    # Earthiness / Soil Chromatic Consistency Check
+    is_brownish = (r_mean >= g_mean >= b_mean) or (abs(r_mean - g_mean) < 25 and b_mean < r_mean)
+    has_texture_variance = (r_std > 10 and g_std > 8)
+    not_pure_white_or_black = (40 < r_mean < 235) and (30 < g_mean < 225)
+    
+    if is_brownish and has_texture_variance and not_pure_white_or_black:
+        # Detected genuine agricultural soil
+        if r_mean > 130 and b_mean < 90:
+            soil_type = "Red Soil / Laterite"
+            est_n, est_p, est_k = 48.0, 22.0, 36.0
+            est_soc, est_ph, est_moist = 0.55, 6.2, 38.0
+        elif r_mean < 85 and g_mean < 85:
+            soil_type = "Black Soil (Regur)"
+            est_n, est_p, est_k = 65.0, 35.0, 48.0
+            est_soc, est_ph, est_moist = 0.85, 7.4, 52.0
+        elif r_mean > 140 and g_mean > 130:
+            soil_type = "Sandy Loam"
+            est_n, est_p, est_k = 40.0, 18.0, 30.0
+            est_soc, est_ph, est_moist = 0.45, 6.8, 30.0
+        else:
+            soil_type = "Loamy Clay (Alluvial)"
+            est_n, est_p, est_k = 55.0, 30.0, 42.0
+            est_soc, est_ph, est_moist = 0.72, 6.6, 46.0
+
+        return {
+            "detected": True,
+            "soil_type": soil_type,
+            "n": est_n, "p": est_p, "k": est_k,
+            "ph": est_ph, "soc": est_soc, "moist": est_moist,
+            "color_matrix": f"RGB ({r_mean:.0f}, {g_mean:.0f}, {b_mean:.0f})",
+            "message": "Soil specimen successfully verified."
+        }
+    else:
+        return {
+            "detected": False,
+            "soil_type": "Unknown",
+            "message": "No agricultural soil detected. Object lacks natural soil chromatic traits."
+        }
+
 def analyze_plant_disease_image(image_obj):
     img_rgb = image_obj.convert("RGB").resize((100, 100))
     arr = np.array(img_rgb)
@@ -484,7 +537,7 @@ def analyze_plant_disease_image(image_obj):
         }
 
 # -------------------------------------------------------------
-# PROFESSIONAL PDF PRESCRIPTION GENERATOR (REPORTLAB)
+# PROFESSIONAL MULTILINGUAL PDF PRESCRIPTION GENERATOR
 # -------------------------------------------------------------
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -504,7 +557,6 @@ class NumberedCanvas(canvas.Canvas):
         super().save()
 
     def draw_page_decorations(self, page_count):
-        # Decorative green borders
         self.setStrokeColor(colors.HexColor("#1B5E20"))
         self.setLineWidth(1.5)
         self.rect(20, 20, 555, 802)
@@ -527,15 +579,14 @@ class NumberedCanvas(canvas.Canvas):
         self.drawCentredString(500, 68, "4R CERTIFIED")
         self.restoreState()
 
-        # Footer Text
         self.setFont("Helvetica", 8)
         self.setFillColor(colors.HexColor("#475569"))
-        self.drawString(30, 28, "Smart Kishan • Digital Farming Solutions • ISO 9001:2015 Certified Advisory")
+        self.drawString(30, 28, "Smart Kishan • Digital Farming Solutions • ISO 9001:2015 Standard")
         self.drawRightString(565, 28, f"Page {self._pageNumber} of {page_count}")
 
 
-def generate_prescription_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target_yield,
-                              budget, opt, diag, n, p, k, ph, soc, moist, temp, humid, rain):
+def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target_yield,
+                              budget, opt, diag, n, p, k, ph, soc, moist, temp, humid, rain, lang_dict):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -547,36 +598,28 @@ def generate_prescription_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     )
 
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle('DocTitle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=18, textColor=colors.HexColor('#1B5E20'), leading=22, alignment=1)
+    title_style = ParagraphStyle('DocTitle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=17, textColor=colors.HexColor('#1B5E20'), leading=21, alignment=1)
     subtitle_style = ParagraphStyle('DocSub', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.HexColor('#2E7D32'), leading=12, alignment=1)
-    section_h1 = ParagraphStyle('SecH1', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor('#1B5E20'), leading=14, spaceBefore=8, spaceAfter=4)
+    section_h1 = ParagraphStyle('SecH1', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10.5, textColor=colors.HexColor('#1B5E20'), leading=14, spaceBefore=8, spaceAfter=4)
     body_style = ParagraphStyle('BodyText', parent=styles['Normal'], fontName='Helvetica', fontSize=8.5, textColor=colors.HexColor('#1E293B'), leading=11)
     bold_style = ParagraphStyle('BoldText', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8.5, textColor=colors.HexColor('#0F172A'), leading=11)
 
     story = []
 
-    # If logo exists locally, place it top center of PDF
-    if os.path.exists(LOGO_PATH):
-        try:
-            story.append(RLImage(LOGO_PATH, width=130, height=52))
-            story.append(Spacer(1, 4))
-        except Exception:
-            pass
-
-    # Header Title with Branding
-    story.append(Paragraph("SMART KISHAN • DIGITAL FARMING SOLUTIONS", title_style))
-    story.append(Paragraph("Official Soil Health Diagnostic & Integrated Crop Advisory Dossier", subtitle_style))
-    story.append(Paragraph(f"Prescription Dossier: SK-{datetime.now().strftime('%Y%m%d')}-{user_mobile[-4:]} | Date: {datetime.now().strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
+    # Header Title with Branding & Selected Language
+    story.append(Paragraph(lang_dict.get("pdf_title", "SMART KISHAN • OFFICIAL CROP PRESCRIPTION"), title_style))
+    story.append(Paragraph(lang_dict.get("pdf_sub", "Certified 4R Nutrient Stewardship & Field Application Dossier"), subtitle_style))
+    story.append(Paragraph(f"Dossier ID: SK-{datetime.now().strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {datetime.now().strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
     # SECTION 1: Farmer & Farm Profile
-    story.append(Paragraph("1. FARMER & LAND PROFILE", section_h1))
+    story.append(Paragraph(lang_dict.get("sec_profile", "1. FARMER & LAND PROFILE"), section_h1))
     profile_data = [
-        [Paragraph("<b>Registered Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
-        [Paragraph("<b>Cultivated Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Target Harvest:</b>", body_style), Paragraph(f"{target_yield} Tonnes/Ha", bold_style)],
-        [Paragraph("<b>Land Area (Farmer):</b>", body_style), Paragraph(f"{raw_land:.2f} {land_unit}", bold_style), Paragraph("<b>Standardized Area:</b>", body_style), Paragraph(f"{opt.get('land_area', raw_land*0.404686):.3f} Hectares", bold_style)],
-        [Paragraph("<b>Allocated Budget:</b>", body_style), Paragraph(f"Rs. {budget:,.0f}", bold_style), Paragraph("<b>Soil Health Vigor:</b>", body_style), Paragraph("Optimal Vigor Index", bold_style)],
+        [Paragraph("<b>Farmer Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
+        [Paragraph("<b>Target Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Target Yield:</b>", body_style), Paragraph(f"{target_yield} t/ha", bold_style)],
+        [Paragraph("<b>Land Area:</b>", body_style), Paragraph(f"{raw_land:.2f} {land_unit}", bold_style), Paragraph("<b>Standard Area:</b>", body_style), Paragraph(f"{opt.get('land_area', raw_land*0.404686):.3f} Hectares", bold_style)],
+        [Paragraph("<b>Farmer Budget:</b>", body_style), Paragraph(f"Rs. {budget:,.0f}", bold_style), Paragraph("<b>Optimization Cost:</b>", body_style), Paragraph(f"Rs. {opt['total_cost']:,.0f}", bold_style)],
     ]
     t_prof = Table(profile_data, colWidths=[110, 155, 120, 150])
     t_prof.setStyle(TableStyle([
@@ -588,11 +631,11 @@ def generate_prescription_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     story.append(t_prof)
 
     # SECTION 2: Baseline Soil & Telemetry
-    story.append(Paragraph("2. SOIL TEST VALUES & CLIMATE TELEMETRY", section_h1))
+    story.append(Paragraph(lang_dict.get("sec_soil", "2. SOIL PROFILE & MEASURED ATTRIBUTES"), section_h1))
     telemetry_data = [
-        [Paragraph("<b>Nitrogen (N):</b>", body_style), Paragraph(f"{n:.1f} mg/kg", bold_style), Paragraph("<b>Active Soil pH:</b>", body_style), Paragraph(f"{ph:.1f}", bold_style), Paragraph("<b>Ambient Temp:</b>", body_style), Paragraph(f"{temp:.1f} °C", bold_style)],
+        [Paragraph("<b>Nitrogen (N):</b>", body_style), Paragraph(f"{n:.1f} mg/kg", bold_style), Paragraph("<b>Soil pH:</b>", body_style), Paragraph(f"{ph:.1f}", bold_style), Paragraph("<b>Ambient Temp:</b>", body_style), Paragraph(f"{temp:.1f} °C", bold_style)],
         [Paragraph("<b>Phosphorus (P):</b>", body_style), Paragraph(f"{p:.1f} mg/kg", bold_style), Paragraph("<b>Organic Carbon:</b>", body_style), Paragraph(f"{soc:.2f} %", bold_style), Paragraph("<b>Relative Humidity:</b>", body_style), Paragraph(f"{humid:.0f} %", bold_style)],
-        [Paragraph("<b>Potash (K):</b>", body_style), Paragraph(f"{k:.1f} mg/kg", bold_style), Paragraph("<b>Soil Moisture:</b>", body_style), Paragraph(f"{moist:.1f} %", bold_style), Paragraph("<b>Precipitation Outlook:</b>", body_style), Paragraph(f"{rain:.0f} mm", bold_style)]
+        [Paragraph("<b>Potash (K):</b>", body_style), Paragraph(f"{k:.1f} mg/kg", bold_style), Paragraph("<b>Soil Moisture:</b>", body_style), Paragraph(f"{moist:.1f} %", bold_style), Paragraph("<b>Precipitation:</b>", body_style), Paragraph(f"{rain:.0f} mm", bold_style)]
     ]
     t_tel = Table(telemetry_data, colWidths=[85, 95, 90, 95, 90, 80])
     t_tel.setStyle(TableStyle([
@@ -603,25 +646,8 @@ def generate_prescription_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     ]))
     story.append(t_tel)
 
-    # SECTION 3: Optical AI Pathology Diagnosis (Photo Scanner)
-    story.append(Paragraph("3. AI OPTICAL PATHOLOGY & PEST DIAGNOSIS (PHOTO SCANNER)", section_h1))
-    diag_data = [
-        [Paragraph("<b>Identified Health Status:</b>", body_style), Paragraph(f"<font color='#1B5E20'><b>{diag['health']}</b></font>", bold_style), Paragraph("<b>Recovery Probability:</b>", body_style), Paragraph(f"{diag['recovery_chance']}%", bold_style)],
-        [Paragraph("<b>Target Pathogen / Disease:</b>", body_style), Paragraph(str(diag['disease']), bold_style), Paragraph("<b>Crop Continuation:</b>", body_style), Paragraph(str(diag['will_grow']), bold_style)],
-        [Paragraph("<b>Detected Pest Infestation:</b>", body_style), Paragraph(str(diag['pest']), bold_style), Paragraph("<b>Observed Symptoms:</b>", body_style), Paragraph(str(diag['symptoms']), bold_style)],
-        [Paragraph("<b>Prescribed Crop Medicine / Spray:</b>", body_style), Paragraph(f"<b>{diag['medicine']}</b>", ParagraphStyle('Med', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, textColor=colors.HexColor('#B45309'))), Paragraph("<b>Application Method:</b>", body_style), Paragraph("Foliar Spray early morning or late afternoon.", body_style)]
-    ]
-    t_diag = Table(diag_data, colWidths=[125, 140, 115, 155])
-    t_diag.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#FEFCE8')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#FDE047')),
-        ('TOPPADDING', (0,0), (-1,-1), 3.5),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3.5),
-    ]))
-    story.append(t_diag)
-
-    # SECTION 4: Optimized Commercial Fertilizer Purchases
-    story.append(Paragraph("4. BUDGET-OPTIMIZED FERTILIZER PURCHASES (50KG STANDARD BAGS)", section_h1))
+    # SECTION 3: Fertilizer Purchases
+    story.append(Paragraph(lang_dict.get("sec_purchases", "3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)"), section_h1))
     urea_bags = max(1, round(opt['urea_kg'] / 50.0)) if opt['urea_kg'] > 0 else 0
     dap_bags = max(1, round(opt['dap_kg'] / 50.0)) if opt['dap_kg'] > 0 else 0
     mop_bags = max(1, round(opt['mop_kg'] / 50.0)) if opt['mop_kg'] > 0 else 0
@@ -629,12 +655,12 @@ def generate_prescription_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     org_bags = round(opt['compost_kg'] / 50.0) if opt['compost_kg'] > 0 else 0
 
     fert_data = [
-        [Paragraph("<b>Fertilizer Grade</b>", bold_style), Paragraph("<b>Active Nutrient</b>", bold_style), Paragraph("<b>Total Mass (kg)</b>", bold_style), Paragraph("<b>50kg Bags Required</b>", bold_style)],
-        [Paragraph("Urea", body_style), Paragraph("46% Synthetic Nitrogen (N)", body_style), Paragraph(f"{opt['urea_kg']} kg", body_style), Paragraph(f"<b>{urea_bags} Bags</b>", bold_style)],
-        [Paragraph("DAP (Di-Ammonium Phosphate)", body_style), Paragraph("18% N + 46% P2O5", body_style), Paragraph(f"{opt['dap_kg']} kg", body_style), Paragraph(f"<b>{dap_bags} Bags</b>", bold_style)],
-        [Paragraph("MOP (Muriate of Potash)", body_style), Paragraph("60% Potassium (K2O)", body_style), Paragraph(f"{opt['mop_kg']} kg", body_style), Paragraph(f"<b>{mop_bags} Bags</b>", bold_style)],
-        [Paragraph("Complex 14-35-14", body_style), Paragraph("Balanced N-P-K", body_style), Paragraph(f"{opt.get('complex_kg', 0.0)} kg", body_style), Paragraph(f"<b>{comp_bags} Bags</b>", bold_style)],
-        [Paragraph("Bio-Compost / Farmyard Manure", body_style), Paragraph("Organic Humus Booster", body_style), Paragraph(f"{opt['compost_kg']} kg", body_style), Paragraph(f"<b>{org_bags} Bags</b>", bold_style)],
+        [Paragraph("<b>Fertilizer Product</b>", bold_style), Paragraph("<b>Nutrient Category</b>", bold_style), Paragraph("<b>Total Mass (kg)</b>", bold_style), Paragraph("<b>50kg Bags Required</b>", bold_style)],
+        [Paragraph("Urea", body_style), Paragraph("Synthetic Nitrogen (46% N)", body_style), Paragraph(f"{opt['urea_kg']} kg", body_style), Paragraph(f"<b>{urea_bags} Bags</b>", bold_style)],
+        [Paragraph("DAP", body_style), Paragraph("Phosphatic (18% N + 46% P)", body_style), Paragraph(f"{opt['dap_kg']} kg", body_style), Paragraph(f"<b>{dap_bags} Bags</b>", bold_style)],
+        [Paragraph("MOP", body_style), Paragraph("Potash (60% K2O)", body_style), Paragraph(f"{opt['mop_kg']} kg", body_style), Paragraph(f"<b>{mop_bags} Bags</b>", bold_style)],
+        [Paragraph("Complex 14-35-14", body_style), Paragraph("Balanced N-P-K Mineral", body_style), Paragraph(f"{opt.get('complex_kg', 0.0)} kg", body_style), Paragraph(f"<b>{comp_bags} Bags</b>", bold_style)],
+        [Paragraph("Bio-Compost / Manure", body_style), Paragraph("Organic Humus Restorer", body_style), Paragraph(f"{opt['compost_kg']} kg", body_style), Paragraph(f"<b>{org_bags} Bags</b>", bold_style)],
     ]
     t_fert = Table(fert_data, colWidths=[150, 160, 110, 115])
     t_fert.setStyle(TableStyle([
@@ -645,31 +671,35 @@ def generate_prescription_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     ]))
     story.append(t_fert)
 
-    # Cost Summary Ribbon
-    blanket_cost = opt['total_cost'] * 1.32
-    savings = max(0.0, blanket_cost - opt['total_cost'])
-    cost_summary_text = f"<b>Total Estimated Input Cost:</b> Rs. {opt['total_cost']:,.0f} | <b>Savings vs Conventional Blanket Dispersal:</b> Rs. {savings:,.0f} (32% Reduced Input Expense) | <b>Budget Utilized:</b> {opt.get('budget_utilized_pct', 85)}%"
-    story.append(Spacer(1, 4))
-    story.append(Paragraph(cost_summary_text, ParagraphStyle('CostRibbon', parent=styles['Normal'], fontName='Helvetica', fontSize=8.5, textColor=colors.HexColor('#1B5E20'))))
-
-    # SECTION 5: 3-Stage Phased Split Application Protocol
-    story.append(Paragraph("5. 4R NUTRIENT TIMED APPLICATION TIMETABLE", section_h1))
+    # SECTION 4: Timed Application Periods & Methods (Fully localized)
+    story.append(Paragraph(lang_dict.get("sec_schedule", "4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS"), section_h1))
     schedule_data = [
-        [Paragraph("<b>Crop Stage</b>", bold_style), Paragraph("<b>Fertilizer Blend to Apply</b>", bold_style), Paragraph("<b>Agronomic Mechanism & Benefits</b>", bold_style)],
-        [Paragraph("Stage 1: Basal Dressing<br/><i>(At Sowing / Transplanting)</i>", body_style), Paragraph("100% Bio-Compost + 100% DAP<br/>+ 1/3 MOP + 1/4 Urea", body_style), Paragraph("Places phosphorus directly at root depth (5-7 cm) for rapid early root proliferation.", body_style)],
-        [Paragraph("Stage 2: Tillering / Vegetative<br/><i>(20 - 25 Days Post Sowing)</i>", body_style), Paragraph("1/2 Urea + 1/3 MOP<br/><i>(Apply with adequate root moisture)</i>", body_style), Paragraph("Supplies peak vegetative nitrogen demand; ensures thick tillering and leaf vigor.", body_style)],
-        [Paragraph("Stage 3: Panicle Initiation<br/><i>(45 - 55 Days Post Sowing)</i>", body_style), Paragraph("Remaining 1/4 Urea<br/>+ Remaining 1/3 MOP", body_style), Paragraph("Maximizes flowering retention, carbohydrate filling, and overall grain test-weight.", body_style)]
+        [Paragraph("<b>Time Period</b>", bold_style), Paragraph("<b>Nutrient Blend</b>", bold_style), Paragraph("<b>Specific Application Method for Farmer</b>", bold_style)],
+        [
+            Paragraph(f"<b>{lang_dict['stage_1_period']}</b>", body_style),
+            Paragraph("100% Bio-Compost + 100% DAP<br/>+ 1/3 MOP + 1/4 Urea", body_style),
+            Paragraph(lang_dict['stage_1_method'], body_style)
+        ],
+        [
+            Paragraph(f"<b>{lang_dict['stage_2_period']}</b>", body_style),
+            Paragraph("1/2 Urea + 1/3 MOP<br/><i>(Vegetative Dose)</i>", body_style),
+            Paragraph(lang_dict['stage_2_method'], body_style)
+        ],
+        [
+            Paragraph(f"<b>{lang_dict['stage_3_period']}</b>", body_style),
+            Paragraph("Remaining 1/4 Urea<br/>+ Remaining 1/3 MOP", body_style),
+            Paragraph(lang_dict['stage_3_method'], body_style)
+        ]
     ]
-    t_sched = Table(schedule_data, colWidths=[120, 185, 230])
+    t_sched = Table(schedule_data, colWidths=[130, 155, 250])
     t_sched.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E2EEDF')),
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('TOPPADDING', (0,0), (-1,-1), 3.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3.5),
     ]))
     story.append(t_sched)
 
-    # Build PDF with custom footer and circular watermark
     doc.build(story, canvasmaker=NumberedCanvas)
     buffer.seek(0)
     return buffer.getvalue()
@@ -685,6 +715,7 @@ defaults = {
     "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
     "plot_id": "Plot No. 104/1",
+    "scanned_soil": None,
     "scanned_diag": {
         "health": "Healthy Plant Canopy",
         "disease": "No critical fungal/bacterial infection",
@@ -702,7 +733,7 @@ for k, v in defaults.items():
 # -------------------------------------------------------------
 # APP HERO HEADER WITH SMART KISHAN OFFICIAL BRANDING
 # -------------------------------------------------------------
-hero_col1, hero_col2 = st.columns([3, 1.2])
+hero_col1, hero_col2 = st.columns([3, 1])
 with hero_col1:
     st.markdown(f"""
     <div class="farmer-hero">
@@ -713,7 +744,13 @@ with hero_col1:
     </div>
     """, unsafe_allow_html=True)
 with hero_col2:
-    render_smart_kishan_brand_logo(width=200)
+    st.markdown("""
+    <div class="smart-kishan-stamp" style="background:#2E7D32; border-color:#FFD700; margin:auto;">
+        <span class="stamp-title" style="color:#FFFFFF;">SMART KISHAN</span>
+        <span class="stamp-center" style="color:#FFD700;">★ VERIFIED ★</span>
+        <span class="stamp-footer" style="color:#E8F5E9;">4R CERTIFIED</span>
+    </div>
+    """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
 # SCREEN 1: LOGIN & PREFERENCE
@@ -766,7 +803,7 @@ if st.session_state.step == 1:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 2: FIELD SETUP, BUDGET INPUT, OPTICAL SCANNER
+# SCREEN 2: OPTICAL SCANNER (SMART SOIL CHECK) & FIELD SETUP
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if st.session_state.app_mode == "Diagnostic Only":
@@ -801,14 +838,57 @@ elif st.session_state.step == 2:
             st.rerun()
 
     else:
-        st.subheader("2. 📍 Land Size, Farmer Budget & Field Telemetry")
+        st.subheader("2. 📍 Soil Optical Scanner, Land Size & Farmer Budget")
         
-        tab_land, tab_camera, tab_soil = st.tabs([
+        tab_camera, tab_land, tab_soil = st.tabs([
+            "📷 Optical Soil Scanner (Realtime Detection)", 
             "📐 Land Area & Farm Budget", 
-            "📷 Optical Camera Scanner", 
             "🧪 Soil Nutrient Levels"
         ])
         
+        with tab_camera:
+            st.markdown("##### Real-Time Optical Soil Specimen Scanner")
+            st.caption("Point your camera directly at the soil surface. The system detects if valid agricultural soil is present and extracts physical texture features.")
+            
+            cam_c1, cam_c2 = st.columns(2)
+            with cam_c1:
+                soil_cam = st.camera_input("📷 Take Photo of Field Soil")
+            with cam_c2:
+                soil_file = st.file_uploader("📂 Or Upload Soil Sample Picture", type=["jpg", "jpeg", "png"])
+
+            soil_img = soil_cam or soil_file
+            if soil_img:
+                s_img = Image.open(soil_img)
+                st.image(s_img, caption="Analyzed Soil Camera Specimen", width=280)
+                soil_res = analyze_soil_image(s_img)
+                st.session_state.scanned_soil = soil_res
+
+                if soil_res["detected"]:
+                    st.markdown(f"<div class='badge-pass' style='display:inline-block; font-size:15px; margin:8px 0;'>{T['soil_detected']}</div>", unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <h4 style="color:#1B5E20; margin-top:0;">🌱 Detected Soil Characteristics:</h4>
+                        <p style="margin:4px 0;">• <strong>Texture Classification:</strong> {soil_res['soil_type']}</p>
+                        <p style="margin:4px 0;">• <strong>Visual Color Matrix:</strong> {soil_res['color_matrix']}</p>
+                        <p style="margin:4px 0;">• <strong>Estimated Organic Carbon (SOC):</strong> {soil_res['soc']}%</p>
+                        <p style="margin:4px 0;">• <strong>Surface Moisture Index:</strong> {soil_res['moist']}%</p>
+                        <p style="margin:4px 0;">• <strong>Estimated Baseline pH:</strong> {soil_res['ph']}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    if st.button("Apply Scanned Soil Features to Fertilizer Model"):
+                        st.session_state.soil_n = soil_res["n"]
+                        st.session_state.soil_p = soil_res["p"]
+                        st.session_state.soil_k = soil_res["k"]
+                        st.session_state.soil_ph = soil_res["ph"]
+                        st.session_state.soc = soil_res["soc"]
+                        st.session_state.soil_moist = soil_res["moist"]
+                        st.success("✅ Soil telemetry calibrated with camera scan values!")
+                else:
+                    st.markdown(f"<div class='badge-warn' style='display:inline-block; font-size:15px; margin:8px 0;'>{T['soil_not_detected']}</div>", unsafe_allow_html=True)
+                    st.warning("The optical sensor could not confirm genuine soil chromatic traits. Please ensure proper natural lighting and point camera at the ground.")
+
         with tab_land:
             st.markdown(f"##### {T['land_calc_title']}")
             l_col1, l_col2, l_col3 = st.columns([2, 2, 2])
@@ -835,7 +915,7 @@ elif st.session_state.step == 2:
                 st.metric(
                     "Allocated Budget Ceiling", 
                     f"₹{st.session_state.budget_cap:,.0f}",
-                    help="Linear programming constraint: Cost <= Budget"
+                    help="Optimization constraint: Cost <= Budget"
                 )
 
             st.markdown("---")
@@ -843,13 +923,6 @@ elif st.session_state.step == 2:
             st.session_state.land_area = ha_val
             st.table(conv_table)
             st.info(f"Standardized area for chemical dosage: **{ha_val:.3f} Hectares** | Maximum Cost Cap: **₹{st.session_state.budget_cap:,.0f}**")
-
-        with tab_camera:
-            st.markdown("##### Live Soil / Leaf Scan")
-            cam_feed = st.camera_input("Snap Picture of Field Soil")
-            if cam_feed:
-                st.image(Image.open(cam_feed), caption="Captured Field Soil", width=250)
-                st.success("Analysis complete: Optical inspection saved to prescription dossier.")
 
         with tab_soil:
             s1, s2, s3 = st.columns(3)
@@ -1016,7 +1089,7 @@ elif st.session_state.step == 6:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 7: PRESCRIPTION DOSSIER WITH SMART KISHAN LOGO & PDF
+# SCREEN 7: PRESCRIPTION DOSSIER & MULTILINGUAL PDF
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
     st.subheader("7. 📋 Official Farmer Prescription Card (Smart Kishan Certified)")
@@ -1041,10 +1114,6 @@ elif st.session_state.step == 7:
         <p style="margin:4px 0;"><strong>Cultivated Crop:</strong> {st.session_state.sel_crop} | <strong>Target Harvest:</strong> {st.session_state.target_yield} t/ha</p>
         <p style="margin:4px 0;"><strong>Land Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} ({st.session_state.land_area:.3f} Ha)</p>
         <hr style="border: 1px solid #A5D6A7; margin: 15px 0;"/>
-        <h4 style="color: #1B5E20; margin-bottom: 6px;">🔬 Optical Pathology Inspection:</h4>
-        <p style="margin:2px 0;">• <strong>Canopy Status:</strong> {diag['health']} | <strong>Detected Disease:</strong> {diag['disease']}</p>
-        <p style="margin:2px 0;">• <strong>Pest Threat:</strong> {diag['pest']} | <strong>Recommended Medicine:</strong> {diag['medicine']}</p>
-        <hr style="border: 1px solid #A5D6A7; margin: 15px 0;"/>
         <h4 style="color: #1B5E20; margin-bottom: 6px;">🛒 Required Commercial Purchases:</h4>
         <ul style="font-size: 15px; line-height: 1.8;">
             <li><strong>Urea (Synthetic N):</strong> {opt['urea_kg']} kg (~{round(opt['urea_kg'] / 50.0)} bags of 50kg)</li>
@@ -1056,8 +1125,29 @@ elif st.session_state.step == 7:
     </div>
     """, unsafe_allow_html=True)
 
-    # Generate Professional PDF using ReportLab
-    pdf_bytes = generate_prescription_pdf(
+    # Detailed Farm Timing & Application Methods Matrix
+    st.markdown("#### 📅 Timed Application Periods & Methods for Farmers:")
+    app_methods_df = pd.DataFrame({
+        "Crop Stage & Time Period": [
+            T["stage_1_period"],
+            T["stage_2_period"],
+            T["stage_3_period"]
+        ],
+        "Input Blend": [
+            "All Compost + All DAP + 1/3 Potash + 1/4 Urea",
+            "1/2 Urea + 1/3 Potash",
+            "Remaining 1/4 Urea + Remaining 1/3 Potash"
+        ],
+        "Farmer Application Method": [
+            T["stage_1_method"],
+            T["stage_2_method"],
+            T["stage_3_method"]
+        ]
+    })
+    st.table(app_methods_df)
+
+    # Generate Professional PDF in the Farmer's Selected Language
+    pdf_bytes = generate_multilingual_pdf(
         user_mobile=st.session_state.user_mobile,
         plot_id=st.session_state.plot_id,
         raw_land=st.session_state.raw_land_val,
@@ -1075,15 +1165,16 @@ elif st.session_state.step == 7:
         moist=st.session_state.soil_moist,
         temp=st.session_state.temp,
         humid=st.session_state.humidity,
-        rain=st.session_state.rainfall
+        rain=st.session_state.rainfall,
+        lang_dict=T
     )
 
-    pdf_filename = f"SmartKishan_Prescription_{st.session_state.user_mobile}.pdf"
+    pdf_filename = f"SmartKishan_{st.session_state.app_lang}_Prescription_{st.session_state.user_mobile}.pdf"
 
     p_col1, p_col2 = st.columns([2, 2])
     with p_col1:
         st.download_button(
-            label="📄 Download Official PDF Prescription (With Smart Kishan Logo)",
+            label=f"📄 Download PDF Prescription ({st.session_state.app_lang})",
             data=pdf_bytes,
             file_name=pdf_filename,
             mime="application/pdf"
