@@ -713,7 +713,7 @@ if "plot_id" not in st.session_state:
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
-# PROFESSIONAL ENGLISH PDF GENERATOR WITH BOLD GOLDEN STAMP BORDER
+# PROFESSIONAL ENGLISH PDF GENERATOR WITH PREVIOUS-STYLE GREEN STAMP
 # -------------------------------------------------------------
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -733,24 +733,30 @@ class NumberedCanvas(canvas.Canvas):
         super().save()
 
     def draw_page_decorations(self, page_count):
-        self.setStrokeColor(colors.HexColor("#1565C0"))
+        self.setStrokeColor(colors.HexColor("#1B5E20"))
         self.setLineWidth(1.5)
         self.rect(20, 20, 555, 802)
 
         self.saveState()
-        # Bold Gold colored border for the official verification stamp
+        # Restored previous green stamp style with bold gold border inside
+        self.setStrokeColor(colors.HexColor("#2E7D32"))
+        self.setFillColor(colors.HexColor("#E8F5E9"))
+        self.circle(500, 85, 38, stroke=1, fill=1)
+        
+        # Bold Gold colored border inside the stamp circles
         self.setStrokeColor(colors.HexColor("#D4AC0D"))
-        self.setLineWidth(3.0)
-        self.setFillColor(colors.HexColor("#E3F2FD"))
-        self.circle(460, 85, 38, stroke=1, fill=1)
-        self.circle(460, 85, 33, stroke=1, fill=0)
+        self.setLineWidth(2.5)
+        self.circle(500, 85, 33, stroke=1, fill=0)
 
-        self.setFont("Helvetica-Bold", 6)
-        self.setFillColor(colors.HexColor("#0D47A1"))
-        self.drawCentredString(460, 103, "GOVT COMPLIANT")
-        self.drawCentredString(460, 83, "SMART KISHAN")
-        self.drawCentredString(460, 68, "4R CERTIFIED")
-
+        self.setFont("Helvetica-Bold", 6.5)
+        self.setFillColor(colors.HexColor("#1B5E20"))
+        self.drawCentredString(500, 104, "GOVT COMPLIANT")
+        self.setFont("Helvetica-Bold", 8.5)
+        self.setFillColor(colors.HexColor("#B78103"))
+        self.drawCentredString(500, 83, "SMART KISHAN")
+        self.setFont("Helvetica-Bold", 6.5)
+        self.setFillColor(colors.HexColor("#1B5E20"))
+        self.drawCentredString(500, 68, "4R CERTIFIED")
         self.restoreState()
 
         self.setFont("Helvetica", 8)
