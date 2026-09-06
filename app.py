@@ -568,7 +568,7 @@ TRANSLATIONS = {
         "stage_3_period": "దశ 3: పూత దశ (45-55 రోజులు)",
         "stage_3_method": "మిగిలిన ఎరువులు వేయండి.",
         "soil_detected": "నేల కనుగొనబడింది",
-        "soil_not_detected": "కనుగొనబడలేదు"
+        "soil_not_detected": "కనుగొనబడడਲେदु"
     },
     "Français": {
         "title": "Smart Kishan | Solutions Agricoles Numériques",
@@ -607,7 +607,7 @@ TRANSLATIONS = {
         "reg_tab": "新規農家登録",
         "mobile_lbl": "携帯電話番号",
         "pass_lbl": "パスワード",
-        "conf_pass_lbl": "パスワード의確認",
+        "conf_pass_lbl": "パスワードの確認",
         "lang_select": "アプリ言語 / グローバル言語設定",
         "mode_select": "農業サービスの選択",
         "mode_opt": "🌾 土壌および肥料最適化パイプライン",
@@ -745,7 +745,7 @@ if "sel_crop" not in st.session_state:
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
-# PROFESSIONAL ENGLISH PDF GENERATOR WITH PREVIOUS-STYLE GREEN STAMP
+# PROFESSIONAL PDF GENERATORS (FERTILIZER & DISEASE PRESCRIPTIONS)
 # -------------------------------------------------------------
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -824,7 +824,6 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
         except Exception:
             pass
 
-    # Correct local time calculation (IST: UTC + 5:30)
     IST = timezone(timedelta(hours=5, minutes=30))
     local_now = datetime.now(IST)
 
@@ -921,6 +920,92 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     buffer.seek(0)
     return buffer.getvalue()
 
+
+def generate_disease_pdf(user_mobile, plot_id, crop, diag):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=30,
+        rightMargin=30,
+        topMargin=30,
+        bottomMargin=45
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('DocTitle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=17, textColor=colors.HexColor('#1B5E20'), leading=21, alignment=1)
+    subtitle_style = ParagraphStyle('DocSub', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.HexColor('#2E7D32'), leading=12, alignment=1)
+    section_h1 = ParagraphStyle('SecH1', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10.5, textColor=colors.HexColor('#1B5E20'), leading=14, spaceBefore=8, spaceAfter=4)
+    body_style = ParagraphStyle('BodyText', parent=styles['Normal'], fontName='Helvetica', fontSize=8.5, textColor=colors.HexColor('#1E293B'), leading=11)
+    bold_style = ParagraphStyle('BoldText', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8.5, textColor=colors.HexColor('#0F172A'), leading=11)
+
+    story = []
+
+    LOGO_FILE = "smart kishan logo.png"
+    if os.path.exists(LOGO_FILE):
+        try:
+            story.append(RLImage(LOGO_FILE, width=140, height=140))
+            story.append(Spacer(1, 4))
+        except Exception:
+            pass
+
+    IST = timezone(timedelta(hours=5, minutes=30))
+    local_now = datetime.now(IST)
+
+    story.append(Paragraph("SMART KISHAN • CROP DISEASE & TREATMENT PRESCRIPTION", title_style))
+    story.append(Paragraph("Certified Plant Pathology & Remedial Action Dossier", subtitle_style))
+    story.append(Paragraph(f"Dossier ID: SK-DIAG-{local_now.strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {local_now.strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
+    story.append(Spacer(1, 6))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
+
+    story.append(Paragraph("1. DIAGNOSTIC SPECIMEN & FARM PROFILE", section_h1))
+    profile_data = [
+        [Paragraph("<b>Farmer Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
+        [Paragraph("<b>Target Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Canopy Health Status:</b>", body_style), Paragraph(str(diag.get('health', 'Analyzed')), bold_style)],
+    ]
+    t_prof = Table(profile_data, colWidths=[110, 155, 120, 150])
+    t_prof.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F4FBF5')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#C8E6C9')),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+    ]))
+    story.append(t_prof)
+
+    story.append(Paragraph("2. PATHOLOGY & PEST IDENTIFICATION", section_h1))
+    path_data = [
+        [Paragraph("<b>Detected Disease / Pathogen:</b>", body_style), Paragraph(str(diag.get('disease', 'None')), bold_style)],
+        [Paragraph("<b>Pest Recognition:</b>", body_style), Paragraph(str(diag.get('pest', 'None')), bold_style)],
+        [Paragraph("<b>Visible Symptoms:</b>", body_style), Paragraph(str(diag.get('symptoms', 'None')), bold_style)],
+    ]
+    t_path = Table(path_data, colWidths=[165, 370])
+    t_path.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#FFFFFF')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+    ]))
+    story.append(t_path)
+
+    story.append(Paragraph("3. PRESCRIBED MEDICINE, SPRAY & RECOVERY SCHEDULE", section_h1))
+    remedy_data = [
+        [Paragraph("<b>Prescribed Medicine / Spray:</b>", body_style), Paragraph(str(diag.get('medicine', 'None')), bold_style)],
+        [Paragraph("<b>Survival & Recovery Chance:</b>", body_style), Paragraph(f"{diag.get('recovery_chance', 90)}%", bold_style)],
+        [Paragraph("<b>Prognosis / Will Crop Grow?:</b>", body_style), Paragraph(str(diag.get('will_grow', 'Yes')), bold_style)],
+    ]
+    t_rem = Table(remedy_data, colWidths=[165, 370])
+    t_rem.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E2EEDF')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+    ]))
+    story.append(t_rem)
+
+    doc.build(story, canvasmaker=NumberedCanvas)
+    buffer.seek(0)
+    return buffer.getvalue()
+
 # -------------------------------------------------------------
 # APP HERO HEADER WITH UPLOADED LOGO BADGE
 # -------------------------------------------------------------
@@ -1007,7 +1092,7 @@ if st.session_state.step == 1:
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if st.session_state.app_mode == "Diagnostic Only":
-        st.subheader("🔬 AI Optical Crop Disease & Pest Diagnosis")
+        st.subheader("🔬 AI Optical Crop Disease & Pest Diagnosis & Treatment Prescription")
         st.info("Take a photo or upload an image of the affected plant leaf, crop stem, or pest:")
         
         c_cam, c_up = st.columns(2)
@@ -1020,17 +1105,45 @@ elif st.session_state.step == 2:
             st.image(img, caption="Scanned Specimen", width=300)
             res = analyze_plant_disease_image(img)
             st.session_state.scanned_diag = res
-            
-            st.markdown(f"### Diagnostic Status: <span class='badge-pass'>{res['health']}</span>", unsafe_allow_html=True)
-            col_d1, col_d2 = st.columns(2)
-            with col_d1:
+
+            # Organized Tabs for Disease & Treatment System
+            diag_tab1, diag_tab2, diag_tab3 = st.tabs([
+                "📋 Disease & Plant Requirements", 
+                "💊 Medicine & Application Schedule", 
+                "📄 Official Prescription Card (PDF)"
+            ])
+
+            with diag_tab1:
+                st.markdown(f"### Diagnostic Status: <span class='badge-pass'>{res['health']}</span>", unsafe_allow_html=True)
                 st.write(f"🦠 **Crop Disease / Pathogen**: {res['disease']}")
                 st.write(f"🐛 **Pest Recognition**: {res['pest']}")
                 st.write(f"🔬 **Visible Symptoms**: {res['symptoms']}")
-            with col_d2:
-                st.write(f"💊 **Prescribed Medicine / Spray**: {res['medicine']}")
+                st.info("💡 **Nutritional & Environmental Requirements**: Ensure balanced potassium and micronutrient supplementation alongside moisture retention to strengthen plant immunity.")
+
+            with diag_tab2:
+                st.markdown("##### 💊 Prescribed Treatment & Application Schedule:")
+                st.write(f"• **Recommended Remedy Spray**: {res['medicine']}")
+                st.write("• **Application Frequency**: Apply once every 7 to 10 days during early morning or late evening hours.")
                 st.metric("Survival & Recovery Chance", f"{res['recovery_chance']}%")
                 st.write(f"🌱 **Will this crop continue to grow?**: **{res['will_grow']}**")
+
+            with diag_tab3:
+                st.markdown("##### 📄 Download Official Disease & Treatment Prescription")
+                st.caption("Download the formal plant pathology and remedial prescription dossier in PDF format.")
+                
+                disease_pdf_bytes = generate_disease_pdf(
+                    user_mobile=st.session_state.user_mobile,
+                    plot_id=st.session_state.plot_id,
+                    crop=st.session_state.sel_crop,
+                    diag=res
+                )
+                disease_pdf_filename = f"SmartKishan_Disease_Prescription_{st.session_state.user_mobile}.pdf"
+                st.download_button(
+                    label="📄 Download Plant Pathology Prescription (PDF)",
+                    data=disease_pdf_bytes,
+                    file_name=disease_pdf_filename,
+                    mime="application/pdf"
+                )
         
         st.divider()
         b_prev, b_next_diag = st.columns([1, 5])
@@ -1439,7 +1552,12 @@ elif st.session_state.step == 8:
 
     feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your feedback here...")
 
-    if st.button(T["feedback_submit"]):
+    b_fb_back, b_fb_sub = st.columns([1, 5])
+    if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
+        st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
+        st.rerun()
+
+    if b_fb_sub.button(T["feedback_submit"]):
         if not feedback_comments.strip():
             st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
