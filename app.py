@@ -198,7 +198,7 @@ TRANSLATIONS = {
         "btn_next": "Continue ➔",
         "budget_lbl": "Your Maximum Fertilizer Budget (₹)",
         "budget_help": "Optimization engine ensures total purchase cost stays strictly within this limit.",
-        "feedback_title": "🌟 Mandatory Farmer Feedback & Large Green Star Rating",
+        "feedback_title": "🌟 Mandatory Farmer Feedback & Green Star Rating",
         "feedback_submit": "Submit Feedback & Exit Dashboard ➔",
         "land_calc_title": "📐 Land Unit Selection & Farm Budget Matrix",
         "pdf_title": "SMART KISHAN • OFFICIAL CROP PRESCRIPTION",
@@ -234,7 +234,7 @@ TRANSLATIONS = {
         "btn_next": "आगे बढ़ें ➔",
         "budget_lbl": "आपका अधिकतम उर्वरक बजट (₹)",
         "budget_help": "यह सुनिश्चित करता है कि कुल उर्वरक खरीद लागत इस बजट सीमा से अधिक न हो।",
-        "feedback_title": "🌟 अनिवार्य किसान समीक्षा और बड़ी हरी स्टार रेटिंग",
+        "feedback_title": "🌟 अनिवार्य किसान समीक्षा और हरी स्टार रेटिंग",
         "feedback_submit": "समीक्षा जमा करें और बाहर निकलें ➔",
         "land_calc_title": "📐 भूमि इकाई चयन और कृषि बजट तालिका",
         "pdf_title": "स्मार्ट किसान • आधिकारिक फसल एवं उर्वरक नुस्खा",
@@ -270,7 +270,7 @@ TRANSLATIONS = {
         "btn_next": "ଆଗକୁ ବଢ଼ନ୍ତୁ ➔",
         "budget_lbl": "ଆପଣଙ୍କ ସର୍ବାଧିକ ସାର ଖର୍ଚ୍ଚ ବଜେଟ୍ (₹)",
         "budget_help": "ଏହା ନିଶ୍ଚିତ କରେ ଯେ ଆପଣଙ୍କ ସାର ଖର୍ଚ୍ଚ ଏହି ବଜେଟ୍ ସୀମା ଭିତରେ ରହିବ।",
-        "feedback_title": "🌟 ବାଧ୍ୟତାମୂଳକ କୃଷକ ମତାମତ ଏବଂ ବଡ଼ ସବୁଜ ଷ୍ଟାର ରେଟିଂ",
+        "feedback_title": "🌟 ବାଧ୍ୟତାମୂଳକ କୃଷକ ମତାମତ ଏବଂ ସବୁଜ ଷ୍ଟାର ରେଟିଂ",
         "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ ଏବଂ ବାହାରକୁ ଯାଆନ୍ତୁ ➔",
         "land_calc_title": "📐 ଜମି ଏକକ ଏବଂ କୃଷି ବଜେଟ୍ ସାରଣୀ",
         "pdf_title": "ସ୍ମାର୍ଟ କିଷାନ • ସରକାରୀ ଫସଲ ଓ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ (ପ୍ରେସକ୍ରିପସନ)",
@@ -337,7 +337,7 @@ def load_all_models():
     return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
 
 (crop_model, crop_encoder, fert_model, soil_encoder, 
- crop_type_encoder, fert_encoder, yield_model, 
+ crop_type_encoder, fert_enc, yield_model, 
  yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
@@ -1213,13 +1213,13 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY EXTRA-LARGE GREEN STAR RATING & EXIT
+# SCREEN 8: MANDATORY GREEN GRADIENT STAR RATING & EXIT
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
-    st.write("Please tap the large green stars below to rate your advisory experience before exiting:")
+    st.write("Please tap the green stars below to rate your advisory experience before exiting:")
 
-    # Extra-Large Green Star Rating Component (🟢 / ⚪)
+    # Green Gradient Star Rating Component (Matching reference image style)
     st.markdown("<br>", unsafe_allow_html=True)
     star_cols = st.columns(5)
     
@@ -1228,13 +1228,13 @@ elif st.session_state.step == 8:
 
     for i in range(1, 6):
         with star_cols[i-1]:
-            # Large green circle/star representation
+            # Styled green star representation matching user reference
             star_symbol = "🟢" if i <= st.session_state.star_selection else "⚪"
-            if st.button(f"{star_symbol}", key=f"lg_star_btn_{i}", use_container_width=True):
+            if st.button(f"{star_symbol}", key=f"grad_star_btn_{i}", use_container_width=True):
                 st.session_state.star_selection = i
                 st.rerun()
 
-    st.markdown(f"<h2 style='text-align: center; color: #1B5E20;'>🟢 {st.session_state.star_selection} / 5 Large Green Stars Rated 🟢</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='text-align: center; color: #388E3C;'>🌿 {st.session_state.star_selection} / 5 Green Gradient Stars Rated 🌿</h2>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
     feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your feedback here...")
@@ -1244,7 +1244,7 @@ elif st.session_state.step == 8:
             st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
             save_feedback(st.session_state.user_mobile, st.session_state.star_selection, feedback_comments)
-            st.success("✅ Thank you! Your large green star rating and feedback have been recorded safely. Exiting session...")
+            st.success("✅ Thank you! Your star rating and feedback have been recorded safely. Exiting session...")
             
             st.session_state.logged_in = False
             st.session_state.user_mobile = ""
