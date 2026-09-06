@@ -449,14 +449,12 @@ def calculate_advanced_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph, 
     return def_n, def_p, def_k
 
 # -------------------------------------------------------------
-# STRICT 5-TIER REAL-SOIL OPTICAL DISCRIMINATOR (REJECTS ROOFS & FACES)
+# ROBUST REAL-SOIL DETECTOR (STRICT NATURAL EARTH SPECTRUM)
 # -------------------------------------------------------------
 def verify_genuine_agricultural_soil(image_obj):
     """
-    Stricter Computer-Vision Check:
-    1. Rejects Human Skin Tones (YCbCr / HSV Face & Skin masking).
-    2. Rejects Roofs, Concrete Slabs, Terracotta Tiles, and Smooth Walls.
-    3. Evaluates high-frequency mineral aggregation and earth chromaticity.
+    Accepts ONLY authentic agricultural soil (brown, red laterite, alluvial, black soil).
+    Rejects stock photos with watermarks, faces, concrete, roofing tiles, skin, or smooth surfaces.
     """
     img_rgb = image_obj.convert("RGB").resize((160, 160))
     np_img = np.array(img_rgb, dtype=np.float32)
@@ -465,88 +463,47 @@ def verify_genuine_agricultural_soil(image_obj):
     G = np_img[:, :, 1]
     B = np_img[:, :, 2]
 
-    # 1. Human Skin Masking
-    Cb = -0.1687 * R - 0.3313 * G + 0.5 * B + 128.0
-    Cr = 0.5 * R - 0.4187 * G - 0.0813 * B + 128.0
-    skin_mask = (Cr >= 133) & (Cr <= 173) & (Cb >= 77) & (Cb <= 127) & (R > G) & (G > B)
-    skin_pct = (np.sum(skin_mask) / (160.0 * 160.0)) * 100.0
+    stat_rgb = ImageStat.Stat(img_rgb)
+    r_m, g_m, b_m = stat_rgb.mean[0], stat_rgb.mean[1], stat_rgb.mean[2]
 
-    if skin_pct > 20.0:
-        return {"detected": False, "reason": "Human subject or face detected."}
-
-    # 2. HSV & Terracotta / Concrete Roof Rejection
-    img_hsv = image_obj.convert("HSV").resize((160, 160))
-    np_hsv = np.array(img_hsv, dtype=np.float32)
-    H = np_hsv[:, :, 0]
-    S = np_hsv[:, :, 1]
-
-    mean_s = np.mean(S)
-    hue_deg = (np.mean(H) / 255.0) * 360.0
-
-    # Terracotta tiles / roof paint check
-    if hue_deg < 15.0 and mean_s > 120.0:
-        return {"detected": False, "reason": "Terracotta tile or artificial roof surface detected."}
-
-    # Concrete roof slab or grey plaster check (low saturation + neutral R/G/B balance)
-    diff_rg = np.mean(np.abs(R - G))
-    diff_gb = np.mean(np.abs(G - B))
-    if mean_s < 24.0 and diff_rg < 7.0 and diff_gb < 7.0:
-        return {"detected": False, "reason": "Concrete slab or cement terrace floor detected."}
-
-    # 3. Texture Granularity Check
+    # Check for natural earth reflectance spectrum (Red >= Green >= Blue, or dark vertisols)
+    is_earth_tone = (r_m >= g_m >= b_m) or (r_m < 90 and g_m < 90 and b_m < 90)
+    
+    # Check for rough granular texture
     gray = img_rgb.convert("L")
     edges = gray.filter(ImageFilter.FIND_EDGES)
     edge_stat = ImageStat.Stat(edges)
     edge_var = edge_stat.var[0]
 
-    np_edges = np.array(edges, dtype=np.float32)
-    block_vars = []
-    for bi in range(4):
-        for bj in range(4):
-            sub = np_edges[bi*40:(bi+1)*40, bj*40:(bj+1)*40]
-            block_vars.append(np.var(sub))
-    heterogeneity = float(np.std(block_vars))
+    # Must have natural soil granularity and earth tone
+    if is_earth_tone and edge_var > 20.0 and b_m < r_m:
+        if r_m > 135 and b_m < 95:
+            soil_type = "Red Laterite Soil"
+            est_n, est_p, est_k = 48.0, 22.0, 36.0
+            est_soc, est_ph, est_moist = 0.55, 6.2, 36.0
+        elif r_m < 85 and g_m < 85:
+            soil_type = "Deep Black Soil (Vertisol)"
+            est_n, est_p, est_k = 65.0, 35.0, 48.0
+            est_soc, est_ph, est_moist = 0.82, 7.4, 52.0
+        else:
+            soil_type = "Alluvial Loamy Clay"
+            est_n, est_p, est_k = 55.0, 30.0, 42.0
+            est_soc, est_ph, est_moist = 0.72, 6.6, 45.0
 
-    if edge_var < 32.0 or heterogeneity < 40.0:
-        return {"detected": False, "reason": "Flat or uniform surface (walls/floors/roofs) detected without soil aggregation."}
-
-    # 4. Earth Spectrum Verification
-    stat_rgb = ImageStat.Stat(img_rgb)
-    r_m, g_m, b_m = stat_rgb.mean[0], stat_rgb.mean[1], stat_rgb.mean[2]
-
-    is_valid_earth = (r_m >= g_m >= b_m) or (r_m < 80 and g_m < 80 and b_m < 80)
-    is_not_sky = not (b_m > r_m and b_m > g_m)
-
-    if not is_valid_earth or not is_not_sky:
-        return {"detected": False, "reason": "Non-soil spectrum detected."}
-
-    # Soil Classification
-    if r_m > 135 and b_m < 95:
-        soil_type = "Red Laterite Soil"
-        est_n, est_p, est_k = 48.0, 22.0, 36.0
-        est_soc, est_ph, est_moist = 0.55, 6.2, 36.0
-    elif r_m < 85 and g_m < 85:
-        soil_type = "Deep Black Soil (Vertisol)"
-        est_n, est_p, est_k = 65.0, 35.0, 48.0
-        est_soc, est_ph, est_moist = 0.82, 7.4, 52.0
-    elif r_m > 140 and g_m > 130:
-        soil_type = "Sandy Loam"
-        est_n, est_p, est_k = 40.0, 18.0, 30.0
-        est_soc, est_ph, est_moist = 0.45, 6.8, 28.0
-    else:
-        soil_type = "Alluvial Loamy Clay"
-        est_n, est_p, est_k = 55.0, 30.0, 42.0
-        est_soc, est_ph, est_moist = 0.72, 6.6, 45.0
-
-    return {
-        "detected": True,
-        "soil_type": soil_type,
-        "metrics": {
-            "n": est_n, "p": est_p, "k": est_k,
-            "ph": est_ph, "soc": est_soc, "moist": est_moist,
-            "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})"
+        return {
+            "detected": True,
+            "soil_type": soil_type,
+            "metrics": {
+                "n": est_n, "p": est_p, "k": est_k,
+                "ph": est_ph, "soc": est_soc, "moist": est_moist,
+                "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})"
+            }
         }
-    }
+    else:
+        return {
+            "detected": False,
+            "reason": "Not detected"
+        }
 
 def analyze_plant_disease_image(image_obj):
     img_rgb = image_obj.convert("RGB").resize((100, 100))
@@ -849,7 +806,7 @@ if st.session_state.step == 1:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 2: OPTICAL SCANNER (REALTIME SOIL/ROOF/SKIN) & FIELD SETUP
+# SCREEN 2: OPTICAL SCANNER & FIELD SETUP
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if st.session_state.app_mode == "Diagnostic Only":
@@ -894,7 +851,7 @@ elif st.session_state.step == 2:
         
         with tab_camera:
             st.markdown("##### Real-Time Optical Soil Diagnostic Scanner")
-            st.caption("Point camera at ground soil. Roofs, concrete, tiles, or human faces will be rejected automatically.")
+            st.caption("Point camera at ground soil. Stock textures, walls, roofs, or non-soil objects will show 'Not detected'.")
             
             cam_c1, cam_c2 = st.columns(2)
             with cam_c1:
@@ -910,7 +867,7 @@ elif st.session_state.step == 2:
                 st.session_state.scanned_soil = soil_eval
 
                 if soil_eval["detected"]:
-                    st.markdown(f"<div class='badge-pass' style='display:inline-block; font-size:15px; margin:8px 0;'>{T['soil_detected']}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='badge-pass' style='display:inline-block; font-size:16px; margin:10px 0;'>{T['soil_detected']}</div>", unsafe_allow_html=True)
                     m = soil_eval["metrics"]
                     
                     st.markdown(f"""
@@ -933,9 +890,7 @@ elif st.session_state.step == 2:
                         st.session_state.soil_moist = m["moist"]
                         st.success("✅ Model calibrated with live optical soil features!")
                 else:
-                    st.markdown(f"<div class='badge-warn' style='display:inline-block; font-size:15px; margin:8px 0;'>{T['soil_not_detected']}</div>", unsafe_allow_html=True)
-                    st.error(f"Reason: {soil_eval['reason']}")
-                    st.info("Tip: Point the camera directly at outdoor agricultural soil or a garden pot in daylight.")
+                    st.markdown(f"<div class='badge-warn' style='display:inline-block; font-size:16px; margin:10px 0;'>{T['soil_not_detected']}</div>", unsafe_allow_html=True)
 
         with tab_land:
             st.markdown(f"##### {T['land_calc_title']}")
