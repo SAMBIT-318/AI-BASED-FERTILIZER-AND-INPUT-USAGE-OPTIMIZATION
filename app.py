@@ -157,6 +157,21 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25) !important;
     }
 
+    /* BORDERLESS CLEAN STAR BUTTON STYLING */
+    .star-container button {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        font-size: 38px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        transition: transform 0.1s ease;
+    }
+    .star-container button:hover {
+        background: transparent !important;
+        transform: scale(1.15);
+    }
+
     .badge-pass {
         background-color: #E8F5E9;
         color: #1B5E20;
@@ -175,6 +190,38 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+# -------------------------------------------------------------
+# SAFE MODEL LOADER (DEFINED BEFORE DEFAULTS)
+# -------------------------------------------------------------
+MODELS_DIR = "saved_models"
+
+def ensure_models_exist():
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    for fname in ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl"]:
+        if not os.path.exists(os.path.join(MODELS_DIR, fname)):
+            train_crop_recommender()
+            train_fertilizer_classifier()
+            train_yield_regressor()
+            break
+
+@st.cache_resource(show_spinner=False)
+def load_all_models():
+    ensure_models_exist()
+    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
+    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
+    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
+    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
+    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
+    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
+    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
+    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
+    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
+    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
+
+(crop_model, crop_encoder, fert_model, soil_encoder, 
+ crop_type_encoder, fert_enc, yield_model, 
+ yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
 # MULTILINGUAL DICTIONARY
@@ -307,38 +354,6 @@ if "rating" not in st.session_state:
     st.session_state.rating = 5
 
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
-
-# -------------------------------------------------------------
-# SAFE MODEL LOADER
-# -------------------------------------------------------------
-MODELS_DIR = "saved_models"
-
-def ensure_models_exist():
-    os.makedirs(MODELS_DIR, exist_ok=True)
-    for fname in ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl"]:
-        if not os.path.exists(os.path.join(MODELS_DIR, fname)):
-            train_crop_recommender()
-            train_fertilizer_classifier()
-            train_yield_regressor()
-            break
-
-@st.cache_resource(show_spinner=False)
-def load_all_models():
-    ensure_models_exist()
-    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
-    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
-    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
-    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
-    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
-    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
-    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
-    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
-    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
-    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
-
-(crop_model, crop_encoder, fert_model, soil_encoder, 
- crop_type_encoder, fert_enc, yield_model, 
- yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
 # DATABASE ENGINE
@@ -720,13 +735,9 @@ defaults = {
     "soil_source": None,
     "scanned_soil": None,
     "scanned_diag": {
-        "health": "Healthy Plant Canopy",
-        "disease": "No critical fungal/bacterial infection",
-        "pest": "Minor sap-feeders / Thrips (<5%)",
-        "symptoms": "Healthy chlorophyll index and vigorous leaves.",
-        "medicine": "Neem Oil Spray (1500 ppm @ 3ml/L) as an organic protector.",
-        "recovery_chance": 95,
-        "will_grow": "Yes, excellent growth expected."
+        "health": "Optimal Vigor", "disease": "None detected", "pest": "None",
+        "symptoms": "Healthy foliage", "medicine": "Prophylactic Neem Spray",
+        "recovery_chance": 95, "will_grow": "Yes"
     }
 }
 for k, v in defaults.items():
