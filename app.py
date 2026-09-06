@@ -198,7 +198,7 @@ TRANSLATIONS = {
         "budget_help": "Optimization engine ensures total purchase cost stays strictly within this limit.",
         "feedback_title": "🌟 Farmer Feedback & Prescription Rating",
         "feedback_submit": "Submit Feedback & Complete",
-        "land_calc_title": "📐 Land Conversion & Farm Budget Matrix",
+        "land_calc_title": "📐 Land Unit Selection & Farm Budget Matrix",
         "pdf_title": "SMART KISHAN • OFFICIAL CROP PRESCRIPTION",
         "pdf_sub": "Certified 4R Nutrient Stewardship & Field Application Dossier",
         "sec_profile": "1. FARMER & LAND PROFILE",
@@ -234,7 +234,7 @@ TRANSLATIONS = {
         "budget_help": "यह सुनिश्चित करता है कि कुल उर्वरक खरीद लागत इस बजट सीमा से अधिक न हो।",
         "feedback_title": "🌟 किसान समीक्षा एवं रेटिंग",
         "feedback_submit": "समीक्षा जमा करें और बाहर निकलें",
-        "land_calc_title": "📐 भूमि रूपांतरण और कृषि बजट तालिका",
+        "land_calc_title": "📐 भूमि इकाई चयन और कृषि बजट तालिका",
         "pdf_title": "स्मार्ट किसान • आधिकारिक फसल एवं उर्वरक नुस्खा",
         "pdf_sub": "प्रमाणित 4R पोषक तत्व प्रबंधन और कृषि अनुप्रयोग विवरण",
         "sec_profile": "1. किसान और भूमि का विवरण",
@@ -270,7 +270,7 @@ TRANSLATIONS = {
         "budget_help": "ଏହା ନିଶ୍ଚିତ କରେ ଯେ ଆପଣଙ୍କ ସାର ଖର୍ଚ୍ଚ ଏହି ବଜେଟ୍ ସୀମା ଭିତରେ ରହିବ।",
         "feedback_title": "🌟 କୃଷକ ମତାମତ ଓ ରେଟିଂ",
         "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ",
-        "land_calc_title": "📐 ଜମି ମାପ ଓ କୃଷି ବଜେଟ୍ ସାରଣୀ",
+        "land_calc_title": "📐 ଜମି ଏକକ ଏବଂ କୃଷି ବଜେଟ୍ ସାରଣୀ",
         "pdf_title": "ସ୍ମାର୍ଟ କିଷାନ • ସରକାରୀ ଫସଲ ଓ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ (ପ୍ରେସକ୍ରିପସନ)",
         "pdf_sub": "୪ଆର୍ ନିୟମ ଅନୁମୋଦିତ କୃଷି ଓ ମୃତ୍ତିକା ପରିଚାଳନା ପତ୍ର",
         "sec_profile": "୧. କୃଷକ ଏବଂ ଜମିର ବିବରଣୀ",
@@ -391,7 +391,7 @@ def save_feedback(mobile, rating, comments):
         return True
     try:
         with engine.connect() as conn:
-            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": rating, "c": comments})
+            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": r, "c": comments})
             conn.commit()
         return True
     except Exception:
@@ -892,9 +892,9 @@ elif st.session_state.step == 2:
             st.markdown(f"##### {T['land_calc_title']}")
             l_col1, l_col2, l_col3 = st.columns([2, 2, 2])
             st.session_state.plot_id = l_col1.text_input("Parcel / Field Identifier:", value=st.session_state.plot_id)
-            st.session_state.raw_land_val = l_col2.number_input("Enter Land Size", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
+            st.session_state.raw_land_val = l_col2.number_input("Enter Land Size Amount", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
             st.session_state.land_unit = l_col3.selectbox(
-                "Measuring Unit", 
+                "Choose Area SI Unit", 
                 list(UNIT_TO_HECTARE.keys()),
                 index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit)
             )
@@ -1015,7 +1015,6 @@ elif st.session_state.step == 5:
         soil_texture=st.session_state.sel_soil
     )
     
-    # Run Random Forest crop recommender directly on active soil & climate parameters
     crop_in = pd.DataFrame([{
         'N': st.session_state.soil_n, 'P': st.session_state.soil_p, 'K': st.session_state.soil_k,
         'temperature': st.session_state.temp, 'humidity': st.session_state.humidity,
