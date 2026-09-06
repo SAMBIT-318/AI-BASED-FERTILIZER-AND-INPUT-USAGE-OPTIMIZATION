@@ -37,6 +37,30 @@ if not os.path.exists(FONT_FILE):
         pass
 
 # -------------------------------------------------------------
+# LAND CONVERSIONS (Ground-Truth Math - Defined First)
+# -------------------------------------------------------------
+UNIT_TO_HECTARE = {
+    "Acre (एकड़ / ଏକର)": 0.404686,
+    "Hectare (हेक्टेयर / ହେକ୍ଟର)": 1.0,
+    "Guntha (गुंठा / ଗୁଣ୍ଠ)": 0.010117,
+    "Decimal / Cent (डिसमिल / ଡେସିମିଲ)": 0.004047,
+    "Square Feet (वर्ग फुट / ବର୍ଗ ଫୁଟ)": 0.0000092903
+}
+
+def render_land_conversion_table(entered_val, chosen_unit):
+    ha_base = entered_val * UNIT_TO_HECTARE[chosen_unit]
+    acres = ha_base / 0.404686
+    guntha = acres * 40.0
+    decimals = acres * 100.0
+    sq_ft = acres * 43560.0
+    
+    table_df = pd.DataFrame({
+        "Unit Name": ["Acre (ଏକର)", "Hectare (ହେକ୍ଟର)", "Guntha (ଗୁଣ୍ଠ)", "Decimal (ଡେସିମିଲ)", "Square Feet (Sq Ft)"],
+        "Calculated Size": [f"{acres:.3f} Acres", f"{ha_base:.3f} Ha", f"{guntha:.2f} Guntha", f"{decimals:.1f} Decimals", f"{sq_ft:,.0f} Sq Ft"]
+    })
+    return table_df, ha_base
+
+# -------------------------------------------------------------
 # PAGE CONFIGURATION & LIGHT GREEN FARMER THEME
 # -------------------------------------------------------------
 st.set_page_config(
@@ -524,7 +548,7 @@ if "plot_id" not in st.session_state:
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
-# PROFESSIONAL ENGLISH PDF GENERator (STRICTLY IN ENGLISH)
+# PROFESSIONAL ENGLISH PDF GENERATOR (STRICTLY IN ENGLISH)
 # -------------------------------------------------------------
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -693,29 +717,6 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     doc.build(story, canvasmaker=NumberedCanvas)
     buffer.seek(0)
     return buffer.getvalue()
-
-# -------------------------------------------------------------
-# DEFAULTS
-# -------------------------------------------------------------
-defaults = {
-    "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
-    "soil_moist": 45.0, "soc": 0.70, "temp": 26.5, "humidity": 68.0,
-    "rainfall": 150.0, "raw_land_val": 1.5, "land_unit": "Acre (एकड़ / ଏକର)",
-    "land_area": 0.607, "budget_cap": 25000.0, "target_yield": 2.0,
-    "sel_soil": list(soil_encoder.classes_)[0],
-    "sel_crop": list(crop_type_encoder.classes_)[0],
-    "plot_id": "Plot No. 104/1",
-    "soil_source": None,
-    "scanned_soil": None,
-    "scanned_diag": {
-        "health": "Optimal Vigor", "disease": "None detected", "pest": "None",
-        "symptoms": "Healthy foliage", "medicine": "Prophylactic Neem Spray",
-        "recovery_chance": 95, "will_grow": "Yes"
-    }
-}
-for k, v in defaults.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
 
 # -------------------------------------------------------------
 # APP HERO HEADER WITH UPLOADED LOGO BADGE
@@ -1162,7 +1163,7 @@ elif st.session_state.step == 7:
     })
     st.table(app_methods_df)
 
-    # Generate Professional PDF strictly in English to ensure clear readability and layout stability
+    # Generate Professional PDF strictly in English to ensure 100% clean rendering without block characters
     pdf_bytes = generate_english_pdf(
         user_mobile=st.session_state.user_mobile,
         plot_id=st.session_state.plot_id,
