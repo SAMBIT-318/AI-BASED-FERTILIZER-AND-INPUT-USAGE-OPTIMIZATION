@@ -1,6 +1,7 @@
 import io
 import os
 import urllib.parse
+import urllib.request
 import joblib
 import numpy as np
 import pandas as pd
@@ -23,6 +24,17 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
+
+# -------------------------------------------------------------
+# AUTO-DOWNLOAD UNICODE FONT FOR MULTILINGUAL PDF SUPPORT
+# -------------------------------------------------------------
+FONT_FILE = "DejaVuSans.ttf"
+if not os.path.exists(FONT_FILE):
+    try:
+        font_url = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf"
+        urllib.request.urlretrieve(font_url, FONT_FILE)
+    except Exception:
+        pass
 
 # -------------------------------------------------------------
 # PAGE CONFIGURATION & LIGHT GREEN FARMER THEME
@@ -801,237 +813,7 @@ def analyze_plant_disease_image(image_obj):
         }
 
 # -------------------------------------------------------------
-# PROFESSIONAL UNICODE-COMPLIANT BLUE STAMP & SIGNATURE PDF GENERATOR
-# -------------------------------------------------------------
-class NumberedCanvas(canvas.Canvas):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._saved_page_states = []
-
-    def showPage(self):
-        self._saved_page_states.append(dict(self.__dict__))
-        self._startPage()
-
-    def save(self):
-        num_pages = len(self._saved_page_states)
-        for state in self._saved_page_states:
-            self.__dict__.update(state)
-            self.draw_page_decorations(num_pages)
-            super().showPage()
-        super().save()
-
-    def draw_page_decorations(self, page_count):
-        self.setStrokeColor(colors.HexColor("#1565C0"))
-        self.setLineWidth(1.5)
-        self.rect(20, 20, 555, 802)
-
-        self.saveState()
-        self.setStrokeColor(colors.HexColor("#1565C0")) # Blue stamp border
-        self.setFillColor(colors.HexColor("#E3F2FD"))   # Light blue stamp background
-        self.circle(460, 85, 38, stroke=1, fill=1)
-        self.circle(460, 85, 33, stroke=1, fill=0)
-
-        try:
-            font_path = "DejaVuSans.ttf"
-            if not os.path.exists(font_path):
-                font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-            if os.path.exists(font_path) and "UnicodeFont" not in pdfmetrics.getRegisteredFontNames():
-                pdfmetrics.registerFont(TTFont("UnicodeFont", font_path))
-            self.setFont("UnicodeFont", 6)
-        except Exception:
-            self.setFont("Helvetica-Bold", 6)
-
-        self.setFillColor(colors.HexColor("#0D47A1"))
-        self.drawCentredString(460, 103, "GOVT COMPLIANT")
-        self.drawCentredString(460, 83, "SMART KISHAN")
-        self.drawCentredString(460, 68, "4R CERTIFIED")
-
-        # Overlay user signature image in blue ink inside the bottom right blue stamp
-        sig_candidates = ["Signature.jpg", "signature.jpg", "signature.png", "Signature.png"]
-        sig_path = None
-        for sc in sig_candidates:
-            if os.path.exists(sc):
-                sig_path = sc
-                break
-
-        if sig_path:
-            try:
-                sig_img = Image.open(sig_path).convert("RGBA")
-                data = np.array(sig_img)
-                r, g, b, a = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
-                mask = (r < 200) & (g < 200) & (b < 200)
-                data[mask, 0] = 15  # Red
-                data[mask, 1] = 60  # Green
-                data[mask, 2] = 160 # Blue (Blue pen ink)
-                tinted_sig = Image.fromarray(data)
-                
-                sig_buffer = io.BytesIO()
-                tinted_sig.save(sig_buffer, format="PNG")
-                sig_buffer.seek(0)
-                self.drawImage(sig_buffer, 432, 70, width=55, height=28, mask='auto')
-            except Exception:
-                pass
-
-        self.restoreState()
-
-        try:
-            self.setFont("UnicodeFont", 8)
-        except Exception:
-            self.setFont("Helvetica", 8)
-
-        self.setFillColor(colors.HexColor("#475569"))
-        self.drawString(30, 28, "Smart Kishan • Digital Farming Solutions • ISO 9001:2015 Standard")
-        self.drawRightString(565, 28, f"Page {self._pageNumber} of {page_count}")
-
-
-def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target_yield,
-                              budget, opt, diag, n, p, k, ph, soc, moist, temp, humid, rain, lang_dict):
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=A4,
-        leftMargin=30,
-        rightMargin=30,
-        topMargin=30,
-        bottomMargin=45
-    )
-
-    pdf_font_name = "Helvetica"
-    try:
-        font_candidates = [
-            "DejaVuSans.ttf",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-            "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
-            "FreeSans.ttf"
-        ]
-        registered_font = False
-        for fc in font_candidates:
-            if os.path.exists(fc):
-                pdfmetrics.registerFont(TTFont("UniversalUnicode", fc))
-                pdf_font_name = "UniversalUnicode"
-                registered_font = True
-                break
-        if not registered_font:
-            pdf_font_name = "Helvetica"
-    except Exception:
-        pdf_font_name = "Helvetica"
-
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle('DocTitle', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=17, textColor=colors.HexColor('#1B5E20'), leading=21, alignment=1)
-    subtitle_style = ParagraphStyle('DocSub', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=9, textColor=colors.HexColor('#2E7D32'), leading=12, alignment=1)
-    section_h1 = ParagraphStyle('SecH1', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=10.5, textColor=colors.HexColor('#1B5E20'), leading=14, spaceBefore=8, spaceAfter=4)
-    body_style = ParagraphStyle('BodyText', parent=styles['Normal'], fontName=pdf_font_name, fontSize=8.5, textColor=colors.HexColor('#1E293B'), leading=11)
-    bold_style = ParagraphStyle('BoldText', parent=styles['Normal'], fontName=f'{pdf_font_name}-Bold' if pdf_font_name != "UniversalUnicode" else 'UniversalUnicode', fontSize=8.5, textColor=colors.HexColor('#0F172A'), leading=11)
-
-    story = []
-
-    LOGO_FILE = "smart kishan logo.png"
-    if os.path.exists(LOGO_FILE):
-        try:
-            story.append(RLImage(LOGO_FILE, width=140, height=140))
-            story.append(Spacer(1, 4))
-        except Exception:
-            pass
-
-    story.append(Paragraph(lang_dict.get("pdf_title", "SMART KISHAN • OFFICIAL CROP PRESCRIPTION"), title_style))
-    story.append(Paragraph(lang_dict.get("pdf_sub", "Certified 4R Nutrient Stewardship & Field Application Dossier"), subtitle_style))
-    story.append(Paragraph(f"Dossier ID: SK-{datetime.now().strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {datetime.now().strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName=pdf_font_name, fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
-    story.append(Spacer(1, 6))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
-
-    # SECTION 1: Farmer & Farm Profile
-    story.append(Paragraph(lang_dict.get("sec_profile", "1. FARMER & LAND PROFILE"), section_h1))
-    profile_data = [
-        [Paragraph("<b>Farmer Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
-        [Paragraph("<b>Target Crop:</b>", body_style), Paragraph(str(crop), bold_style), Paragraph("<b>Target Harvest:</b>", body_style), Paragraph(f"{target_yield} t/acre", bold_style)],
-        [Paragraph("<b>Land Area:</b>", body_style), Paragraph(f"{raw_land:.2f} {land_unit}", bold_style), Paragraph("<b>Standard Area:</b>", body_style), Paragraph(f"{opt.get('land_area', raw_land*0.404686):.3f} Hectares", bold_style)],
-        [Paragraph("<b>Farmer Budget:</b>", body_style), Paragraph(f"Rs. {budget:,.0f}", bold_style), Paragraph("<b>Optimization Cost:</b>", body_style), Paragraph(f"Rs. {opt['total_cost']:,.0f}", bold_style)],
-    ]
-    t_prof = Table(profile_data, colWidths=[110, 155, 120, 150])
-    t_prof.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F4FBF5')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#C8E6C9')),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
-    ]))
-    story.append(t_prof)
-
-    # SECTION 2: Baseline Soil & Telemetry
-    story.append(Paragraph(lang_dict.get("sec_soil", "2. SOIL PROFILE & MEASURED ATTRIBUTES"), section_h1))
-    telemetry_data = [
-        [Paragraph("<b>Nitrogen (N):</b>", body_style), Paragraph(f"{n:.1f} mg/kg", bold_style), Paragraph("<b>Soil pH:</b>", body_style), Paragraph(f"{ph:.1f}", bold_style), Paragraph("<b>Ambient Temp:</b>", body_style), Paragraph(f"{temp:.1f} °C", bold_style)],
-        [Paragraph("<b>Phosphorus (P):</b>", body_style), Paragraph(f"{p:.1f} mg/kg", bold_style), Paragraph("<b>Organic Carbon:</b>", body_style), Paragraph(f"{soc:.2f} %", bold_style), Paragraph("<b>Relative Humidity:</b>", body_style), Paragraph(f"{humid:.0f} %", bold_style)],
-        [Paragraph("<b>Potash (K):</b>", body_style), Paragraph(f"{k:.1f} mg/kg", bold_style), Paragraph("<b>Soil Moisture:</b>", body_style), Paragraph(f"{moist:.1f} %", bold_style), Paragraph("<b>Precipitation:</b>", body_style), Paragraph(f"{rain:.0f} mm", bold_style)]
-    ]
-    t_tel = Table(telemetry_data, colWidths=[85, 95, 90, 95, 90, 80])
-    t_tel.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#FFFFFF')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
-    ]))
-    story.append(t_tel)
-
-    # SECTION 3: Fertilizer Purchases
-    story.append(Paragraph(lang_dict.get("sec_purchases", "3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)"), section_h1))
-    urea_bags = max(1, round(opt['urea_kg'] / 50.0)) if opt['urea_kg'] > 0 else 0
-    dap_bags = max(1, round(opt['dap_kg'] / 50.0)) if opt['dap_kg'] > 0 else 0
-    mop_bags = max(1, round(opt['mop_kg'] / 50.0)) if opt['mop_kg'] > 0 else 0
-    comp_bags = max(1, round(opt['complex_kg'] / 50.0)) if opt.get('complex_kg', 0) > 0 else 0
-    org_bags = round(opt['compost_kg'] / 50.0) if opt['compost_kg'] > 0 else 0
-
-    fert_data = [
-        [Paragraph("<b>Fertilizer Product</b>", bold_style), Paragraph("<b>Nutrient Category</b>", bold_style), Paragraph("<b>Total Mass (kg)</b>", bold_style), Paragraph("<b>50kg Bags Required</b>", bold_style)],
-        [Paragraph("Urea", body_style), Paragraph("Synthetic Nitrogen (46% N)", body_style), Paragraph(f"{opt['urea_kg']} kg", body_style), Paragraph(f"<b>{urea_bags} Bags</b>", bold_style)],
-        [Paragraph("DAP", body_style), Paragraph("Phosphatic (18% N + 46% P)", body_style), Paragraph(f"{opt['dap_kg']} kg", body_style), Paragraph(f"<b>{dap_bags} Bags</b>", bold_style)],
-        [Paragraph("MOP", body_style), Paragraph("Potash (60% K2O)", body_style), Paragraph(f"{opt['mop_kg']} kg", body_style), Paragraph(f"<b>{mop_bags} Bags</b>", bold_style)],
-        [Paragraph("Complex 14-35-14", body_style), Paragraph("Balanced N-P-K Mineral", body_style), Paragraph(f"{opt.get('complex_kg', 0.0)} kg", body_style), Paragraph(f"<b>{comp_bags} Bags</b>", bold_style)],
-        [Paragraph("Bio-Compost / Manure", body_style), Paragraph("Organic Humus Restorer", body_style), Paragraph(f"{opt['compost_kg']} kg", body_style), Paragraph(f"<b>{org_bags} Bags</b>", bold_style)],
-    ]
-    t_fert = Table(fert_data, colWidths=[150, 160, 110, 115])
-    t_fert.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E2EEDF')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
-    ]))
-    story.append(t_fert)
-
-    # SECTION 4: Timed Application Periods & Methods
-    story.append(Paragraph(lang_dict.get("sec_schedule", "4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS"), section_h1))
-    schedule_data = [
-        [Paragraph("<b>Time Period</b>", bold_style), Paragraph("<b>Nutrient Blend</b>", bold_style), Paragraph("<b>Specific Application Method for Farmer</b>", bold_style)],
-        [
-            Paragraph(f"<b>{lang_dict['stage_1_period']}</b>", body_style),
-            Paragraph("100% Bio-Compost + 100% DAP<br/>+ 1/3 MOP + 1/4 Urea", body_style),
-            Paragraph(lang_dict['stage_1_method'], body_style)
-        ],
-        [
-            Paragraph(f"<b>{lang_dict['stage_2_period']}</b>", body_style),
-            Paragraph("1/2 Urea + 1/3 MOP<br/><i>(Vegetative Dose)</i>", body_style),
-            Paragraph(lang_dict['stage_2_method'], body_style)
-        ],
-        [
-            Paragraph(f"<b>{lang_dict['stage_3_period']}</b>", body_style),
-            Paragraph("Remaining 1/4 Urea<br/>+ Remaining 1/3 MOP", body_style),
-            Paragraph(lang_dict['stage_3_method'], body_style)
-        ]
-    ]
-    t_sched = Table(schedule_data, colWidths=[130, 155, 250])
-    t_sched.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E2EEDF')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
-        ('TOPPADDING', (0,0), (-1,-1), 3.5),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3.5),
-    ]))
-    story.append(t_sched)
-
-    doc.build(story, canvasmaker=NumberedCanvas)
-    buffer.seek(0)
-    return buffer.getvalue()
-
-# -------------------------------------------------------------
-# DEFAULTS (AFTER MODEL LOADER SO CROP ENCODER IS INITIALIZED)
+# DEFAULTS
 # -------------------------------------------------------------
 defaults = {
     "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
