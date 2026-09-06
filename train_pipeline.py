@@ -14,7 +14,6 @@ def train_crop_recommender():
     if os.path.exists(crop_path):
         df = pd.read_csv(crop_path)
     else:
-        # Fallback synthetic dataset if CSV is missing
         df = pd.DataFrame({
             'N': [90, 85, 60, 74, 78, 69, 69, 94, 89, 68],
             'P': [42, 58, 55, 35, 42, 55, 55, 53, 54, 58],
@@ -32,8 +31,8 @@ def train_crop_recommender():
     crop_encoder = LabelEncoder()
     y_encoded = crop_encoder.fit_transform(y)
 
-    # Random Forest with 100 decision trees
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    # Lightweight Random Forest (Low CPU footprint)
+    model = RandomForestClassifier(n_estimators=20, max_depth=10, n_jobs=1, random_state=42)
     model.fit(X, y_encoded)
 
     joblib.dump(model, os.path.join(MODELS_DIR, "crop_model.pkl"))
@@ -48,7 +47,6 @@ def train_fertilizer_classifier():
         df = pd.read_csv(fert_path)
         df.columns = [c.strip() for c in df.columns]
     else:
-        # Fallback synthetic dataset
         df = pd.DataFrame({
             'Temparature': [26, 25, 29, 34, 32, 26, 25, 28, 26, 29],
             'Humidity': [52, 54, 52, 65, 62, 54, 50, 54, 52, 58],
@@ -72,8 +70,7 @@ def train_fertilizer_classifier():
     feature_cols = ['Temparature', 'Humidity', 'Moisture', 'Soil Type', 'Crop Type', 'Nitrogen', 'Potassium', 'Phosphorous']
     X = df[feature_cols]
 
-    # Random Forest multi-class fertilizer classification
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model = RandomForestClassifier(n_estimators=20, max_depth=8, n_jobs=1, random_state=42)
     model.fit(X, y)
 
     joblib.dump(model, os.path.join(MODELS_DIR, "fert_model.pkl"))
@@ -85,7 +82,6 @@ def train_fertilizer_classifier():
 def train_yield_regressor():
     os.makedirs(MODELS_DIR, exist_ok=True)
     
-    # Calibration dataset for baseline crop yield potential
     df = pd.DataFrame({
         'N': [40, 60, 80, 100, 120, 45, 65, 85, 105, 125],
         'P': [20, 30, 40, 50, 60, 25, 35, 45, 55, 65],
@@ -99,8 +95,7 @@ def train_yield_regressor():
     X = df[['N', 'P', 'K', 'ph', 'rainfall', 'crop_type']]
     y = df['yield']
 
-    # Random Forest regressor for yield estimation
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model = RandomForestRegressor(n_estimators=20, max_depth=6, n_jobs=1, random_state=42)
     model.fit(X, y)
 
     yield_crop_encoder = LabelEncoder()
