@@ -713,7 +713,7 @@ if "plot_id" not in st.session_state:
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
-# PROFESSIONAL ENGLISH PDF GENERATOR (STRICTLY IN ENGLISH)
+# PROFESSIONAL ENGLISH PDF GENERATOR WITH BOLD GOLDEN STAMP BORDER
 # -------------------------------------------------------------
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -738,7 +738,9 @@ class NumberedCanvas(canvas.Canvas):
         self.rect(20, 20, 555, 802)
 
         self.saveState()
-        self.setStrokeColor(colors.HexColor("#1565C0"))
+        # Bold Gold colored border for the official verification stamp
+        self.setStrokeColor(colors.HexColor("#D4AC0D"))
+        self.setLineWidth(3.0)
         self.setFillColor(colors.HexColor("#E3F2FD"))
         self.circle(460, 85, 38, stroke=1, fill=1)
         self.circle(460, 85, 33, stroke=1, fill=0)
