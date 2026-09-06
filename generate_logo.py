@@ -16,7 +16,6 @@ def create_unique_smart_kishan_logo(output_filename="smart_kishan_logo.png"):
                      fill=(232, 245, 233, alpha))
 
     # 2. Modern Open Agro-Shield Arc
-    # Gradient Blue-Green Protective Outer Ring
     for w in range(16):
         bbox = [center_x - 240 + w, center_y - 240 + w, center_x + 240 - w, center_y + 240 - w]
         draw.arc(bbox, start=35, end=290, fill=(46, 125, 50, 240), width=2)
@@ -29,7 +28,7 @@ def create_unique_smart_kishan_logo(output_filename="smart_kishan_logo.png"):
     draw.arc([center_x - 35, wave_center_y - 12, center_x + 35, wave_center_y + 35], 
              start=200, end=340, fill=(2, 136, 209, 255), width=6)
     draw.ellipse([center_x - 8, wave_center_y + 12, center_x + 8, wave_center_y + 28], 
-                 fill=(255, 179, 0, 255)) # Gold sensor core
+                 fill=(255, 179, 0, 255))
 
     # 4. Leaf 1: Organic Natural Leaf (Left side)
     organic_leaf_points = [
@@ -44,7 +43,6 @@ def create_unique_smart_kishan_logo(output_filename="smart_kishan_logo.png"):
     ]
     draw.polygon(organic_leaf_points, fill=(67, 160, 71, 245), outline=(27, 94, 32, 255))
     
-    # Internal Veins
     draw.line([(center_x - 110, center_y - 140), (center_x - 10, center_y + 130)], fill=(165, 214, 167, 230), width=5)
     draw.line([(center_x - 70, center_y - 30), (center_x - 130, center_y - 40)], fill=(165, 214, 167, 200), width=3)
     draw.line([(center_x - 50, center_y + 30), (center_x - 110, center_y + 40)], fill=(165, 214, 167, 200), width=3)
@@ -62,7 +60,6 @@ def create_unique_smart_kishan_logo(output_filename="smart_kishan_logo.png"):
     ]
     draw.polygon(digital_leaf_points, fill=(2, 119, 189, 245), outline=(1, 87, 155, 255))
 
-    # Circuit Board Nodes & Bus Lines
     circuit_nodes = [
         ((center_x + 45, center_y - 50), (center_x + 85, center_y - 80)),
         ((center_x + 45, center_y - 50), (center_x + 55, center_y + 10)),
@@ -75,7 +72,7 @@ def create_unique_smart_kishan_logo(output_filename="smart_kishan_logo.png"):
         draw.ellipse([start[0] - 6, start[1] - 6, start[0] + 6, start[1] + 6], fill=(255, 255, 255, 255))
         draw.ellipse([end[0] - 6, end[1] - 6, end[0] + 6, end[1] + 6], fill=(255, 215, 0, 255))
 
-    # 6. Professional Typography Rendering
+    # 6. Typography
     try:
         font_main = ImageFont.truetype("arialbd.ttf", 82)
         font_sub = ImageFont.truetype("arialbd.ttf", 29)
@@ -83,18 +80,55 @@ def create_unique_smart_kishan_logo(output_filename="smart_kishan_logo.png"):
         font_main = ImageFont.load_default()
         font_sub = ImageFont.load_default()
 
-    # "SMART" in Deep Royal Navy Blue (#1565C0)
-    # "KISHAN" in Agricultural Forest Green (#2E7D32)
     text_y = 690
     draw.text((220, text_y), "SMART", font=font_main, fill=(21, 101, 192, 255))
     draw.text((535, text_y), "KISHAN", font=font_main, fill=(46, 125, 50, 255))
-
-    # Sub-heading banner
     draw.text((250, 795), "DIGITAL  FARMING  SOLUTIONS", font=font_sub, fill=(71, 85, 105, 255))
 
-    # Save output file
     img.save(output_filename, format="PNG")
-    print(f"Generated clean logo: {output_filename}")
+    print(f"Generated logo: {output_filename}")
+
+
+def create_verification_stamp(output_filename="smart_kishan_stamp.png"):
+    # 500x500 High-Res Circular Verification Stamp
+    size = (500, 500)
+    img = Image.new("RGBA", size, (255, 255, 255, 0))
+    draw = ImageDraw.Draw(img)
+
+    cx, cy, radius = 250, 250, 220
+
+    # Forest Green Background Circle
+    draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], fill=(46, 125, 50, 255))
+    
+    # Double White Border Rings
+    draw.ellipse([cx - radius + 8, cy - radius + 8, cx + radius - 8, cy + radius - 8], outline=(255, 255, 255, 255), width=4)
+    draw.ellipse([cx - radius + 16, cy - radius + 16, cx + radius - 16, cy + radius - 16], outline=(255, 255, 255, 255), width=2)
+
+    try:
+        f_top = ImageFont.truetype("arialbd.ttf", 28)
+        f_mid = ImageFont.truetype("arialbd.ttf", 40)
+        f_bot = ImageFont.truetype("arialbd.ttf", 26)
+    except Exception:
+        f_top = f_mid = f_bot = ImageFont.load_default()
+
+    # Stamp Text Lines
+    draw.text((cx - 125, cy - 115), "GOVT COMPLIANT", font=f_top, fill=(255, 255, 255, 255))
+    
+    # Dividing Rules
+    draw.line([(cx - 150, cy - 65), (cx + 150, cy - 65)], fill=(255, 255, 255, 200), width=3)
+    
+    # Golden SMART KISHAN Center Text
+    draw.text((cx - 142, cy - 40), "SMART KISHAN", font=f_mid, fill=(255, 215, 0, 255))
+    
+    draw.line([(cx - 150, cy + 25), (cx + 150, cy + 25)], fill=(255, 255, 255, 200), width=3)
+    
+    # Bottom 4R Certified text
+    draw.text((cx - 115, cy + 45), "★ 4R CERTIFIED ★", font=f_bot, fill=(255, 255, 255, 255))
+
+    img.save(output_filename, format="PNG")
+    print(f"Generated stamp: {output_filename}")
+
 
 if __name__ == "__main__":
     create_unique_smart_kishan_logo("smart_kishan_logo.png")
+    create_verification_stamp("smart_kishan_stamp.png")
