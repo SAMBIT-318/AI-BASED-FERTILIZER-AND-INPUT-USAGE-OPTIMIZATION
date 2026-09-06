@@ -391,7 +391,7 @@ def save_feedback(mobile, rating, comments):
         return True
     try:
         with engine.connect() as conn:
-            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": rating, "c": comments})
+            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": r, "c": comments})
             conn.commit()
         return True
     except Exception:
@@ -452,10 +452,6 @@ def calculate_advanced_nutrients(target_yield, soil_n, soil_p, soil_k, soc, ph, 
 # ROBUST REAL-SOIL DETECTOR (STRICT NATURAL EARTH SPECTRUM)
 # -------------------------------------------------------------
 def verify_genuine_agricultural_soil(image_obj):
-    """
-    Accepts ONLY authentic agricultural soil (brown, red laterite, alluvial, black soil).
-    Rejects stock photos with watermarks, faces, concrete, roofing tiles, skin, or smooth surfaces.
-    """
     img_rgb = image_obj.convert("RGB").resize((160, 160))
     np_img = np.array(img_rgb, dtype=np.float32)
     
@@ -466,16 +462,13 @@ def verify_genuine_agricultural_soil(image_obj):
     stat_rgb = ImageStat.Stat(img_rgb)
     r_m, g_m, b_m = stat_rgb.mean[0], stat_rgb.mean[1], stat_rgb.mean[2]
 
-    # Check for natural earth reflectance spectrum (Red >= Green >= Blue, or dark vertisols)
     is_earth_tone = (r_m >= g_m >= b_m) or (r_m < 90 and g_m < 90 and b_m < 90)
     
-    # Check for rough granular texture
     gray = img_rgb.convert("L")
     edges = gray.filter(ImageFilter.FIND_EDGES)
     edge_stat = ImageStat.Stat(edges)
     edge_var = edge_stat.var[0]
 
-    # Must have natural soil granularity and earth tone
     if is_earth_tone and edge_var > 20.0 and b_m < r_m:
         if r_m > 135 and b_m < 95:
             soil_type = "Red Laterite Soil"
@@ -851,7 +844,7 @@ elif st.session_state.step == 2:
         
         with tab_camera:
             st.markdown("##### Real-Time Optical Soil Diagnostic Scanner")
-            st.caption("Point camera at ground soil. Stock textures, walls, roofs, or non-soil objects will show 'Not detected'.")
+            st.caption("Point camera at ground soil. Non-soil objects, roofs, or walls will show 'Not detected'.")
             
             cam_c1, cam_c2 = st.columns(2)
             with cam_c1:
@@ -889,6 +882,7 @@ elif st.session_state.step == 2:
                         st.session_state.soc = m["soc"]
                         st.session_state.soil_moist = m["moist"]
                         st.success("✅ Model calibrated with live optical soil features!")
+                        st.rerun()
                 else:
                     st.markdown(f"<div class='badge-warn' style='display:inline-block; font-size:16px; margin:10px 0;'>{T['soil_not_detected']}</div>", unsafe_allow_html=True)
 
@@ -929,14 +923,14 @@ elif st.session_state.step == 2:
 
         with tab_soil:
             s1, s2, s3 = st.columns(3)
-            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n))
-            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
-            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k))
+            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n), key="dyn_n")
+            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p), key="dyn_p")
+            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k), key="dyn_k")
             
             s4, s5, s6 = st.columns(3)
-            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1)
-            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05)
-            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0)
+            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1, key="dyn_ph")
+            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05, key="dyn_soc")
+            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0, key="dyn_moist")
             
             c_s1, c_s2, c_s3 = st.columns(3)
             c_s1.selectbox("Soil Type", list(soil_encoder.classes_), key="sel_soil")
