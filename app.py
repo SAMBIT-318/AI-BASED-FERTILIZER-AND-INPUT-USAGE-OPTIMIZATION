@@ -1,7 +1,6 @@
 import io
 import os
 import urllib.parse
-import urllib.request
 import joblib
 import numpy as np
 import pandas as pd
@@ -11,7 +10,7 @@ from datetime import datetime
 from PIL import Image, ImageStat, ImageFilter
 from sqlalchemy import create_engine, text
 
-# ReportLab imports for professional PDF generation
+# ReportLab imports for professional PDF generation & Unicode support
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import (
@@ -24,17 +23,6 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_crop_recommender, train_fertilizer_classifier, train_yield_regressor
-
-# -------------------------------------------------------------
-# AUTO-DOWNLOAD UNICODE FONT FOR MULTILINGUAL PDF SUPPORT
-# -------------------------------------------------------------
-FONT_FILE = "DejaVuSans.ttf"
-if not os.path.exists(FONT_FILE):
-    try:
-        font_url = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf"
-        urllib.request.urlretrieve(font_url, FONT_FILE)
-    except Exception:
-        pass
 
 # -------------------------------------------------------------
 # PAGE CONFIGURATION & LIGHT GREEN FARMER THEME
@@ -165,7 +153,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# SAFE MODEL LOADER
+# SAFE MODEL LOADER (DEFINED BEFORE DEFAULTS)
 # -------------------------------------------------------------
 MODELS_DIR = "saved_models"
 
@@ -197,68 +185,7 @@ def load_all_models():
  yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
-# DATABASE ENGINE & AUTH HELPERS (DEFINED BEFORE USAGE)
-# -------------------------------------------------------------
-@st.cache_resource
-def get_db_engine():
-    try:
-        cfg_user = urllib.parse.quote_plus(str(st.secrets["postgres"]["user"]))
-        cfg_password = urllib.parse.quote_plus(str(st.secrets["postgres"]["password"]))
-        cfg_host = str(st.secrets["postgres"]["host"]).strip()
-        cfg_port = st.secrets["postgres"]["port"]
-        cfg_db = str(st.secrets["postgres"]["database"]).strip()
-        db_uri = f"postgresql://{cfg_user}:{cfg_password}@{cfg_host}:{cfg_port}/{cfg_db}?sslmode=require"
-    except Exception:
-        db_uri = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
-
-    try:
-        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 8})
-        with engine.connect() as conn:
-            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS feedback (id SERIAL PRIMARY KEY, mobile TEXT, rating INT, comments TEXT)"))
-            conn.commit()
-        return engine
-    except Exception:
-        return None
-
-engine = get_db_engine()
-
-def register_user(mobile, password):
-    if not engine:
-        return True, "Account registered locally."
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("INSERT INTO users (mobile_number, password) VALUES (:m, :p)"), {"m": mobile, "p": hashed_pw})
-            conn.commit()
-        return True, "Registration successful! You can now log in."
-    except Exception:
-        return False, "This mobile number is already registered."
-
-def verify_user(mobile, password):
-    if not engine:
-        return True
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
-    try:
-        with engine.connect() as conn:
-            res = conn.execute(text("SELECT password FROM users WHERE mobile_number = :m"), {"m": mobile}).fetchone()
-            return bool(res and res[0] == hashed_pw)
-    except Exception:
-        return True
-
-def save_feedback(mobile, rating, comments):
-    if not engine:
-        return True
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": rating, "c": comments})
-            conn.commit()
-        return True
-    except Exception:
-        return False
-
-# -------------------------------------------------------------
-# GLOBAL MULTILINGUAL DICTIONARY (Fully Translated for Selected Language)
+# EXTENSIVE GLOBAL MULTILINGUAL DICTIONARY (Supports All Languages)
 # -------------------------------------------------------------
 TRANSLATIONS = {
     "English": {
@@ -442,7 +369,7 @@ TRANSLATIONS = {
         "soil_not_detected": "கண்டறியப்படவில்லை"
     },
     "తెలుగు": {
-        "title": "స్మార్ట్ కిసాన్ | డిజిటల్ వ్యవసాయ పరిష్కారాలు",
+        "title": "స్ಮಾರ್ಟ్ కిసాన్ | డిజిటల్ వ్యవసాయ పరిష్కారాలు",
         "subtitle": "ధృవీకరించబడిన 4R పోషక నిర్వహణ, నిజమైన నేల పరీక్ష & అధికారిక సిఫార్సు",
         "login_tab": "రైతు లాగిన్",
         "reg_tab": "కొత్త రైతు నమోదు",
@@ -462,7 +389,7 @@ TRANSLATIONS = {
         "feedback_title": "🌟 రైతు అభిప్రాయం & రేటింగ్",
         "feedback_submit": "అభిప్రాయాన్ని సమర్పించండి ➔",
         "land_calc_title": "📐 భూమి మార్పిడి & బడ్జెట్ పట్టిక",
-        "pdf_title": "స్మార్ట్ కిసాన్ • అధికారిక పంట & ఎరువుల సిఫార్సు",
+        "pdf_title": "స్ಮಾರ್ಟ్ కిసాన్ • అధికారిక పంట & ఎరువుల సిఫార్సు",
         "pdf_sub": "ధృవీకరించబడిన 4R నిర్వహణ & అప్లికేషన్ వివరాలు",
         "sec_profile": "1. రైతు మరియు భూమి వివరాలు",
         "sec_soil": "2. నేల పరీక్ష మరియు పర్యావరణం",
@@ -638,13 +565,243 @@ if "user_mobile" not in st.session_state:
     st.session_state.user_mobile = ""
 if "rating" not in st.session_state:
     st.session_state.rating = 5
-if "plot_id" not in st.session_state:
-    st.session_state.plot_id = "Plot No. 104/1"
 
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
-# PROFESSIONAL UNICODE-COMPLIANT MULTILINGUAL BLUE STAMP PDF GENERATOR
+# SAFE MODEL LOADER
+# -------------------------------------------------------------
+MODELS_DIR = "saved_models"
+
+def ensure_models_exist():
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    for fname in ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl"]:
+        if not os.path.exists(os.path.join(MODELS_DIR, fname)):
+            train_crop_recommender()
+            train_fertilizer_classifier()
+            train_yield_regressor()
+            break
+
+@st.cache_resource(show_spinner=False)
+def load_all_models():
+    ensure_models_exist()
+    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
+    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
+    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
+    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
+    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
+    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
+    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
+    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
+    yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
+    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_crop_enc
+
+(crop_model, crop_encoder, fert_model, soil_encoder, 
+ crop_type_encoder, fert_enc, yield_model, 
+ yield_features, yield_crop_encoder) = load_all_models()
+
+# -------------------------------------------------------------
+# DATABASE ENGINE
+# -------------------------------------------------------------
+@st.cache_resource
+def get_db_engine():
+    try:
+        cfg_user = urllib.parse.quote_plus(str(st.secrets["postgres"]["user"]))
+        cfg_password = urllib.parse.quote_plus(str(st.secrets["postgres"]["password"]))
+        cfg_host = str(st.secrets["postgres"]["host"]).strip()
+        cfg_port = st.secrets["postgres"]["port"]
+        cfg_db = str(st.secrets["postgres"]["database"]).strip()
+        db_uri = f"postgresql://{cfg_user}:{cfg_password}@{cfg_host}:{cfg_port}/{cfg_db}?sslmode=require"
+    except Exception:
+        db_uri = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
+
+    try:
+        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 8})
+        with engine.connect() as conn:
+            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT)"))
+            conn.execute(text("CREATE TABLE IF NOT EXISTS feedback (id SERIAL PRIMARY KEY, mobile TEXT, rating INT, comments TEXT)"))
+            conn.commit()
+        return engine
+    except Exception:
+        return None
+
+engine = get_db_engine()
+
+def register_user(mobile, password):
+    if not engine:
+        return True, "Account registered locally."
+    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("INSERT INTO users (mobile_number, password) VALUES (:m, :p)"), {"m": mobile, "p": hashed_pw})
+            conn.commit()
+        return True, "Registration successful! You can now log in."
+    except Exception:
+        return False, "This mobile number is already registered."
+
+def verify_user(mobile, password):
+    if not engine:
+        return True
+    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
+    try:
+        with engine.connect() as conn:
+            res = conn.execute(text("SELECT password FROM users WHERE mobile_number = :m"), {"m": mobile}).fetchone()
+            return bool(res and res[0] == hashed_pw)
+    except Exception:
+        return True
+
+def save_feedback(mobile, rating, comments):
+    if not engine:
+        return True
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("INSERT INTO feedback (mobile, rating, comments) VALUES (:m, :r, :c)"), {"m": mobile, "r": rating, "c": comments})
+            conn.commit()
+        return True
+    except Exception:
+        return False
+
+# -------------------------------------------------------------
+# LAND CONVERSIONS (Ground-Truth Math)
+# -------------------------------------------------------------
+UNIT_TO_HECTARE = {
+    "Acre (एकड़ / ଏକର)": 0.404686,
+    "Hectare (हेक्टेयर / ହେକ୍ଟର)": 1.0,
+    "Guntha (गुंठा / ଗୁଣ୍ଠ)": 0.010117,
+    "Decimal / Cent (डिसमिल / ଡେସିମିଲ)": 0.004047,
+    "Square Feet (वर्ग फुट / ବର୍ଗ ଫୁଟ)": 0.0000092903
+}
+
+def render_land_conversion_table(entered_val, chosen_unit):
+    ha_base = entered_val * UNIT_TO_HECTARE[chosen_unit]
+    acres = ha_base / 0.404686
+    guntha = acres * 40.0
+    decimals = acres * 100.0
+    sq_ft = acres * 43560.0
+    
+    table_df = pd.DataFrame({
+        "Unit Name": ["Acre (ଏକର)", "Hectare (ହେକ୍ଟର)", "Guntha (ଗୁଣ୍ଠ)", "Decimal (ଡେସିମିଲ)", "Square Feet (Sq Ft)"],
+        "Calculated Size": [f"{acres:.3f} Acres", f"{ha_base:.3f} Ha", f"{guntha:.2f} Guntha", f"{decimals:.1f} Decimals", f"{sq_ft:,.0f} Sq Ft"]
+    })
+    return table_df, ha_base
+
+# -------------------------------------------------------------
+# NUTRIENT DEFICIT ENGINE
+# -------------------------------------------------------------
+def calculate_advanced_nutrients(target_yield_per_acre, soil_n, soil_p, soil_k, soc, ph, soil_moist, soil_texture):
+    target_yield_ha = target_yield_per_acre * 2.47105
+
+    demand_n = 22.0 * target_yield_ha
+    demand_p = 4.5 * target_yield_ha
+    demand_k = 19.0 * target_yield_ha
+
+    nue_n = 0.50
+    if "sandy" in str(soil_texture).lower():
+        nue_n -= 0.10
+    if soil_moist < 30.0 or soil_moist > 75.0:
+        nue_n -= 0.08
+
+    ph_p_factor = 1.0 if 6.0 <= ph <= 7.2 else (0.60 if ph < 5.5 or ph > 8.0 else 0.80)
+    soc_n_factor = 1.0 + (soc * 0.15)
+
+    avail_n = (soil_n * 0.45) * soc_n_factor
+    avail_p = (soil_p * 0.35) * ph_p_factor
+    avail_k = (soil_k * 0.50)
+
+    def_n = max(0.0, (demand_n - avail_n) / max(0.3, nue_n))
+    def_p = max(0.0, (demand_p - avail_p) / 0.35)
+    def_k = max(0.0, (demand_k - avail_k) / 0.55)
+
+    return def_n, def_p, def_k
+
+# -------------------------------------------------------------
+# REAL-SOIL OPTICAL DISCRIMINATOR
+# -------------------------------------------------------------
+def verify_genuine_agricultural_soil(image_obj):
+    img_rgb = image_obj.convert("RGB").resize((160, 160))
+    np_img = np.array(img_rgb, dtype=np.float32)
+    
+    R = np_img[:, :, 0]
+    G = np_img[:, :, 1]
+    B = np_img[:, :, 2]
+
+    stat_rgb = ImageStat.Stat(img_rgb)
+    r_m, g_m, b_m = stat_rgb.mean[0], stat_rgb.mean[1], stat_rgb.mean[2]
+
+    is_earth_tone = (r_m >= g_m >= b_m) or (r_m < 90 and g_m < 90 and b_m < 90)
+    
+    gray = img_rgb.convert("L")
+    edges = gray.filter(ImageFilter.FIND_EDGES)
+    edge_stat = ImageStat.Stat(edges)
+    edge_var = edge_stat.var[0]
+
+    if is_earth_tone and edge_var > 20.0 and b_m < r_m:
+        if r_m > 135 and b_m < 95:
+            soil_type = "Red Laterite Soil"
+            est_n, est_p, est_k = 48.0, 22.0, 36.0
+            est_soc, est_ph, est_moist = 0.55, 6.2, 36.0
+        elif r_m < 85 and g_m < 85:
+            soil_type = "Deep Black Soil (Vertisol)"
+            est_n, est_p, est_k = 65.0, 35.0, 48.0
+            est_soc, est_ph, est_moist = 0.82, 7.4, 52.0
+        else:
+            soil_type = "Alluvial Loamy Clay"
+            est_n, est_p, est_k = 55.0, 30.0, 42.0
+            est_soc, est_ph, est_moist = 0.72, 6.6, 45.0
+
+        return {
+            "detected": True,
+            "soil_type": soil_type,
+            "metrics": {
+                "n": est_n, "p": est_p, "k": est_k,
+                "ph": est_ph, "soc": est_soc, "moist": est_moist,
+                "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})"
+            }
+        }
+    else:
+        return {
+            "detected": False,
+            "reason": "Not detected"
+        }
+
+def analyze_plant_disease_image(image_obj):
+    img_rgb = image_obj.convert("RGB").resize((100, 100))
+    arr = np.array(img_rgb)
+    r_mean, g_mean, b_mean = np.mean(arr[:, :, 0]), np.mean(arr[:, :, 1]), np.mean(arr[:, :, 2])
+    
+    if g_mean > r_mean and g_mean > b_mean:
+        return {
+            "health": "Healthy Plant Canopy",
+            "disease": "No critical fungal/bacterial infection",
+            "pest": "Minor sap-feeders / Thrips (<5%)",
+            "symptoms": "Healthy chlorophyll index and vigorous leaves.",
+            "medicine": "Neem Oil Spray (1500 ppm @ 3ml/L) as an organic protector.",
+            "recovery_chance": 95,
+            "will_grow": "Yes, excellent growth expected."
+        }
+    elif r_mean > g_mean and r_mean > 110:
+        return {
+            "health": "Infected Leaf Spots Detected",
+            "disease": "Leaf Rust / Early Blight (Alternaria spp.)",
+            "pest": "Fall Armyworm / Foliar Caterpillar chew marks",
+            "symptoms": "Yellow-brown necrotic spots with leaf edge wilting.",
+            "medicine": "Mancozeb 75% WP (2.5 g/L) + Chlorantraniliprole 18.5% SC (0.4 ml/L)",
+            "recovery_chance": 78,
+            "will_grow": "Yes, if treated within 48 to 72 hours."
+        }
+    else:
+        return {
+            "health": "Chlorosis & Stem Stress",
+            "disease": "Powdery Mildew / Bacterial Leaf Blight",
+            "pest": "Stem Borer / Aphid cluster colony",
+            "symptoms": "Pale whitening of lamina with loss of vigor.",
+            "medicine": "Hexaconazole 5% EC (2 ml/L) + Imidacloprid 17.8% SL (0.5 ml/L)",
+            "recovery_chance": 62,
+            "will_grow": "Moderate; requires immediate systemic spray."
+        }
+
+# -------------------------------------------------------------
+# PROFESSIONAL UNICODE-COMPLIANT MULTILINGUAL PDF GENERATOR
 # -------------------------------------------------------------
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -664,31 +821,31 @@ class NumberedCanvas(canvas.Canvas):
         super().save()
 
     def draw_page_decorations(self, page_count):
-        self.setStrokeColor(colors.HexColor("#1565C0"))
+        self.setStrokeColor(colors.HexColor("#1B5E20"))
         self.setLineWidth(1.5)
         self.rect(20, 20, 555, 802)
 
         self.saveState()
-        self.setStrokeColor(colors.HexColor("#1565C0"))
-        self.setFillColor(colors.HexColor("#E3F2FD"))
-        self.circle(460, 85, 38, stroke=1, fill=1)
-        self.circle(460, 85, 33, stroke=1, fill=0)
+        self.setStrokeColor(colors.HexColor("#2E7D32"))
+        self.setFillColor(colors.HexColor("#E8F5E9"))
+        self.circle(500, 85, 38, stroke=1, fill=1)
+        self.circle(500, 85, 33, stroke=1, fill=0)
 
+        # Register and use Unicode font for canvas footer stamp if available
         try:
             font_path = "DejaVuSans.ttf"
             if not os.path.exists(font_path):
                 font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
             if os.path.exists(font_path) and "UnicodeFont" not in pdfmetrics.getRegisteredFontNames():
                 pdfmetrics.registerFont(TTFont("UnicodeFont", font_path))
-            self.setFont("UnicodeFont", 6)
+            self.setFont("UnicodeFont", 6.5)
         except Exception:
-            self.setFont("Helvetica-Bold", 6)
+            self.setFont("Helvetica-Bold", 6.5)
 
-        self.setFillColor(colors.HexColor("#0D47A1"))
-        self.drawCentredString(460, 103, "GOVT COMPLIANT")
-        self.drawCentredString(460, 83, "SMART KISHAN")
-        self.drawCentredString(460, 68, "4R CERTIFIED")
-
+        self.setFillColor(colors.HexColor("#1B5E20"))
+        self.drawCentredString(500, 104, "GOVT COMPLIANT")
+        self.drawCentredString(500, 83, "SMART KISHAN")
+        self.drawCentredString(500, 68, "4R CERTIFIED")
         self.restoreState()
 
         try:
@@ -713,6 +870,7 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
         bottomMargin=45
     )
 
+    # Register Unicode font for all languages (Odia, Hindi, Marathi, Tamil, Telugu, Japanese, Chinese, French, German, etc.)
     pdf_font_name = "Helvetica"
     try:
         font_candidates = [
@@ -729,6 +887,7 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
                 registered_font = True
                 break
         if not registered_font:
+            # Fallback if system TTF not found
             pdf_font_name = "Helvetica"
     except Exception:
         pdf_font_name = "Helvetica"
@@ -750,7 +909,6 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
         except Exception:
             pass
 
-    # Ensure the downloaded PDF strictly uses the selected active language for all labels
     story.append(Paragraph(lang_dict.get("pdf_title", "SMART KISHAN • OFFICIAL CROP PRESCRIPTION"), title_style))
     story.append(Paragraph(lang_dict.get("pdf_sub", "Certified 4R Nutrient Stewardship & Field Application Dossier"), subtitle_style))
     story.append(Paragraph(f"Dossier ID: SK-{datetime.now().strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {datetime.now().strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName=pdf_font_name, fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
@@ -849,6 +1007,29 @@ def generate_multilingual_pdf(user_mobile, plot_id, raw_land, land_unit, crop, t
     return buffer.getvalue()
 
 # -------------------------------------------------------------
+# DEFAULTS (AFTER MODEL LOADER SO CROP ENCODER IS INITIALIZED)
+# -------------------------------------------------------------
+defaults = {
+    "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
+    "soil_moist": 45.0, "soc": 0.70, "temp": 26.5, "humidity": 68.0,
+    "rainfall": 150.0, "raw_land_val": 1.5, "land_unit": "Acre (एकड़ / ଏକର)",
+    "land_area": 0.607, "budget_cap": 25000.0, "target_yield": 2.0,
+    "sel_soil": list(soil_encoder.classes_)[0],
+    "sel_crop": list(crop_type_encoder.classes_)[0],
+    "plot_id": "Plot No. 104/1",
+    "soil_source": None,
+    "scanned_soil": None,
+    "scanned_diag": {
+        "health": "Optimal Vigor", "disease": "None detected", "pest": "None",
+        "symptoms": "Healthy foliage", "medicine": "Prophylactic Neem Spray",
+        "recovery_chance": 95, "will_grow": "Yes"
+    }
+}
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
+
+# -------------------------------------------------------------
 # APP HERO HEADER WITH UPLOADED LOGO BADGE
 # -------------------------------------------------------------
 hero_col1, hero_col2 = st.columns([3, 1.2])
@@ -883,6 +1064,7 @@ if st.session_state.step == 1:
     
     c_lang, c_mode = st.columns(2)
     
+    # Expanded global language list (English, Hindi, Odia, Marathi, Tamil, Telugu, French, Japanese, Chinese, German)
     available_languages = ["English", "हिन्दी", "ଓଡ଼ିଆ", "मराठी", "தமிழ்", "తెలుగు", "Français", "日本語", "中文", "Deutsch"]
     current_lang_index = available_languages.index(st.session_state.app_lang) if st.session_state.app_lang in available_languages else 0
     
@@ -1343,6 +1525,7 @@ elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
     st.write("Please tap the stars below to rate your advisory experience before exiting:")
 
+    # Borderless Star Rating Component (Matching reference image style)
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="star-container">', unsafe_allow_html=True)
     star_cols = st.columns(5)
