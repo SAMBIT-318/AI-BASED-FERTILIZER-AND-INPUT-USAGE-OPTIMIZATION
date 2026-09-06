@@ -74,15 +74,6 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(46, 125, 50, 0.08) !important;
     }
 
-    .bhu-search-box {
-        background: #FFFFFF;
-        border: 2px solid #A5D6A7;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 16px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.03);
-    }
-
     div.stButton > button, div.stButton > button:focus {
         background: linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%) !important;
         color: #FFFFFF !important;
@@ -149,7 +140,7 @@ st.markdown("""
 TRANSLATIONS = {
     "English": {
         "title": "🌾 AI Based Precision Agriculture Advisor",
-        "subtitle": "Scientific 4R Nutrient Stewardship, Government Bhu-Naksha Cadastre & Crop Prescription",
+        "subtitle": "Scientific 4R Nutrient Stewardship, Field Mapping & Crop Prescription",
         "login_tab": "Farmer Log In",
         "reg_tab": "Register New Farmer",
         "mobile_lbl": "Mobile Number",
@@ -169,7 +160,7 @@ TRANSLATIONS = {
     },
     "हिन्दी": {
         "title": "🌾 एआई आधारित सटीक कृषि सलाहकार",
-        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, संपूर्ण सरकारी भू-नक्शा पोर्टल और फसल सलाह",
+        "subtitle": "वैज्ञानिक 4R पोषक तत्व प्रबंधन, खेत मानचित्र और फसल सलाह",
         "login_tab": "किसान लॉगिन",
         "reg_tab": "नया किसान पंजीकरण",
         "mobile_lbl": "मोबाइल नंबर",
@@ -189,7 +180,7 @@ TRANSLATIONS = {
     },
     "ଓଡ଼ିଆ": {
         "title": "🌾 ଏଆଇ ଆଧାରିତ ଉନ୍ନତ କୃଷି ଓ ଖତ ପରାମର୍ଶ କେନ୍ଦ୍ର",
-        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, ସମ୍ପୂର୍ଣ୍ଣ ସରକାରୀ ଭୂ-ନକ୍ସା (ସମସ୍ତ ୩୦ ଜିଲ୍ଲା, ତହସିଲ, ପଞ୍ଚାୟତ, ଗ୍ରାମ, ମୌଜା, ଖାତା ଓ ପ୍ଲଟ)",
+        "subtitle": "ବୈଜ୍ଞାନିକ ମୃତ୍ତିକା ପରୀକ୍ଷଣ, କ୍ଷେତ୍ର ମାନଚିତ୍ର ଏବଂ ସାର ନିର୍ଦ୍ଦେଶାବଳୀ",
         "login_tab": "କୃଷକ ଲଗଇନ୍",
         "reg_tab": "ନୂତନ କୃଷକ ପଞ୍ଜୀକରଣ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
@@ -210,7 +201,7 @@ TRANSLATIONS = {
 }
 
 # -------------------------------------------------------------
-# SESSION STATE INITIALIZATION & TRANSLATION POINTER (FIXES NAMEERROR)
+# SESSION STATE INITIALIZATION & TRANSLATIONS
 # -------------------------------------------------------------
 if "step" not in st.session_state:
     st.session_state.step = 1
@@ -223,7 +214,6 @@ if "logged_in" not in st.session_state:
 if "user_mobile" not in st.session_state:
     st.session_state.user_mobile = ""
 
-# Always ensure T is globally accessible immediately
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
@@ -352,7 +342,7 @@ def compute_accurate_land_units(acre_val):
             "Length (ଲମ୍ବ / लंबाई)",
             "Breadth (ଓସାର / चौड़ाई)"
         ],
-        "Surveyed Record": [
+        "Calculated Size": [
             f"{acres:.3f} Acres",
             f"{guntha:.2f} Guntha",
             f"{decimals:.1f} Decimals",
@@ -444,106 +434,17 @@ def analyze_plant_disease_image(image_obj):
         }
 
 # -------------------------------------------------------------
-# COMPLETE 30-DISTRICT ODISHA CADASTRAL DIRECTORY
+# DEFAULTS
 # -------------------------------------------------------------
-ALL_ODISHA_DISTRICTS = [
-    "Khordha", "Cuttack", "Puri", "Sambalpur", "Balasore", "Ganjam", "Bhadrak",
-    "Mayurbhanj", "Jajpur", "Kendrapada", "Jagatsinghpur", "Dhenkanal", "Angul",
-    "Nayagarh", "Bolangir", "Subarnapur", "Bargarh", "Jharsuguda", "Sundargarh",
-    "Keonjhar", "Kalahandi", "Nuapada", "Koraput", "Rayagada", "Nabarangpur",
-    "Malkangiri", "Kandhamal", "Boudh", "Deogarh", "Gajapati"
-]
-
-TEHSIL_DIRECTORY = {
-    "Khordha": ["Jatni", "Bhubaneswar", "Khordha Sadar", "Balianta", "Balipatna", "Begunia", "Bolagarh", "Banapur", "Tangi", "Chilika"],
-    "Cuttack": ["Cuttack Sadar", "Salepur", "Athagarh", "Badamba", "Tigiria", "Banki", "Nischintakoili", "Mahanga", "Choudwar", "Niali"],
-    "Puri": ["Puri Sadar", "Pipili", "Nimapara", "Gop", "Delanga", "Kanas", "Satyabadi", "Brahmagiri", "Kakatpur", "Astaranga"],
-    "Sambalpur": ["Sambalpur Sadar", "Rengali", "Maneswar", "Jujumura", "Kuchinda", "Bamra", "Jamankira", "Rairakhol"],
-    "Balasore": ["Balasore Sadar", "Remuna", "Basta", "Jaleswar", "Bhograi", "Baliapal", "Soro", "Simulia", "Nilagiri"],
-    "Ganjam": ["Chhatrapur", "Berhampur", "Hinjilicut", "Polasara", "Kabisuryanagar", "Kodala", "Khallikote", "Bhanjanagar", "Aska"]
-}
-
-GROUND_TRUTH_PLOTS = {
-    ("Jatni", "104/1"): {
-        "khata": "24/8", "tenant": "Sambit Swain", "relation": "S/o Ramesh Swain",
-        "kissam": "Sarada Do-Fasali (ଦୋ-ଫସଲୀ ଧାନ ଜମି)", "area_acre": 1.450,
-        "soil": "Clayey", "crop": "Paddy (Rice)", "centroid": (20.1798, 85.7063),
-        "polygon": [
-            [20.1806, 85.7053], [20.1806, 85.7073],
-            [20.1790, 85.7073], [20.1790, 85.7053]
-        ]
-    },
-    ("Jatni", "104/2"): {
-        "khata": "24/8", "tenant": "Balaram Das", "relation": "S/o Harihar Das",
-        "kissam": "Gora / Dhipa (ଡିପ ଜମି)", "area_acre": 0.850,
-        "soil": "Loamy", "crop": "Maize", "centroid": (20.1812, 85.7075),
-        "polygon": [
-            [20.1818, 85.7065], [20.1818, 85.7085],
-            [20.1806, 85.7085], [20.1806, 85.7065]
-        ]
-    },
-    ("Jatni", "208/A"): {
-        "khata": "55/3", "tenant": "Ramesh Behera", "relation": "S/o Madhab Behera",
-        "kissam": "Sarada Eka-Fasali (ଏକ-ଫସଲୀ)", "area_acre": 2.200,
-        "soil": "Red", "crop": "Mustard", "centroid": (20.1785, 85.7050),
-        "polygon": [
-            [20.1790, 85.7038], [20.1790, 85.7062],
-            [20.1780, 85.7062], [20.1780, 85.7038]
-        ]
-    },
-    ("Bhubaneswar", "401/1"): {
-        "khata": "12/1", "tenant": "Prakash Swain", "relation": "S/o Dayanidhi Swain",
-        "kissam": "Bagayat / Vegetable Land", "area_acre": 1.200,
-        "soil": "Alluvial", "crop": "Vegetables", "centroid": (20.2961, 85.8245),
-        "polygon": [
-            [20.2968, 85.8235], [20.2968, 85.8255],
-            [20.2954, 85.8255], [20.2954, 85.8235]
-        ]
-    },
-    ("Salepur", "505"): {
-        "khata": "89/5", "tenant": "Narayan Jena", "relation": "S/o Lokanath Jena",
-        "kissam": "Jala Sarada (କେନାଲ ପାଣି ଜମି)", "area_acre": 3.100,
-        "soil": "Clayey", "crop": "Paddy (Rice)", "centroid": (20.4850, 86.0120),
-        "polygon": [
-            [20.4862, 86.0105], [20.4862, 86.0135],
-            [20.4838, 86.0135], [20.4838, 86.0105]
-        ]
-    },
-    ("Pipili", "305/1"): {
-        "khata": "102/4", "tenant": "Suresh Mohapatra", "relation": "S/o Bipin Mohapatra",
-        "kissam": "Biali / Groundnut Plain", "area_acre": 1.750,
-        "soil": "Sandy", "crop": "Groundnut", "centroid": (20.1180, 85.8320),
-        "polygon": [
-            [20.1188, 85.8310], [20.1188, 85.8330],
-            [20.1172, 85.8330], [20.1172, 85.8310]
-        ]
-    }
-}
-
-DISTRICT_CENTROIDS = {
-    "Khordha": (20.1800, 85.6200), "Cuttack": (20.4625, 85.8828), "Puri": (19.8135, 85.8312),
-    "Sambalpur": (21.4669, 83.9812), "Balasore": (21.4934, 86.9135), "Ganjam": (19.3550, 84.9900),
-    "Bhadrak": (21.0544, 86.4965), "Mayurbhanj": (21.9333, 86.7333), "Jajpur": (20.8500, 86.3300),
-    "Kendrapada": (20.5000, 86.4200), "Jagatsinghpur": (20.2700, 86.1700), "Dhenkanal": (20.6700, 85.6000),
-    "Angul": (20.8398, 85.1012), "Nayagarh": (20.1300, 85.1000), "Bolangir": (20.7100, 83.4800),
-    "Subarnapur": (20.8400, 83.9200), "Bargarh": (21.3333, 83.6167), "Jharsuguda": (21.8500, 84.0200),
-    "Sundargarh": (22.1167, 84.0333), "Keonjhar": (21.6300, 85.5800), "Kalahandi": (19.9100, 83.1200),
-    "Nuapada": (20.8300, 82.5300), "Koraput": (18.8100, 82.7100), "Rayagada": (19.1700, 83.4200),
-    "Nabarangpur": (19.2300, 82.5500), "Malkangiri": (18.3500, 81.9000), "Kandhamal": (20.4700, 84.2300),
-    "Boudh": (20.8400, 84.3200), "Deogarh": (21.5300, 84.7300), "Gajapati": (18.8100, 84.1000)
-}
-
 defaults = {
     "soil_n": 50.0, "soil_p": 30.0, "soil_k": 35.0, "soil_ph": 6.5,
     "soil_moist": 45.0, "soc": 0.70, "temp": 26.5, "humidity": 68.0,
-    "rainfall": 150.0, "raw_land_val": 1.45, "land_unit": "Acre (एकड़ / ଏକର)",
-    "land_area": 0.587, "budget_cap": 25000.0, "target_yield": 4.5,
+    "rainfall": 150.0, "raw_land_val": 1.5, "land_unit": "Acre (एकड़ / ଏକର)",
+    "land_area": 0.607, "budget_cap": 25000.0, "target_yield": 4.5,
     "sel_soil": list(soil_encoder.classes_)[0],
     "sel_crop": list(crop_type_encoder.classes_)[0],
     "lat": 20.1798, "lon": 85.7063,
-    "c_country": "India", "c_state": "Odisha", "c_dist": "Khordha",
-    "c_block": "Jatni", "c_panchayat": "Champeswar GP", "c_village": "Champeswar",
-    "c_area": "Bilapadar Mauza", "c_khata": "24/8", "c_plot": "104/1", "selected_plot": "104/1"
+    "plot_name": "Plot No. 1"
 }
 for k, v in defaults.items():
     if k not in st.session_state:
@@ -560,7 +461,7 @@ st.markdown(f"""
             <p>{T['subtitle']}</p>
         </div>
         <div style="background:rgba(255,255,255,0.2); padding:6px 14px; border-radius:10px; font-weight:700; font-size:13px;">
-            🛰️ Govt Bhu-Naksha Cadastre (Zero API Key)
+            🛰️ Field GPS & Optical Intelligence
         </div>
     </div>
 </div>
@@ -617,7 +518,7 @@ if st.session_state.step == 1:
             st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 2: GOVERNMENT PORTAL CADASTRAL SELECTOR
+# SCREEN 2: SATELLITE FIELD MAP, CAMERA SCANNER & LAND SIZE
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if st.session_state.app_mode == "Diagnostic Only":
@@ -651,216 +552,62 @@ elif st.session_state.step == 2:
             st.rerun()
 
     else:
-        st.subheader("2. 📍 Government Bhu-Naksha Cadastral Directory (ସମସ୍ତ ୩୦ ଜିଲ୍ଲା ଭୂ-ନକ୍ସା)")
+        st.subheader("2. 📍 Farm Parcel Location & Field Details")
         
-        tab_bhumap, tab_camera, tab_land, tab_soil = st.tabs([
-            "🗺️ Official Cadastral Land Directory (ଭୂ-ନକ୍ସା ତାଲିକା)", 
+        tab_map, tab_camera, tab_land, tab_soil = st.tabs([
+            "🗺️ Satellite Parcel Map", 
             "📷 Optical Camera Scanner", 
             "📐 Land Area Converter & Acreage", 
             "🧪 Soil Nutrient Levels"
         ])
         
-        with tab_bhumap:
-            st.markdown("""
-            <div class="bhu-search-box">
-                <h4 style="margin:0 0 6px 0; color:#1B5E20;">🏛️ Land Records & Cadastral Mapping Portal (Bhu-Naksha Odisha)</h4>
-                <p style="margin:0; font-size:13px; color:#475569;">
-                    Ground-truth administrative hierarchy matching official land revenue records across all 30 districts of Odisha. Select District ➔ Tehsil ➔ Panchayat ➔ Village ➔ Mauza ➔ Khata ➔ Plot No.
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-
-            # ROW 1: COUNTRY & STATE
-            r1_c1, r1_c2 = st.columns(2)
-            all_countries = ["India", "United States", "Canada", "Australia", "United Kingdom", "Other Country"]
-            st.session_state.c_country = r1_c1.selectbox("1. Country (ଦେଶ / देश):", all_countries, index=0)
-
-            all_india_states = [
-                "Odisha", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", 
-                "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", 
-                "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", 
-                "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Punjab", "Rajasthan", 
-                "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
-                "Uttarakhand", "West Bengal", "Delhi (NCT)", "Other State"
-            ]
-            if st.session_state.c_country == "India":
-                st.session_state.c_state = r1_c2.selectbox("2. State (ରାଜ୍ୟ / राज्य):", all_india_states, index=0)
-            else:
-                st.session_state.c_state = r1_c2.text_input("2. State / Province (ରାଜ୍ୟ):", value="Province 1")
-
-            # ROW 2: DISTRICT & TEHSIL / BLOCK
-            r2_c1, r2_c2 = st.columns(2)
-            if st.session_state.c_state == "Odisha":
-                dist_list = ALL_ODISHA_DISTRICTS
-            else:
-                dist_list = ["Central District", "North District", "South District", "East District", "West District"]
+        with tab_map:
+            st.markdown("##### 🛰️ Field Coordinates & Interactive Satellite View")
             
-            st.session_state.c_dist = r2_c1.selectbox("3. District (ସମସ୍ତ ୩୦ ଜିଲ୍ଲା / जिला):", dist_list, index=dist_list.index(st.session_state.c_dist) if st.session_state.c_dist in dist_list else 0)
+            mc1, mc2, mc3 = st.columns(3)
+            st.session_state.plot_name = mc1.text_input("Parcel / Field Identifier:", value=st.session_state.plot_name)
+            st.session_state.lat = mc2.number_input("Field Latitude:", value=float(st.session_state.lat), format="%.5f")
+            st.session_state.lon = mc3.number_input("Field Longitude:", value=float(st.session_state.lon), format="%.5f")
 
-            if st.session_state.c_dist in TEHSIL_DIRECTORY:
-                tehsils = TEHSIL_DIRECTORY[st.session_state.c_dist]
-            else:
-                tehsils = [f"{st.session_state.c_dist} Sadar", f"{st.session_state.c_dist} Rural", f"{st.session_state.c_dist} North", f"{st.session_state.c_dist} South"]
-            
-            st.session_state.c_block = r2_c2.selectbox("4. Tehsil / Block (ତହସିଲ / ବ୍ଲକ):", tehsils, index=0)
+            c_lat = float(st.session_state.lat)
+            c_lon = float(st.session_state.lon)
 
-            # ROW 3: GRAM PANCHAYAT & VILLAGE
-            r3_c1, r3_c2 = st.columns(2)
-            gp_options = [
-                f"{st.session_state.c_block} GP 1", f"{st.session_state.c_block} GP 2", 
-                "Champeswar GP", "Kantara GP", "Kusumati GP", "Bachhara GP", 
-                "Chhotraypur GP", "Madanpur GP", "Sadhana GP", "Purusottampur GP", 
-                "Kalyanpur GP", "Dandamakundapur GP", "Nischintakoili GP", "Chandaka GP"
-            ]
-            st.session_state.c_panchayat = r3_c1.selectbox("5. Gram Panchayat / Ward (ଗ୍ରାମ ପଞ୍ଚାୟତ):", gp_options, index=2 if "Jatni" in st.session_state.c_block else 0)
-
-            vil_prefix = st.session_state.c_panchayat.replace(" GP", "")
-            village_options = [
-                f"{vil_prefix} Village", "Champeswar", "Kusumati", "Bachhara", "Kaimatia", 
-                "Padanpur", "Retang", "Kantia", "Taraboi", "Gopinathpur", "Harirajpur", 
-                "Salepur Rural", "Damana", "Chandaka Jungle", "Sidhwan", "Pimpalgaon"
-            ]
-            st.session_state.c_village = r3_c2.selectbox("6. Village / Settlement (ଗ୍ରାମ / गाँव):", village_options, index=1 if "Jatni" in st.session_state.c_block else 0)
-
-            # ROW 4: MAUZA & KHATA NUMBER
-            r4_c1, r4_c2 = st.columns(2)
-            mauza_options = [
-                f"{st.session_state.c_village} Mauza", "Bilapadar Mauza", "Kantia Bahal Mauza", 
-                "Bada Kheta Mauza", "Nua Sahi Mauza", "Talapada Mauza", "Dala Kheta Mauza", 
-                "Kalyanpur Mauza", "Randiabandha Mauza", "Mahanadi Delta Mauza", "Canal Belt Mauza"
-            ]
-            st.session_state.c_area = r4_c1.selectbox("7. Land Mauza (ମୌଜା / चक ନାମ):", mauza_options, index=1 if "Champeswar" in st.session_state.c_village else 0)
-
-            khata_options = ["24/8", "12/1", "89/5", "55/3", "102/4", "18/2", "33/A", "45/B", "108/6", "201/1", "305/7", "410/2"]
-            st.session_state.c_khata = r4_c2.selectbox("8. Khata No. (ଖାତା ନମ୍ବର / खाता संख्या):", khata_options, index=0)
-
-            # ROW 5: PLOT NUMBER SELECTION
-            r5_c1, r5_c2 = st.columns(2)
-            plot_numbers_list = [
-                "104/1", "104/2", "101", "102", "103", "105", "106/A", "107", "108/1", "108/2",
-                "109", "110", "111", "112", "115", "120", "125", "130", "140", "150",
-                "201", "202/B", "203", "204", "205/1", "206", "207", "208/A", "209", "210",
-                "301", "302/1", "303", "304", "305/1", "306", "307", "308", "309", "310",
-                "401/1", "402", "403", "404", "405", "406", "407", "408", "409", "410",
-                "501", "502", "503", "504", "505", "506", "507", "508", "509", "510"
-            ]
-            st.session_state.c_plot = r5_c1.selectbox("9. Plot / Survey No. (ପ୍ଲଟ ନମ୍ବର / खसरा):", plot_numbers_list, index=0)
-
-            # LOOKUP GROUND-TRUTH RECORD
-            lookup_key = (st.session_state.c_block, st.session_state.c_plot)
-            if lookup_key in GROUND_TRUTH_PLOTS:
-                plot_info = GROUND_TRUTH_PLOTS[lookup_key]
-                c_lat, c_lon = plot_info["centroid"]
-                poly_coords = plot_info["polygon"]
-                surveyed_acre = plot_info["area_acre"]
-                tenant_name = plot_info["tenant"]
-                tenant_rel = plot_info["relation"]
-                kissam_type = plot_info["kissam"]
-                soil_texture = plot_info["soil"]
-                st.session_state.c_khata = plot_info["khata"]
-            else:
-                if st.session_state.c_dist in DISTRICT_CENTROIDS:
-                    base_lat, base_lon = DISTRICT_CENTROIDS[st.session_state.c_dist]
-                else:
-                    base_lat, base_lon = 20.1798, 85.7063
-
-                plot_seed = sum([ord(ch) for ch in (st.session_state.c_plot + st.session_state.c_block)])
-                surveyed_acre = 0.800 + round((plot_seed % 17) * 0.100, 3)
-                tenant_name = "Government Tenant Holding"
-                tenant_rel = "Under District Revenue Board"
-                kissam_type = "Sarada Do-Fasali (ଦୋ-ଫସଲୀ ଧାନ ଜମି)"
-                soil_texture = "Clayey Loam"
-                c_lat = base_lat + ((plot_seed % 30) - 15) * 0.0002
-                c_lon = base_lon + ((plot_seed % 25) - 12) * 0.0002
-                poly_coords = [
-                    [c_lat - 0.0008, c_lon - 0.0010],
-                    [c_lat + 0.0010, c_lon - 0.0010],
-                    [c_lat + 0.0010, c_lon + 0.0010],
-                    [c_lat - 0.0008, c_lon + 0.0010]
-                ]
-
-            st.session_state.lat = c_lat
-            st.session_state.lon = c_lon
-
-            r5_c2.info(f"Verified Record: **Plot {st.session_state.c_plot}** | Khata: **{st.session_state.c_khata}** | Rayat: **{tenant_name}**")
-
-            # Adjacent plot boundaries for visual realism
-            adj_poly_1 = [
-                [c_lat - 0.0008, c_lon + 0.0012],
-                [c_lat + 0.0010, c_lon + 0.0012],
-                [c_lat + 0.0010, c_lon + 0.0028],
-                [c_lat - 0.0008, c_lon + 0.0028]
-            ]
-            adj_poly_2 = [
-                [c_lat + 0.0012, c_lon - 0.0010],
-                [c_lat + 0.0028, c_lon - 0.0010],
-                [c_lat + 0.0028, c_lon + 0.0010],
-                [c_lat + 0.0012, c_lon + 0.0010]
+            # Define parcel boundary polygon around the selected coordinates
+            poly_coords = [
+                [c_lat - 0.0008, c_lon - 0.0010],
+                [c_lat + 0.0010, c_lon - 0.0010],
+                [c_lat + 0.0010, c_lon + 0.0010],
+                [c_lat - 0.0008, c_lon + 0.0010]
             ]
 
-            # --- SATELLITE MAP (Zero API Key required) ---
+            # Satellite basemap (Zero API Key required)
             f_map = folium.Map(
                 location=[c_lat, c_lon],
                 zoom_start=18,
                 tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-                attr="Esri World Satellite (Free Cadastral Basemap)"
+                attr="Esri World Satellite"
             )
-            folium.TileLayer('OpenStreetMap', name="Land Parcel Overlay", opacity=0.35).add_to(f_map)
+            folium.TileLayer('OpenStreetMap', name="Street Overlay", opacity=0.35).add_to(f_map)
 
-            folium.Polygon(locations=adj_poly_1, color="#2E7D32", weight=2, fill=True, fill_color="#4CAF50", fill_opacity=0.3, tooltip="Adjacent Survey Plot").add_to(f_map)
-            folium.Polygon(locations=adj_poly_2, color="#2E7D32", weight=2, fill=True, fill_color="#4CAF50", fill_opacity=0.3, tooltip="Adjacent Survey Plot").add_to(f_map)
-
-            target_popup = f"""
-            <div style='font-family:Plus Jakarta Sans, sans-serif; font-size:12px; width:230px;'>
-                <b style='color:#1B5E20; font-size:14px;'>📍 Plot No: {st.session_state.c_plot}</b><br/>
-                <b>Tenant (ରୟତ):</b> {tenant_name}<br/>
-                <b>Khata No:</b> {st.session_state.c_khata}<br/>
-                <b>Kissam (କିସମ):</b> {kissam_type}<br/>
-                <b>Mauza:</b> {st.session_state.c_area}<br/>
-                <b>Tehsil:</b> {st.session_state.c_block}, {st.session_state.c_dist}<br/>
-                <b>Cadastral Area:</b> {surveyed_acre:.3f} Acres ({surveyed_acre * 40.0:.1f} Guntha)
-            </div>
-            """
+            # Draw parcel boundary polygon
             folium.Polygon(
                 locations=poly_coords,
                 color="#FFD700",
                 weight=4,
                 fill=True,
                 fill_color="#2E7D32",
-                fill_opacity=0.55,
-                tooltip=f"🌾 Targeted Plot: {st.session_state.c_plot} in {st.session_state.c_area}",
-                popup=folium.Popup(target_popup, max_width=260)
+                fill_opacity=0.45,
+                tooltip=f"🌾 {st.session_state.plot_name}",
+                popup=folium.Popup(f"<b>Field:</b> {st.session_state.plot_name}<br/><b>Coordinates:</b> {c_lat:.5f}, {c_lon:.5f}", max_width=250)
             ).add_to(f_map)
 
             folium.Marker(
                 [c_lat, c_lon],
-                tooltip=f"📍 Identified Plot #{st.session_state.c_plot}",
+                tooltip="Selected Field Location",
                 icon=folium.Icon(color="green", icon="leaf")
             ).add_to(f_map)
 
-            map_c1, map_c2 = st.columns([3, 2])
-            with map_c1:
-                st_folium(f_map, height=460, width="100%", returned_objects=[])
-
-            with map_c2:
-                st.markdown("#### 📐 Plot Dimensions & Cadastral Matrix")
-                st.markdown(f"**Verified Plot:** <span class='badge-pass'>Plot #{st.session_state.c_plot}</span> (Khata #{st.session_state.c_khata})", unsafe_allow_html=True)
-                st.write(f"👤 **Rayat / Tenant:** {tenant_name} ({tenant_rel})")
-                st.write(f"🌾 **Land Kissam:** {kissam_type}")
-                st.write(f"🗺️ **Hierarchy:** {st.session_state.c_village}, {st.session_state.c_area}, Tehsil: {st.session_state.c_block}, Dist: {st.session_state.c_dist}")
-                st.write(f"🛰️ **GPS Coordinates:** `{c_lat:.5f}° N, {c_lon:.5f}° E`")
-
-                units_df, p_acres, p_ha = compute_accurate_land_units(surveyed_acre)
-                st.table(units_df)
-
-                st.session_state.selected_plot = st.session_state.c_plot
-                st.session_state.raw_land_val = p_acres
-                st.session_state.land_unit = "Acre (एकड़ / ଏକର)"
-                st.session_state.land_area = p_ha
-                st.session_state.sel_soil = soil_texture if soil_texture in soil_encoder.classes_ else list(soil_encoder.classes_)[0]
-
-                if st.button("✅ Apply This Parcel to Input Optimizer"):
-                    st.success(f"Loaded Plot #{st.session_state.c_plot} ({p_acres:.2f} Acres / {p_acres * 40.0:.1f} Guntha) into chemical solver!")
+            st_folium(f_map, height=400, width="100%", returned_objects=[])
 
         with tab_camera:
             st.markdown("##### Live Soil / Leaf Scan")
@@ -1057,8 +804,7 @@ elif st.session_state.step == 7:
     st.markdown(f"""
     <div class="summary-card">
         <h2 style="color: #1B5E20; margin-top: 0;">🌾 Precision Fertilizer & Input Advisory Card</h2>
-        <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Survey Plot No:</strong> {st.session_state.get('selected_plot', 'Custom Plot')}</p>
-        <p><strong>Jurisdiction:</strong> {st.session_state.c_village}, {st.session_state.c_area}, GP: {st.session_state.c_panchayat}, Tehsil: {st.session_state.c_block}, Dist: {st.session_state.c_dist}, {st.session_state.c_state}</p>
+        <p><strong>Farmer Phone:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel:</strong> {st.session_state.plot_name}</p>
         <p><strong>Field Area:</strong> {st.session_state.raw_land_val:.2f} {st.session_state.land_unit} | <strong>Crop:</strong> {st.session_state.sel_crop}</p>
         <p><strong>GPS Coordinates:</strong> {st.session_state.lat:.4f}° N, {st.session_state.lon:.4f}° E</p>
         <hr style="border: 1px solid #A5D6A7;"/>
@@ -1073,7 +819,7 @@ elif st.session_state.step == 7:
     </div>
     """, unsafe_allow_html=True)
     
-    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nLocation: {st.session_state.c_village}, {st.session_state.c_block}, {st.session_state.c_dist}\nPlot No: {st.session_state.get('selected_plot', 'Custom')}\nLand: {st.session_state.raw_land_val:.2f} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
+    receipt_txt = f"PRESCRIPTION FOR +91 {st.session_state.user_mobile}\nParcel: {st.session_state.plot_name}\nLand: {st.session_state.raw_land_val:.2f} {st.session_state.land_unit}\nTotal Cost: Rs. {opt['total_cost']}\n"
     st.download_button("📥 Download Prescription Record", receipt_txt, file_name="Farmer_Prescription.txt")
 
     st.divider()
