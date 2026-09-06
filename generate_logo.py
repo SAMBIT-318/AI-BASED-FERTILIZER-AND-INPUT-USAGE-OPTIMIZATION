@@ -1,475 +1,815 @@
 import math
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
-def create_agriculture_logo(output_filename="smart_kishan_agriculture_logo.png"):
+# ============================================================
+# SMART KISHAN - PROFESSIONAL AGRICULTURE CERTIFICATION BADGE
+# ============================================================
 
-    # ============================================================
-    # 1. CANVAS
-    # ============================================================
-    size = 1000
-    img = Image.new("RGBA", (size, size), (250, 249, 240, 255))
-    draw = ImageDraw.Draw(img)
+def get_font(size, bold=True):
+    """
+    Try several common fonts.
+    """
+    fonts = [
+        "arialbd.ttf" if bold else "arial.ttf",
+        "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf",
+        "LiberationSans-Bold.ttf" if bold else "LiberationSans-Regular.ttf"
+    ]
 
-    cx, cy = 500, 500
-    outer_r = 390
+    for font in fonts:
+        try:
+            return ImageFont.truetype(font, size)
+        except:
+            pass
 
-    # ============================================================
-    # 2. OUTER GREEN CIRCULAR LOGO
-    # ============================================================
+    return ImageFont.load_default()
 
-    # Main circular border
-    draw.ellipse(
-        [
-            cx - outer_r,
-            cy - outer_r,
-            cx + outer_r,
-            cy + outer_r
-        ],
-        fill=(20, 105, 48, 255)
+
+def center_text(draw, text, y, font, fill):
+    """
+    Draw horizontally centered text.
+    """
+    box = draw.textbbox((0, 0), text, font=font)
+    width = box[2] - box[0]
+
+    draw.text(
+        ((1000 - width) / 2, y),
+        text,
+        font=font,
+        fill=fill
     )
 
-    # Inner white circular border
-    inner_r = 365
 
-    draw.ellipse(
-        [
-            cx - inner_r,
-            cy - inner_r,
-            cx + inner_r,
-            cy + inner_r
-        ],
-        fill=(255, 255, 255, 255)
-    )
+def draw_rotated_text(
+    base_img,
+    text,
+    center,
+    radius,
+    angle,
+    font,
+    fill
+):
+    """
+    Draw individual characters around a circular path.
+    """
 
-    # Inner landscape circle
-    landscape_r = 345
+    draw = ImageDraw.Draw(base_img)
 
-    draw.ellipse(
-        [
-            cx - landscape_r,
-            cy - landscape_r,
-            cx + landscape_r,
-            cy + landscape_r
-        ],
-        fill=(224, 242, 230, 255)
-    )
+    chars = list(text)
 
-    # ============================================================
-    # 3. SKY
-    # ============================================================
+    # Approximate angular spacing
+    spacing = 6
 
-    # Soft blue sky gradient
-    top_y = cy - landscape_r
-    bottom_y = 560
+    start_angle = angle - ((len(chars) - 1) * spacing / 2)
 
-    for y in range(top_y, bottom_y):
+    for i, char in enumerate(chars):
 
-        ratio = (y - top_y) / (bottom_y - top_y)
+        current_angle = start_angle + i * spacing
 
-        r = int(190 + (240 - 190) * ratio)
-        g = int(225 + (248 - 225) * ratio)
-        b = int(242 + (220 - 242) * ratio)
+        rad = math.radians(current_angle)
 
-        draw.line(
-            [(cx - landscape_r, y),
-             (cx + landscape_r, y)],
-            fill=(r, g, b, 255)
+        x = center[0] + radius * math.sin(rad)
+        y = center[1] - radius * math.cos(rad)
+
+        # Individual transparent layer
+        layer = Image.new("RGBA", (150, 150), (0, 0, 0, 0))
+        layer_draw = ImageDraw.Draw(layer)
+
+        bbox = layer_draw.textbbox(
+            (0, 0),
+            char,
+            font=font
         )
 
-    # ============================================================
-    # 4. CLOUDS
-    # ============================================================
+        w = bbox[2] - bbox[0]
+        h = bbox[3] - bbox[1]
 
-    cloud_color = (245, 249, 242, 220)
+        layer_draw.text(
+            (
+                75 - w / 2,
+                75 - h / 2
+            ),
+            char,
+            font=font,
+            fill=fill
+        )
 
-    draw.ellipse([190, 365, 290, 425], fill=cloud_color)
-    draw.ellipse([235, 340, 340, 425], fill=cloud_color)
-    draw.ellipse([300, 370, 390, 425], fill=cloud_color)
+        # Rotate character to follow circle
+        rotated = layer.rotate(
+            -current_angle,
+            resample=Image.Resampling.BICUBIC,
+            expand=False
+        )
 
-    draw.ellipse([700, 370, 790, 425], fill=cloud_color)
-    draw.ellipse([750, 345, 850, 425], fill=cloud_color)
-    draw.ellipse([810, 370, 890, 425], fill=cloud_color)
+        base_img.alpha_composite(
+            rotated,
+            (
+                int(x - 75),
+                int(y - 75)
+            )
+        )
 
-    # ============================================================
-    # 5. SUN
-    # ============================================================
+
+def create_smart_kishan_logo(
+    output_filename="smart_kishan_professional_badge.png"
+):
+
+    W = 1000
+    H = 1000
+
+    # ========================================================
+    # CANVAS
+    # ========================================================
+
+    img = Image.new(
+        "RGBA",
+        (W, H),
+        (250, 250, 247, 255)
+    )
+
+    draw = ImageDraw.Draw(img)
+
+    cx = 500
+    cy = 500
+
+    # ========================================================
+    # COLORS
+    # ========================================================
+
+    DARK_GREEN = (7, 79, 38, 255)
+    GREEN = (20, 115, 48, 255)
+    LIGHT_GREEN = (75, 170, 45, 255)
+
+    GOLD = (255, 205, 30, 255)
+    YELLOW = (255, 185, 20, 255)
+
+    WHITE = (255, 255, 255, 255)
+
+    SKY = (190, 225, 242, 255)
+
+    FIELD = (82, 165, 48, 255)
+
+    # ========================================================
+    # 1. OUTER GOLD SHADOW
+    # ========================================================
+
+    draw.ellipse(
+        [
+            cx - 410,
+            cy - 410,
+            cx + 410,
+            cy + 410
+        ],
+        fill=(180, 145, 20, 80)
+    )
+
+    # ========================================================
+    # 2. MAIN DARK GREEN BADGE
+    # ========================================================
+
+    draw.ellipse(
+        [
+            cx - 395,
+            cy - 395,
+            cx + 395,
+            cy + 395
+        ],
+        fill=DARK_GREEN
+    )
+
+    # ========================================================
+    # 3. GOLD OUTER BORDER
+    # ========================================================
+
+    draw.ellipse(
+        [
+            cx - 375,
+            cy - 375,
+            cx + 375,
+            cy + 375
+        ],
+        outline=GOLD,
+        width=10
+    )
+
+    # ========================================================
+    # 4. WHITE INNER BORDER
+    # ========================================================
+
+    draw.ellipse(
+        [
+            cx - 345,
+            cy - 345,
+            cx + 345,
+            cy + 345
+        ],
+        outline=WHITE,
+        width=12
+    )
+
+    # ========================================================
+    # 5. AGRICULTURAL LANDSCAPE
+    # ========================================================
+
+    # Landscape circle
+    draw.ellipse(
+        [
+            cx - 325,
+            cy - 325,
+            cx + 325,
+            cy + 325
+        ],
+        fill=SKY
+    )
+
+    # ========================================================
+    # CLOUDS
+    # ========================================================
+
+    cloud = (245, 249, 240, 255)
+
+    clouds = [
+        (250, 330, 340, 385),
+        (300, 305, 400, 385),
+        (360, 335, 440, 385),
+
+        (650, 330, 735, 385),
+        (700, 305, 805, 385),
+        (770, 335, 850, 385)
+    ]
+
+    for box in clouds:
+        draw.ellipse(box, fill=cloud)
+
+    # ========================================================
+    # 6. SUN
+    # ========================================================
 
     sun_x = 500
-    sun_y = 475
-    sun_r = 82
+    sun_y = 430
+    sun_radius = 75
 
     # Sun rays
     for angle in range(0, 360, 30):
 
         rad = math.radians(angle)
 
-        x1 = sun_x + math.cos(rad) * 105
-        y1 = sun_y + math.sin(rad) * 105
+        x1 = sun_x + math.cos(rad) * 95
+        y1 = sun_y + math.sin(rad) * 95
 
-        x2 = sun_x + math.cos(rad) * 145
-        y2 = sun_y + math.sin(rad) * 145
+        x2 = sun_x + math.cos(rad) * 135
+        y2 = sun_y + math.sin(rad) * 135
 
         draw.line(
             [(x1, y1), (x2, y2)],
-            fill=(245, 173, 20, 255),
-            width=12
+            fill=YELLOW,
+            width=10
         )
 
-    # Sun
     draw.ellipse(
         [
-            sun_x - sun_r,
-            sun_y - sun_r,
-            sun_x + sun_r,
-            sun_y + sun_r
+            sun_x - sun_radius,
+            sun_y - sun_radius,
+            sun_x + sun_radius,
+            sun_y + sun_radius
         ],
-        fill=(255, 190, 25, 255)
+        fill=(255, 193, 30, 255)
     )
 
-    # ============================================================
-    # 6. DISTANT GREEN HILLS
-    # ============================================================
+    # ========================================================
+    # 7. BACK HILLS
+    # ========================================================
 
-    # Back hill
     draw.polygon(
         [
-            (155, 560),
-            (270, 510),
-            (375, 540),
-            (500, 485),
-            (625, 535),
-            (750, 495),
-            (860, 550),
-            (860, 650),
-            (155, 650)
+            (175, 520),
+            (290, 460),
+            (390, 500),
+            (500, 445),
+            (610, 500),
+            (720, 455),
+            (825, 510),
+            (825, 610),
+            (175, 610)
         ],
-        fill=(122, 190, 105, 255)
+        fill=(125, 195, 105, 255)
     )
 
     # Front hill
     draw.polygon(
         [
-            (155, 585),
-            (300, 545),
-            (420, 580),
-            (560, 525),
-            (690, 565),
-            (860, 535),
-            (860, 680),
-            (155, 680)
+            (175, 545),
+            (300, 495),
+            (430, 535),
+            (560, 480),
+            (680, 530),
+            (825, 495),
+            (825, 620),
+            (175, 620)
         ],
-        fill=(61, 145, 65, 255)
+        fill=(60, 145, 65, 255)
     )
 
-    # ============================================================
-    # 7. TREES
-    # ============================================================
+    # ========================================================
+    # 8. TREES
+    # ========================================================
 
-    def draw_tree(x, y, scale=1):
+    def tree(x, y, scale=1):
 
-        trunk_w = int(14 * scale)
-        trunk_h = int(55 * scale)
+        trunk_color = (75, 85, 45, 255)
+        leaf_color = (35, 125, 55, 255)
 
         draw.rectangle(
             [
-                x - trunk_w // 2,
+                x - int(7 * scale),
                 y,
-                x + trunk_w // 2,
-                y + trunk_h
+                x + int(7 * scale),
+                y + int(60 * scale)
             ],
-            fill=(74, 87, 45, 255)
+            fill=trunk_color
         )
 
-        # Tree crown
         draw.ellipse(
             [
-                x - 35 * scale,
-                y - 80 * scale,
-                x + 35 * scale,
-                y + 10 * scale
+                x - int(35 * scale),
+                y - int(80 * scale),
+                x + int(35 * scale),
+                y + int(10 * scale)
             ],
-            fill=(38, 126, 55, 255)
+            fill=leaf_color
         )
 
-    draw_tree(710, 505, 1.0)
-    draw_tree(770, 520, 1.15)
-    draw_tree(830, 500, 0.9)
+    tree(700, 480, 0.9)
+    tree(760, 490, 1.1)
+    tree(820, 475, 0.85)
 
-    # ============================================================
-    # 8. AGRICULTURAL FIELD
-    # ============================================================
-
-    field_top = 610
-    field_bottom = 850
+    # ========================================================
+    # 9. AGRICULTURAL FIELD
+    # ========================================================
 
     draw.polygon(
         [
-            (155, field_top),
-            (860, field_top),
-            (930, field_bottom),
-            (80, field_bottom)
+            (175, 575),
+            (825, 575),
+            (880, 760),
+            (120, 760)
         ],
-        fill=(94, 173, 45, 255)
+        fill=FIELD
     )
 
     # Field rows
-    row_color = (238, 249, 224, 255)
-
-    rows = [
-        [(230, 610), (430, 850)],
-        [(330, 610), (490, 850)],
-        [(430, 610), (550, 850)],
-        [(530, 610), (620, 850)],
-        [(630, 610), (690, 850)],
-        [(730, 610), (760, 850)],
-        [(820, 610), (830, 850)]
-    ]
-
-    for start, end in rows:
+    for x in range(220, 850, 80):
 
         draw.line(
-            [start, end],
-            fill=row_color,
-            width=10
+            [
+                (x, 580),
+                (500 + (x - 500) * 1.3, 760)
+            ],
+            fill=(235, 247, 215, 255),
+            width=9
         )
 
-    # ============================================================
-    # 9. TRACTOR
-    # ============================================================
+    # ========================================================
+    # 10. TRACTOR
+    # ========================================================
 
-    tractor_green = (18, 103, 53, 255)
-    tractor_dark = (12, 74, 39, 255)
-    tractor_white = (245, 245, 235, 255)
+    tractor_green = (12, 102, 52, 255)
+    tractor_dark = (8, 70, 37, 255)
 
-    # Tractor body
+    # Body
     draw.rounded_rectangle(
-        [290, 545, 430, 625],
+        [285, 515, 435, 600],
         radius=12,
         fill=tractor_green
     )
 
-    # Tractor bonnet
+    # Bonnet
     draw.rectangle(
-        [395, 565, 470, 615],
+        [415, 535, 485, 585],
         fill=tractor_green
     )
 
-    # Tractor cabin frame
+    # Cabin
     draw.line(
-        [(305, 550), (305, 490)],
+        [(305, 520), (305, 460)],
         fill=tractor_dark,
         width=12
     )
 
     draw.line(
-        [(305, 490), (380, 490)],
+        [(305, 460), (375, 460)],
         fill=tractor_dark,
         width=12
     )
 
     draw.line(
-        [(380, 490), (395, 555)],
+        [(375, 460), (395, 520)],
         fill=tractor_dark,
         width=12
     )
 
     # Cabin roof
     draw.rectangle(
-        [292, 480, 390, 500],
+        [295, 450, 385, 470],
         fill=tractor_green
     )
 
     # Cabin glass
     draw.polygon(
         [
-            (320, 505),
-            (365, 505),
-            (378, 550),
-            (320, 550)
+            (320, 475),
+            (365, 475),
+            (380, 515),
+            (320, 515)
         ],
-        fill=(210, 235, 220, 255)
+        fill=(205, 230, 220, 255)
     )
 
     # Rear wheel
     draw.ellipse(
-        [270, 575, 345, 650],
+        [260, 550, 340, 630],
         fill=tractor_dark
     )
 
     draw.ellipse(
-        [288, 593, 327, 632],
-        fill=tractor_white
-    )
-
-    draw.ellipse(
-        [299, 604, 316, 621],
-        fill=tractor_dark
+        [280, 570, 320, 610],
+        fill=WHITE
     )
 
     # Front wheel
     draw.ellipse(
-        [415, 585, 465, 635],
+        [425, 555, 475, 605],
         fill=tractor_dark
     )
 
     draw.ellipse(
-        [428, 598, 452, 622],
-        fill=tractor_white
+        [438, 568, 462, 592],
+        fill=WHITE
     )
 
-    # Exhaust pipe
+    # Exhaust
     draw.rectangle(
-        [445, 515, 455, 565],
+        [455, 480, 465, 535],
         fill=tractor_dark
     )
 
-    draw.rectangle(
-        [440, 510, 460, 520],
-        fill=tractor_dark
-    )
+    # ========================================================
+    # 11. LARGE LEAF CANOPY
+    # ========================================================
 
-    # ============================================================
-    # 10. FOREGROUND LEAVES
-    # ============================================================
-
-    leaf_dark = (12, 91, 43, 255)
-    leaf_green = (65, 153, 38, 255)
-
-    # Left large leaf
+    # Main upper leaf
     draw.polygon(
         [
-            (500, 920),
-            (410, 820),
-            (300, 780),
-            (355, 860),
-            (450, 915)
+            (235, 300),
+            (330, 205),
+            (475, 155),
+            (650, 175),
+            (550, 235),
+            (420, 285),
+            (300, 305)
         ],
-        fill=leaf_dark
+        fill=(18, 115, 48, 255)
     )
 
-    # Left leaf vein
+    # Leaf vein
     draw.line(
-        [(500, 920), (350, 810)],
-        fill=(225, 242, 205, 255),
-        width=8
+        [
+            (255, 285),
+            (390, 220),
+            (550, 180)
+        ],
+        fill=WHITE,
+        width=9
     )
 
-    # Right large leaf
+    # Second leaf
     draw.polygon(
         [
-            (500, 920),
-            (590, 815),
-            (700, 765),
-            (650, 850),
-            (555, 910)
+            (540, 235),
+            (650, 180),
+            (775, 235),
+            (690, 295),
+            (580, 305)
         ],
-        fill=leaf_green
+        fill=(75, 165, 42, 255)
     )
 
-    # Right leaf vein
+    # ========================================================
+    # 12. TOP "GOVT COMPLIANT"
+    # ========================================================
+
+    top_font = get_font(42, True)
+
+    # Use curved text
+    draw_rotated_text(
+        img,
+        "GOVT COMPLIANT",
+        (500, 500),
+        340,
+        0,
+        top_font,
+        WHITE
+    )
+
+    # ========================================================
+    # 13. SMALL LEAF ICONS
+    # ========================================================
+
+    def small_leaf(x, y, flip=False):
+
+        if not flip:
+
+            draw.polygon(
+                [
+                    (x, y + 40),
+                    (x - 25, y),
+                    (x + 5, y - 30),
+                    (x + 25, y + 10)
+                ],
+                fill=(120, 205, 35, 255)
+            )
+
+        else:
+
+            draw.polygon(
+                [
+                    (x, y + 40),
+                    (x + 25, y),
+                    (x - 5, y - 30),
+                    (x - 25, y + 10)
+                ],
+                fill=(120, 205, 35, 255)
+            )
+
+    small_leaf(220, 285)
+    small_leaf(780, 285, True)
+
+    # ========================================================
+    # 14. SMART KISHAN RIBBON
+    # ========================================================
+
+    ribbon_y1 = 555
+    ribbon_y2 = 735
+
+    # Ribbon shadow
+    draw.polygon(
+        [
+            (40, 620),
+            (110, 580),
+            (890, 580),
+            (960, 620),
+            (925, 735),
+            (75, 735)
+        ],
+        fill=(5, 65, 32, 255)
+    )
+
+    # Main ribbon
+    draw.polygon(
+        [
+            (70, 585),
+            (140, 550),
+            (860, 550),
+            (930, 585),
+            (900, 710),
+            (100, 710)
+        ],
+        fill=DARK_GREEN
+    )
+
+    # Gold ribbon border
     draw.line(
-        [(500, 920), (665, 800)],
-        fill=(225, 242, 205, 255),
-        width=8
+        [
+            (70, 585),
+            (140, 550),
+            (860, 550),
+            (930, 585)
+        ],
+        fill=GOLD,
+        width=10
+    )
+
+    draw.line(
+        [
+            (100, 710),
+            (900, 710)
+        ],
+        fill=GOLD,
+        width=10
+    )
+
+    # Ribbon side tails
+    draw.polygon(
+        [
+            (70, 600),
+            (30, 625),
+            (75, 700),
+            (110, 690)
+        ],
+        fill=GREEN
+    )
+
+    draw.polygon(
+        [
+            (930, 600),
+            (970, 625),
+            (925, 700),
+            (890, 690)
+        ],
+        fill=GREEN
+    )
+
+    # ========================================================
+    # 15. SMART KISHAN TEXT
+    # ========================================================
+
+    smart_font = get_font(76, True)
+
+    smart_text = "SMART"
+    kishan_text = "KISHAN"
+
+    # Measure
+    smart_box = draw.textbbox(
+        (0, 0),
+        smart_text,
+        font=smart_font
+    )
+
+    kishan_box = draw.textbbox(
+        (0, 0),
+        kishan_text,
+        font=smart_font
+    )
+
+    smart_w = smart_box[2] - smart_box[0]
+    kishan_w = kishan_box[2] - kishan_box[0]
+
+    total_w = smart_w + kishan_w + 25
+
+    start_x = (1000 - total_w) / 2
+
+    # SMART
+    draw.text(
+        (start_x, 585),
+        smart_text,
+        font=smart_font,
+        fill=WHITE,
+        stroke_width=2,
+        stroke_fill=(0, 60, 30, 255)
+    )
+
+    # KISHAN
+    draw.text(
+        (start_x + smart_w + 25, 585),
+        kishan_text,
+        font=smart_font,
+        fill=GOLD,
+        stroke_width=2,
+        stroke_fill=(0, 60, 30, 255)
+    )
+
+    # ========================================================
+    # 16. 4R CERTIFIED SECTION
+    # ========================================================
+
+    # Rounded certification box
+    draw.rounded_rectangle(
+        [265, 760, 735, 850],
+        radius=35,
+        fill=DARK_GREEN,
+        outline=GOLD,
+        width=6
+    )
+
+    cert_font = get_font(43, True)
+
+    cert_text = "4R CERTIFIED"
+
+    cert_box = draw.textbbox(
+        (0, 0),
+        cert_text,
+        font=cert_font
+    )
+
+    cert_w = cert_box[2] - cert_box[0]
+
+    draw.text(
+        ((1000 - cert_w) / 2, 780),
+        cert_text,
+        font=cert_font,
+        fill=WHITE
+    )
+
+    # ========================================================
+    # 17. STARS
+    # ========================================================
+
+    def star(cx, cy, outer, inner, color):
+
+        points = []
+
+        for i in range(10):
+
+            angle = math.radians(-90 + i * 36)
+
+            r = outer if i % 2 == 0 else inner
+
+            points.append(
+                (
+                    cx + math.cos(angle) * r,
+                    cy + math.sin(angle) * r
+                )
+            )
+
+        draw.polygon(
+            points,
+            fill=color
+        )
+
+    star(225, 805, 25, 10, GOLD)
+    star(775, 805, 25, 10, GOLD)
+
+    # ========================================================
+    # 18. BOTTOM LEAF ICON
+    # ========================================================
+
+    draw.polygon(
+        [
+            (500, 930),
+            (455, 875),
+            (465, 835),
+            (500, 875)
+        ],
+        fill=(110, 195, 35, 255)
+    )
+
+    draw.polygon(
+        [
+            (500, 930),
+            (545, 875),
+            (535, 835),
+            (500, 875)
+        ],
+        fill=(110, 195, 35, 255)
     )
 
     # Central stem
     draw.line(
-        [(500, 925), (500, 780)],
-        fill=leaf_dark,
-        width=12
+        [(500, 935), (500, 855)],
+        fill=(80, 150, 30, 255),
+        width=7
     )
 
-    # ============================================================
-    # 11. TOP LEAF / CROWN
-    # ============================================================
-
-    top_leaf_dark = (16, 104, 48, 255)
-    top_leaf_light = (71, 155, 35, 255)
-
-    # Large top leaf
-    draw.polygon(
-        [
-            (250, 300),
-            (350, 185),
-            (515, 135),
-            (680, 160),
-            (570, 235),
-            (430, 290),
-            (310, 310)
-        ],
-        fill=top_leaf_dark
-    )
-
-    # Leaf highlight
-    draw.line(
-        [(275, 285), (410, 220), (560, 175)],
-        fill=(245, 250, 235, 255),
-        width=12
-    )
-
-    # Right upper leaf
-    draw.polygon(
-        [
-            (550, 240),
-            (670, 190),
-            (780, 245),
-            (690, 300),
-            (590, 310)
-        ],
-        fill=top_leaf_light
-    )
-
-    # ============================================================
-    # 12. WHITE LOGO SEPARATION LINES
-    # ============================================================
-
-    # Curved-style separation between landscape and leaves
-    draw.arc(
-        [180, 470, 820, 800],
-        start=180,
-        end=360,
-        fill=(255, 255, 255, 255),
-        width=10
-    )
-
-    # ============================================================
-    # 13. CLEAN OUTER RING
-    # ============================================================
+    # ========================================================
+    # 19. FINAL OUTER RING
+    # ========================================================
 
     draw.ellipse(
         [
-            cx - outer_r,
-            cy - outer_r,
-            cx + outer_r,
-            cy + outer_r
+            cx - 395,
+            cy - 395,
+            cx + 395,
+            cy + 395
         ],
-        outline=(10, 75, 38, 255),
-        width=12
+        outline=DARK_GREEN,
+        width=14
     )
 
-    # ============================================================
-    # 14. SAVE HIGH-QUALITY PNG
-    # ============================================================
+    draw.ellipse(
+        [
+            cx - 380,
+            cy - 380,
+            cx + 380,
+            cy + 380
+        ],
+        outline=GOLD,
+        width=5
+    )
+
+    # ========================================================
+    # 20. SAVE
+    # ========================================================
 
     img.save(
         output_filename,
-        format="PNG",
+        "PNG",
         optimize=True
     )
 
-    print(
-        f"Agricultural logo successfully generated: "
-        f"{output_filename}"
-    )
+    print("==========================================")
+    print(" SMART KISHAN LOGO GENERATED SUCCESSFULLY")
+    print("==========================================")
+    print(f"File: {output_filename}")
+    print("Resolution: 1000 x 1000")
+    print("Format: PNG")
 
 
-# ================================================================
-# RUN PROGRAM
-# ================================================================
+# ============================================================
+# MAIN
+# ============================================================
 
 if __name__ == "__main__":
-    create_agriculture_logo(
-        "smart_kishan_agriculture_logo.png"
+
+    create_smart_kishan_logo(
+        "smart_kishan_professional_badge.png"
     )
