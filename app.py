@@ -2053,28 +2053,60 @@ elif st.session_state.step == 8:
     if os.path.exists(LOGO_FILE_EXACT):
         st.image(LOGO_FILE_EXACT, width=150)
     st.subheader(T["feedback_title"])
-    st.write("Please tap the stars below to rate your advisory experience before exiting:")
+    st.write("Please rate your advisory experience before exiting:")
+
+    # Embedded custom green star rating HTML widget
+    st.components.v1.html("""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {
+                font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+                background-color: transparent;
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .stars {
+                display: flex;
+                flex-direction: row-reverse;
+                justify-content: center;
+                gap: 8px;
+            }
+            .stars input {
+                display: none;
+            }
+            .stars label {
+                font-size: 42px;
+                color: #ccc;
+                cursor: pointer;
+                transition: color 0.2s ease;
+            }
+            .stars input:checked ~ label,
+            .stars input:checked ~ label ~ label,
+            .stars label:hover,
+            .stars label:hover ~ label {
+                color: #39FF88; /* High-contrast vibrant green */
+            }
+        </style>
+    </head>
+    <body>
+        <div class="stars">
+            <input type="radio" id="star5" name="rating" value="5"><label for="star5">&#9733;</label>
+            <input type="radio" id="star4" name="rating" value="4"><label for="star4">&#9733;</label>
+            <input type="radio" id="star3" name="rating" value="3"><label for="star3">&#9733;</label>
+            <input type="radio" id="star2" name="rating" value="2"><label for="star2">&#9733;</label>
+            <input type="radio" id="star1" name="rating" value="1"><label for="star1">&#9733;</label>
+        </div>
+    </body>
+    </html>
+    """, height=70)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="star-container">', unsafe_allow_html=True)
-    star_cols = st.columns(5)
-    
-    if "star_selection" not in st.session_state:
-        st.session_state.star_selection = 5
-
-    for i in range(1, 6):
-        with star_cols[i-1]:
-            star_symbol = "★" if i <= st.session_state.star_selection else "☆"
-            
-            if st.button(f"{star_symbol}", key=f"borderless_star_{i}", use_container_width=True):
-                st.session_state.star_selection = i
-                st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown(f"<h3 style='text-align: center; color: #39FF88;'>★ {st.session_state.star_selection} / 5 Stars Rated ★</h3>", unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your feedback here...")
+    feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
 
     b_fb_back, b_fb_sub = st.columns([1, 5])
     if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
@@ -2085,8 +2117,8 @@ elif st.session_state.step == 8:
         if not feedback_comments.strip():
             st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
-            save_feedback(st.session_state.user_mobile, st.session_state.star_selection, feedback_comments)
-            st.success("✅ Thank you! Your star rating and feedback have been recorded safely. Exit session...")
+            save_feedback(st.session_state.user_mobile, 5, feedback_comments)
+            st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
             
             st.session_state.logged_in = False
             st.session_state.user_mobile = ""
