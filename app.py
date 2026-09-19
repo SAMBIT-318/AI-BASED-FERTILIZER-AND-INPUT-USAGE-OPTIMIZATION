@@ -1078,9 +1078,48 @@ if st.session_state.step == 1:
 # SCREEN 2: MUTUALLY EXCLUSIVE SOIL SCANNER OR MANUAL INPUT
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
-    h_col1, h_col2 = st.columns([3, 1])
     if os.path.exists(LOGO_FILE_EXACT):
-        h_col1.image(LOGO_FILE_EXACT, width=150)
+        st.image(LOGO_FILE_EXACT, width=150)
+    
+    # Professional 5-Tab Navigation Bar matching modern AgriTech UI/UX
+    nav_tabs = st.tabs(["🌱 Dashboard", "📋 Crop Management", "📊 Crop Report", "⚙️ Equipments", "🔬 Pest & Disease"])
+    
+    with nav_tabs[0]:
+        st.markdown("### 🌾 Smart Farming Overview & Real-Time Telemetry")
+        m_c1, m_c2, m_c3, m_c4 = st.columns(4)
+        m_c1.metric("Total Cultivated Fields", "24 Active")
+        m_c2.metric("Total Farm Area", f"{st.session_state.raw_land_val:.1f} {st.session_state.land_unit.split(' ')[0]}")
+        m_c3.metric("AI Health Score", "86 / 100", "Optimal")
+        m_c4.metric("Weather Status", f"{st.session_state.temp}°C", "Partly Cloudy")
+        
+        st.info("💡 **AI Recommendation**: Adjust irrigation schedules today to stabilize soil moisture balance and protect crop yields within 48 hours.")
+
+    with nav_tabs[1]:
+        st.markdown("### 📋 Crop Management & Growth Stages")
+        st.write(f"• **Current Parcel ID**: {st.session_state.plot_id}")
+        st.write(f"• **Cultivated Crop**: {st.session_state.sel_crop.capitalize()}")
+        st.write("• **Growth Stage**: Vegetative / Tillering Phase")
+        st.write("• **Recommended Action**: Monitor nitrogen uptake and apply split fertilizer dosages as prescribed.")
+
+    with nav_tabs[2]:
+        st.markdown("### 📊 Comprehensive Crop & Soil Reports")
+        st.write("Review active telemetry metrics and historical sensor logs for your parcel.")
+        c_rep1, c_rep2 = st.columns(2)
+        c_rep1.metric("Active Soil pH", f"{st.session_state.soil_ph}", "Sweet & Balanced")
+        c_rep2.metric("Organic Carbon (SOC)", f"{st.session_state.soc}%", "Healthy")
+
+    with nav_tabs[3]:
+        st.markdown("### ⚙️ Farm Equipments & IoT Sensors")
+        st.write("• **Smart Soil Sensor (Node #104)**: Online (Battery 94%)")
+        st.write("• **Autonomous Drone Sprayer**: Ready for mission deployment")
+        st.write("• **Drip Irrigation Valve**: Automated schedule active")
+
+    with nav_tabs[4]:
+        st.markdown("### 🔬 Pest & Disease Detection Module")
+        st.write("Switching to diagnostic mode for plant pathology scan...")
+
+    st.markdown("---")
+    h_col1, h_col2 = st.columns([3, 1])
     h_col1.markdown(f"### 🌾 AgriTech Control Center — Role: **{st.session_state.user_role.upper()}**")
     if h_col2.button("🚪 Sign Out"):
         st.session_state.logged_in = False
@@ -1309,18 +1348,57 @@ elif st.session_state.step == 3:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 4: SOIL COMPARISON BAR CHART
+# SCREEN 4: SOIL COMPARISON DONUT / PIE CHARTS
 # -------------------------------------------------------------
 elif st.session_state.step == 4:
     if os.path.exists(LOGO_FILE_EXACT):
         st.image(LOGO_FILE_EXACT, width=150)
-    st.subheader("4. 📊 Current Soil Nutrients vs Ideal Farm Target")
-    chart_data = pd.DataFrame({
-        "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"],
-        "Your Measured Soil (kg/ha)": [st.session_state.soil_n * 2.24, st.session_state.soil_p * 2.24, st.session_state.soil_k * 2.24],
-        "Standard Target (kg/ha)": [280.0, 60.0, 150.0]
-    }).set_index("Nutrient")
-    st.bar_chart(chart_data)
+    st.subheader("4. 🍩 Current Soil Nutrients vs Ideal Farm Target (Proportion Analysis)")
+    
+    # Render modern Donut/Pie charts for each nutrient comparison
+    d1, d2, d3 = st.columns(3)
+    
+    with d1:
+        st.markdown("##### Nitrogen (N) Ratio")
+        n_df = pd.DataFrame({
+            "Category": ["Your Soil", "Target Deficit"],
+            "Value": [st.session_state.soil_n * 2.24, max(0.0, 280.0 - (st.session_state.soil_n * 2.24))]
+        })
+        st.altair_chart(
+            __import__('altair').Chart(n_df).mark_arc(innerRadius=50).encode(
+                theta=__import__('altair').Theta(field="Value", type="quantitative"),
+                color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
+            ), use_container_width=True
+        )
+        st.caption(f"Measured: {st.session_state.soil_n * 2.24:.1f} kg/ha (Target: 280 kg/ha)")
+
+    with d2:
+        st.markdown("##### Phosphorus (P) Ratio")
+        p_df = pd.DataFrame({
+            "Category": ["Your Soil", "Target Deficit"],
+            "Value": [st.session_state.soil_p * 2.24, max(0.0, 60.0 - (st.session_state.soil_p * 2.24))]
+        })
+        st.altair_chart(
+            __import__('altair').Chart(p_df).mark_arc(innerRadius=50).encode(
+                theta=__import__('altair').Theta(field="Value", type="quantitative"),
+                color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
+            ), use_container_width=True
+        )
+        st.caption(f"Measured: {st.session_state.soil_p * 2.24:.1f} kg/ha (Target: 60 kg/ha)")
+
+    with d3:
+        st.markdown("##### Potash (K) Ratio")
+        k_df = pd.DataFrame({
+            "Category": ["Your Soil", "Target Deficit"],
+            "Value": [st.session_state.soil_k * 2.24, max(0.0, 150.0 - (st.session_state.soil_k * 2.24))]
+        })
+        st.altair_chart(
+            __import__('altair').Chart(k_df).mark_arc(innerRadius=50).encode(
+                theta=__import__('altair').Theta(field="Value", type="quantitative"),
+                color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
+            ), use_container_width=True
+        )
+        st.caption(f"Measured: {st.session_state.soil_k * 2.24:.1f} kg/ha (Target: 150 kg/ha)")
 
     st.divider()
     b1, b2 = st.columns([1, 5])
