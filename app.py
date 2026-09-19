@@ -236,19 +236,6 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
-    .glass-login-card {{
-        position: relative;
-        z-index: 10;
-        background: rgba(11, 61, 46, 0.94) !important;
-        backdrop-filter: blur(18px) !important;
-        -webkit-backdrop-filter: blur(18px) !important;
-        border: 1px solid rgba(57, 255, 136, 0.6) !important;
-        border-radius: 20px !important;
-        padding: 32px !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important;
-        width: 100% !important;
-    }}
-
     .farmer-hero {{
         background: rgba(11, 61, 46, 0.90);
         border-radius: 18px;
@@ -1854,7 +1841,20 @@ elif st.session_state.step == 4:
 # -------------------------------------------------------------
 elif st.session_state.step == 5:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+    col_logo, col_title = st.columns([1, 4], vertical_alignment="center")
+    with col_logo:
+        st.image(LOGO_FILE_EXACT, width=120)
+    with col_title:
+        st.markdown("""
+            <div style="display: flex; flex-direction: column; justify-content: center;">
+                <h2 style="margin: 0; padding: 0; color: #39FF88; font-weight: 800; font-size: 26px; letter-spacing: 0.5px;">
+                    SMART KISHAN
+                </h2>
+                <p style="margin: 0; padding-top: 4px; color: #FFFFFF; font-size: 15px; font-weight: 600; opacity: 0.9;">
+                    AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
     st.subheader("5. ⚠️ Required Nutrient Deficit & Dynamic Crop Recommendation")
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
