@@ -1,5 +1,6 @@
 import io
 import os
+import base64
 import urllib.parse
 import urllib.request
 import joblib
@@ -182,174 +183,256 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-st.markdown("""
+
+
+# -------------------------------------------------------------
+# HERO BACKGROUND AS BASE64 FOR RELIABLE LOCAL RENDERING
+# -------------------------------------------------------------
+HERO_BG_FILE = "agritech_hero_bg.jpg"
+HERO_BG_DATA = ""
+if os.path.exists(HERO_BG_FILE):
+    try:
+        with open(HERO_BG_FILE, "rb") as f:
+            HERO_BG_DATA = base64.b64encode(f.read()).decode("utf-8")
+    except Exception:
+        HERO_BG_DATA = ""
+
+st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-    html, body, [class*="css"], .stApp {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        color: #FFFFFF !important;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-    /* Cinematic background image across the entire website using agritech_hero_bg.jpg with smooth Dark-to-Light Green Gradient */
-    .stApp {
-        background: linear-gradient(135deg, rgba(6, 30, 22, 0.90) 0%, rgba(14, 75, 48, 0.82) 50%, rgba(110, 235, 175, 0.35) 100%), url('agritech_hero_bg.jpg') !important;
-        background-size: cover !important;
-        background-position: center !important;
-        background-attachment: fixed !important;
-    }
+:root {{
+    --green-dark: #06251d;
+    --green-main: #0b3d2e;
+    --green-light: #39ff88;
+    --green-soft: #a7f3d0;
+}}
 
-    .login-brand-side {
-        position: relative;
-        z-index: 10;
-        max-width: 550px;
-        color: #FFFFFF;
-        padding-top: 40px;
-    }
-    .login-brand-side h1 {
-        font-size: 42px;
-        font-weight: 800;
-        color: #39FF88;
-        margin-bottom: 12px;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-    }
-    .login-brand-side p {
-        font-size: 16px;
-        color: #FFFFFF;
-        line-height: 1.6;
-        text-shadow: 0 1px 6px rgba(0,0,0,0.8);
-        font-weight: 500;
-    }
+html, body, [class*="css"], .stApp {{
+    font-family: 'Inter', sans-serif !important;
+    color: #ffffff !important;
+}}
 
-    /* Glassmorphism Popup Card on Right Side */
-    .glass-login-card {
-        position: relative;
-        z-index: 10;
-        background: rgba(11, 61, 46, 0.92) !important;
-        backdrop-filter: blur(18px) !important;
-        -webkit-backdrop-filter: blur(18px) !important;
-        border: 1px solid rgba(57, 255, 136, 0.6) !important;
-        border-radius: 20px !important;
-        padding: 32px !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important;
-        width: 100% !important;
-    }
+.stApp {{
+    min-height: 100vh !important;
+    background-image:
+        linear-gradient(90deg, rgba(3,22,17,.94) 0%, rgba(4,35,26,.78) 42%, rgba(4,35,26,.66) 68%, rgba(2,20,15,.88) 100%),
+        url("data:image/jpeg;base64,{HERO_BG_DATA}") !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+}}
 
-    .farmer-hero {
-        background: rgba(11, 61, 46, 0.90);
-        border-radius: 18px;
-        padding: 18px 24px;
-        color: #FFFFFF !important;
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6);
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 1px solid rgba(57, 255, 136, 0.5);
-    }
-    .hero-text h1 {
-        font-size: 25px !important;
-        font-weight: 800 !important;
-        color: #39FF88 !important;
-        margin: 0 !important;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-    }
-    .hero-text p {
-        font-size: 13.5px !important;
-        color: #FFFFFF !important;
-        margin: 3px 0 0 0 !important;
-        font-weight: 600;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-    }
+.block-container {{
+    max-width: 1500px !important;
+    padding-top: 1.5rem !important;
+    padding-bottom: 1rem !important;
+}}
 
-    .metric-card {
-        background: rgba(11, 61, 46, 0.90) !important;
-        border-radius: 14px !important;
-        padding: 16px 18px !important;
-        border-left: 6px solid #39FF88 !important;
-        border-top: 1px solid rgba(57, 255, 136, 0.3) !important;
-        border-right: 1px solid rgba(57, 255, 136, 0.3) !important;
-        border-bottom: 1px solid rgba(57, 255, 136, 0.3) !important;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important;
-        margin-bottom: 12px;
-        color: #FFFFFF !important;
-    }
+/* LOGIN BRAND */
+.login-brand-side {{
+    position: relative;
+    z-index: 10;
+    max-width: 620px;
+    padding: 12px 10px 20px 10px;
+}}
 
-    .summary-card {
-        background: rgba(11, 61, 46, 0.92) !important;
-        border: 2px solid #39FF88 !important;
-        padding: 24px !important;
-        border-radius: 16px !important;
-        margin-bottom: 20px !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
-        color: #FFFFFF !important;
-    }
+.login-brand-side h1 {{
+    font-size: 48px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    color: #ffffff !important;
+    margin: 8px 0 14px 0;
+    text-shadow: 0 4px 22px rgba(0,0,0,.75);
+}}
 
-    div.stButton > button, div.stButton > button:focus {
-        background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
-        color: #39FF88 !important;
-        font-weight: 700 !important;
-        font-size: 14.5px !important;
-        border-radius: 10px !important;
-        padding: 11px 24px !important;
-        border: 1px solid #39FF88 !important;
-        box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important;
-        transition: all 0.15s ease-in-out !important;
-    }
-    div.stButton > button:hover {
-        background: linear-gradient(180deg, #1B5E20 0%, #145A32 100%) !important;
-        color: #FFFFFF !important;
-        box-shadow: 0 6px 16px rgba(57, 255, 136, 0.5) !important;
-        transform: translateY(-1px) !important;
-    }
+.login-brand-side h1 span {{
+    color: #39ff88 !important;
+}}
 
-    div.stDownloadButton > button {
-        background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
-        color: #39FF88 !important;
-        font-weight: 700 !important;
-        border-radius: 10px !important;
-        padding: 12px 24px !important;
-        border: 1px solid #39FF88 !important;
-        box-shadow: 0 4px 12px rgba(57, 255, 136, 0.4) !important;
-    }
+.login-brand-side p {{
+    font-size: 16px;
+    color: #f2fff7 !important;
+    line-height: 1.65;
+    text-shadow: 0 2px 8px rgba(0,0,0,.8);
+    font-weight: 500;
+}}
 
-    /* Large Golden Star Ratings */
-    .star-container button {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        font-size: 45px !important;
-        color: #FFD700 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        transition: transform 0.15s ease;
-    }
-    .star-container button:hover {
-        transform: scale(1.25);
-    }
+.brand-description {{
+    max-width: 590px;
+    font-size: 14px !important;
+    color: #ccebdd !important;
+    margin-top: 14px;
+}}
 
-    .badge-pass {
-        background-color: rgba(57, 255, 136, 0.25);
-        color: #39FF88;
-        padding: 5px 14px;
-        border-radius: 8px;
-        font-weight: 700;
-        border: 1px solid #39FF88;
-    }
-    .badge-warn {
-        background-color: rgba(239, 68, 68, 0.25);
-        color: #F87171;
-        padding: 5px 14px;
-        border-radius: 8px;
-        font-weight: 700;
-        border: 1px solid #EF4444;
-    }
+.feature-row {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 22px;
+}}
 
-    /* Force pure white text, labels, and markdown elements for 100% clarity & high contrast */
-    label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption {
-        color: #FFFFFF !important;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-    }
+.feature-pill {{
+    display: inline-block;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: rgba(4,35,27,.68);
+    border: 1px solid rgba(57,255,136,.34);
+    color: #ffffff !important;
+    font-size: 11px;
+    font-weight: 700;
+    backdrop-filter: blur(10px);
+}}
+
+.cert-badge {{
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(57,255,136,.10);
+    border: 1px solid rgba(57,255,136,.45);
+    color: #39ff88 !important;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    margin-bottom: 12px;
+}}
+
+/* GLASS LOGIN CARD */
+.glass-login-card {{
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    box-sizing: border-box;
+    background: linear-gradient(145deg, rgba(9,55,42,.92), rgba(3,30,23,.82)) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(57,255,136,.55) !important;
+    border-radius: 22px !important;
+    padding: 28px !important;
+    box-shadow: 0 25px 70px rgba(0,0,0,.65), 0 0 30px rgba(57,255,136,.08) !important;
+}}
+
+.login-title {{
+    font-size: 30px;
+    font-weight: 800;
+    color: #ffffff !important;
+    margin: 0 0 5px 0;
+}}
+
+.login-subtitle {{
+    font-size: 13px;
+    line-height: 1.55;
+    color: #bfe9d2 !important;
+    margin-bottom: 15px;
+}}
+
+/* INPUTS */
+div[data-baseweb="input"],
+div[data-baseweb="select"] {{
+    background: rgba(255,255,255,.96) !important;
+    border-radius: 10px !important;
+}}
+
+div[data-baseweb="input"] input {{
+    color: #17372c !important;
+    font-weight: 500 !important;
+}}
+
+div[data-baseweb="select"] * {{
+    color: #17372c !important;
+}}
+
+label, .stTextInput label, .stSelectbox label, .stRadio label {{
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+}}
+
+/* TABS */
+button[data-baseweb="tab"] {{
+    color: #b9dccc !important;
+    font-weight: 700 !important;
+}}
+
+button[data-baseweb="tab"][aria-selected="true"] {{
+    color: #39ff88 !important;
+}}
+
+/* BUTTONS */
+div.stButton > button, div.stDownloadButton > button {{
+    background: linear-gradient(135deg, #0b3d2e, #096b45) !important;
+    color: #ffffff !important;
+    border: 1px solid #39ff88 !important;
+    border-radius: 11px !important;
+    min-height: 44px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 5px 18px rgba(57,255,136,.20) !important;
+    transition: all .2s ease !important;
+}}
+
+div.stButton > button:hover, div.stDownloadButton > button:hover {{
+    background: linear-gradient(135deg, #096b45, #0b8f5b) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(57,255,136,.35) !important;
+}}
+
+/* DASHBOARD COMPONENTS */
+.farmer-hero, .metric-card, .summary-card {{
+    background: rgba(6,37,29,.88) !important;
+    border: 1px solid rgba(57,255,136,.35) !important;
+    box-shadow: 0 10px 35px rgba(0,0,0,.40) !important;
+    backdrop-filter: blur(12px);
+    color: #ffffff !important;
+}}
+
+.farmer-hero {{
+    border-radius: 18px;
+    padding: 18px 24px;
+    margin-bottom: 20px;
+}}
+
+.metric-card {{
+    border-radius: 14px !important;
+    padding: 16px 18px !important;
+    border-left: 6px solid #39ff88 !important;
+    margin-bottom: 12px;
+}}
+
+.summary-card {{
+    border: 2px solid #39ff88 !important;
+    padding: 24px !important;
+    border-radius: 16px !important;
+    margin-bottom: 20px !important;
+}}
+
+.badge-pass {{
+    background: rgba(57,255,136,.25);
+    color: #39ff88;
+    padding: 5px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    border: 1px solid #39ff88;
+}}
+
+.badge-warn {{
+    background: rgba(239,68,68,.25);
+    color: #f87171;
+    padding: 5px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    border: 1px solid #ef4444;
+}}
+
+@media (max-width: 900px) {{
+    .login-brand-side {{ text-align: center; padding: 10px; }}
+    .login-brand-side h1 {{ font-size: 38px; }}
+    .feature-row {{ justify-content: center; }}
+    .glass-login-card {{ margin-top: 10px; }}
+}}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -398,7 +481,10 @@ def get_db_engine():
         cfg_db = str(st.secrets["postgres"]["database"]).strip()
         db_uri = f"postgresql://{cfg_user}:{cfg_password}@{cfg_host}:{cfg_port}/{cfg_db}?sslmode=require"
     except Exception:
-        db_uri = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
+        db_uri = os.getenv("SMART_KISHAN_DATABASE_URL", "").strip()
+
+    if not db_uri:
+        return None
 
     try:
         engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 8})
@@ -876,6 +962,7 @@ def render_ai_chatbot_sidebar():
         </div>
         """, unsafe_allow_html=True)
         
+        # Chat container with solid dark green background
         chat_container = st.container()
         with chat_container:
             st.markdown("""
@@ -906,6 +993,7 @@ def render_ai_chatbot_sidebar():
                 st.session_state.chat_messages.append({"role": "assistant", "content": reply})
                 st.rerun()
 
+# Render chat bot sidebar across all authenticated pages
 if st.session_state.logged_in:
     render_ai_chatbot_sidebar()
 
@@ -913,10 +1001,12 @@ if st.session_state.logged_in:
 # SCREEN 1: SMART KISHAN CINEMATIC LOGIN
 # -------------------------------------------------------------
 if st.session_state.step == 1:
+
     col_brand, col_login = st.columns([1.02, 0.98], gap="large")
 
     with col_brand:
         LOGO_FILE = "smart kishan logo.png"
+
         if os.path.exists(LOGO_FILE):
             st.image(LOGO_FILE, width=230)
 
@@ -944,9 +1034,6 @@ if st.session_state.step == 1:
 
     with col_login:
         st.markdown('<div class="glass-login-card">', unsafe_allow_html=True)
-        LOGO_FILE_SMALL = "smart kishan logo.png"
-        if os.path.exists(LOGO_FILE_SMALL):
-            st.image(LOGO_FILE_SMALL, width=60)
 
         st.markdown("""
         <div class="cert-badge">🔐 SECURE AGRICULTURE CONTROL CENTER</div>
@@ -1075,6 +1162,20 @@ if st.session_state.step == 1:
                     st.warning(
                         "Please check mobile number and matching passwords."
                     )
+
+        st.markdown("""
+        <div style="
+            margin-top:18px;
+            padding-top:12px;
+            border-top:1px solid rgba(167,243,208,.15);
+            color:#9fcab5;
+            font-size:11px;
+            text-align:center;
+        ">
+            🌱 Smart Kishan AI &nbsp;•&nbsp; Soil Intelligence &nbsp;•&nbsp;
+            Crop Intelligence &nbsp;•&nbsp; Fertilizer Optimization
+        </div>
+        """, unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1570,7 +1671,7 @@ elif st.session_state.step == 8:
             st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
             save_feedback(st.session_state.user_mobile, st.session_state.star_selection, feedback_comments)
-            st.success("✅ Thank you! Your star rating and feedback have been recorded safely. Exit session...")
+            st.success("✅ Thank you! Your star rating and feedback have been recorded safely. Exiting session...")
             
             st.session_state.logged_in = False
             st.session_state.user_mobile = ""
