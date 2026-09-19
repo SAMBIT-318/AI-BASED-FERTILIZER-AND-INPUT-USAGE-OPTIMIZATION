@@ -220,14 +220,14 @@ st.markdown(f"""
         max-width: 550px;
         color: #FFFFFF;
         padding-top: 40px;
-    }}
+    }
     .login-brand-side h1 {{
         font-size: 42px;
         font-weight: 800;
         color: #39FF88;
         margin-bottom: 12px;
         text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-    }}
+    }
     .login-brand-side p {{
         font-size: 16px;
         color: #FFFFFF;
@@ -260,7 +260,7 @@ st.markdown(f"""
         justify-content: space-between;
         align-items: center;
         border: 1px solid rgba(57, 255, 136, 0.5);
-    }}
+    }
 
     .metric-card {{
         background: rgba(11, 61, 46, 0.90) !important;
@@ -273,7 +273,7 @@ st.markdown(f"""
         box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important;
         margin-bottom: 12px;
         color: #FFFFFF !important;
-    }}
+    }
 
     .summary-card {{
         background: rgba(11, 61, 46, 0.92) !important;
@@ -283,7 +283,7 @@ st.markdown(f"""
         margin-bottom: 20px !important;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
         color: #FFFFFF !important;
-    }}
+    }
 
     div.stButton > button, div.stButton > button:focus {{
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
@@ -295,7 +295,7 @@ st.markdown(f"""
         border: 1px solid #39FF88 !important;
         box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important;
         transition: all 0.15s ease-in-out !important;
-    }}
+    }
     div.stButton > button:hover {{
         background: linear-gradient(180deg, #1B5E20 0%, #145A32 100%) !important;
         color: #FFFFFF !important;
