@@ -188,7 +188,7 @@ st.set_page_config(
 # -------------------------------------------------------------
 # HERO BACKGROUND AS BASE64 FOR RELIABLE LOCAL RENDERING
 # -------------------------------------------------------------
-HERO_BG_FILE = "agritech_hero_bg.jpg"
+HERO_BG_FILE = "agritech_green_background.jpg"
 HERO_BG_DATA = ""
 if os.path.exists(HERO_BG_FILE):
     try:
@@ -223,6 +223,7 @@ html, body, [class*="css"], .stApp {{
     background-position: center center !important;
     background-attachment: fixed !important;
     background-repeat: no-repeat !important;
+    background-color: #06251d !important;
 }}
 
 .block-container {{
