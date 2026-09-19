@@ -2103,7 +2103,7 @@ elif st.session_state.step == 8:
         </div>
     </body>
     </html>
-    """, height=70)
+    """, height=100)
 
     st.markdown("<br>", unsafe_allow_html=True)
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
