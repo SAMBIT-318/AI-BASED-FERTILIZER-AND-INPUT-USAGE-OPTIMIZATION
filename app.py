@@ -89,20 +89,17 @@ def calculate_advanced_nutrients(target_yield_per_acre, soil_n, soil_p, soil_k, 
 def verify_genuine_agricultural_soil(image_obj):
     """
     Strict High-Accuracy Soil Verification Engine.
-    Filters out non-soil textures like white roofs, skin, walls, or metal surfaces 
-    by enforcing strict agricultural earth-tone thresholds, edge variance, and color saturation bounds.
+    Filters out non-soil textures like white roofs, skin, walls, or metal surfaces.
     """
     img_rgb = image_obj.convert("RGB").resize((160, 160))
     stat_rgb = ImageStat.Stat(img_rgb)
     r_m, g_m, b_m = stat_rgb.mean[0], stat_rgb.mean[1], stat_rgb.mean[2]
 
-    # Reject bright artificial elements like white roofs, concrete, or sky/water
     if r_m > 200 and g_m > 200 and b_m > 200:
         return {"detected": False, "reason": "Bright artificial surface (White roof/concrete) detected."}
     if b_m > r_m and b_m > g_m and b_m > 120:
         return {"detected": False, "reason": "Non-soil blue/sky or artificial surface detected."}
 
-    # Strict Earth-Tone & Rich Organic Verification
     is_earth_tone = (r_m >= g_m >= b_m) or (r_m < 110 and g_m < 110 and b_m < 110)
     
     gray = img_rgb.convert("L")
@@ -110,7 +107,6 @@ def verify_genuine_agricultural_soil(image_obj):
     edge_stat = ImageStat.Stat(edges)
     edge_var = edge_stat.var[0]
 
-    # Require authentic granular/crumbly organic soil textural variation
     if is_earth_tone and edge_var > 18.0 and b_m < (r_m + 15):
         if r_m > 135 and b_m < 95:
             soil_type = "Red Laterite Soil"
@@ -186,6 +182,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Custom styling using your professional color palette: #061A14 background, #0B3D2E, #39FF88 accents, glassmorphism
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -196,32 +193,25 @@ st.markdown("""
         color: #F1F5F3 !important;
     }
 
-    /* Full-screen cinematic login container with background overlay */
+    /* Cinematic background image container for Login phase */
     .login-hero-bg {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: linear-gradient(rgba(6, 26, 20, 0.75), rgba(11, 61, 46, 0.85)), url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=2000&q=80');
+        background: linear-gradient(rgba(6, 26, 20, 0.75), rgba(11, 61, 46, 0.85)), url('agritech_hero_bg.jpg');
         background-size: cover;
         background-position: center;
         z-index: 1;
     }
 
-    .login-wrapper {
+    .login-brand-side {
         position: relative;
         z-index: 10;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        min-height: 85vh;
-        padding: 40px;
-    }
-
-    .login-brand-side {
         max-width: 550px;
         color: #F1F5F3;
+        padding-top: 40px;
     }
     .login-brand-side h1 {
         font-size: 42px;
@@ -235,16 +225,18 @@ st.markdown("""
         line-height: 1.6;
     }
 
-    /* Glassmorphism Popup Card for Login */
+    /* Glassmorphism Popup Card on Right Side */
     .glass-login-card {
-        background: rgba(11, 61, 46, 0.65) !important;
+        position: relative;
+        z-index: 10;
+        background: rgba(11, 61, 46, 0.75) !important;
         backdrop-filter: blur(16px) !important;
         -webkit-backdrop-filter: blur(16px) !important;
-        border: 1px solid rgba(57, 255, 136, 0.25) !important;
+        border: 1px solid rgba(57, 255, 136, 0.3) !important;
         border-radius: 20px !important;
         padding: 32px !important;
-        box-shadow: 0 12px 40px rgba(6, 26, 20, 0.6) !important;
-        width: 420px !important;
+        box-shadow: 0 12px 40px rgba(6, 26, 20, 0.8) !important;
+        width: 100% !important;
     }
 
     .farmer-hero {
@@ -461,7 +453,7 @@ TRANSLATIONS = {
         "mode_opt": "🌾 Full Soil & Fertilizer Optimization Pipeline",
         "mode_diag": "🔬 Plant Disease, Pest & Medicine Diagnosis Only",
         "btn_login": "Access Control Center ➔",
-        "btn_reg": "Create Farmer Account",
+        "btn_reg": "Create Account",
         "btn_back": "⬅️ Back",
         "btn_next": "Continue ➔",
         "budget_lbl": "Your Maximum Fertilizer Budget (₹)",
@@ -805,7 +797,7 @@ if st.session_state.step == 1:
     col_empty, col_card = st.columns([1.1, 1.1])
     with col_empty:
         st.markdown("""
-        <div class="login-brand-side" style="padding-top: 60px;">
+        <div class="login-brand-side">
             <h1>🌿 Smart Kishan</h1>
             <p>Next-Generation AgriTech Control Center powered by Artificial Intelligence. Precision soil triage, automated fertilizer blending, and plant disease pathology at your fingertips.</p>
         </div>
@@ -864,7 +856,6 @@ if st.session_state.step == 1:
 # SCREEN 2: MUTUALLY EXCLUSIVE SOIL SCANNER OR MANUAL INPUT
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
-    # Top HUD Bar with role badge & navigation
     h_col1, h_col2 = st.columns([3, 1])
     h_col1.markdown(f"### 🌾 AgriTech Control Center — Role: **{st.session_state.user_role.upper()}**")
     if h_col2.button("🚪 Sign Out"):
@@ -887,7 +878,6 @@ elif st.session_state.step == 2:
             res = analyze_plant_disease_image(img)
             st.session_state.scanned_diag = res
 
-            # Organized Tabs for Disease & Treatment System with individual Back buttons
             diag_tab1, diag_tab2, diag_tab3 = st.tabs([
                 "📋 Disease & Plant Requirements", 
                 "💊 Medicine & Application Schedule", 
