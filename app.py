@@ -897,7 +897,7 @@ class NumberedCanvas(canvas.Canvas):
 
         self.saveState()
         self.setStrokeColor(colors.HexColor("#145A32"))
-        self.setFillColor(colors.HexColor("#061A14"))
+        self.setFillColor(colors.HexColor("#333333")) # Grey Background for Stamp
         self.circle(500, 85, 38, stroke=1, fill=1)
         
         self.setStrokeColor(colors.HexColor("#39FF88"))
@@ -905,13 +905,13 @@ class NumberedCanvas(canvas.Canvas):
         self.circle(500, 85, 33, stroke=1, fill=0)
 
         self.setFont("Helvetica-Bold", 6.5)
-        self.setFillColor(colors.HexColor("#1B5E20"))
+        self.setFillColor(colors.HexColor("#FFFFFF"))
         self.drawCentredString(500, 104, "GOVT COMPLIANT")
         self.setFont("Helvetica-Bold", 8.5)
-        self.setFillColor(colors.HexColor("#B78103"))
+        self.setFillColor(colors.HexColor("#FFD700"))
         self.drawCentredString(500, 83, "SMART KISHAN")
         self.setFont("Helvetica-Bold", 6.5)
-        self.setFillColor(colors.HexColor("#1B5E20"))
+        self.setFillColor(colors.HexColor("#39FF88"))
         self.drawCentredString(500, 68, "4R CERTIFIED")
         self.restoreState()
 
@@ -1885,10 +1885,8 @@ elif st.session_state.step == 8:
         st.rerun()
 
     if b_fb_sub.button(T["feedback_submit"]):
-        if not feedback_comments.sign and not feedback_comments.strip():
-            st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
-        elif not feedback_comments.strip():
-            st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
+        if not feedback_comments.strip():
+            st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting. 🙏")
         else:
             save_feedback(st.session_state.user_mobile, st.session_state.star_selection, feedback_comments)
             st.success("✅ Thank you! Your star rating and feedback have been recorded safely. Exit session...")
