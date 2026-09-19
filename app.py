@@ -1379,29 +1379,25 @@ if st.session_state.logged_in:
 if st.session_state.step == 1:
     col_brand, col_login = st.columns([1.02, 0.98], gap="large")
 
-    with col_brand:
-        if os.path.exists(LOGO_FILE_EXACT):
-    st.image(LOGO_FILE_EXACT, width=150)
+   elif st.session_state.step == 2:
+    if os.path.exists(LOGO_FILE_EXACT):
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown("""
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
 
-        st.markdown("""
-        <div class="login-brand-side">
-            <div class="cert-badge">🌱 4R CERTIFIED AGRICULTURE AI</div>
-            <h1>SMART <span>KISHAN</span></h1>
-            <p>
-                Next-Generation AgriTech Control Center powered by
-                Artificial Intelligence.
-            </p>
-            <p class="brand-description">
-                Precision soil intelligence, crop prediction, automated
-                fertilizer optimization, and AI-powered plant disease
-                diagnosis — all in one agricultural decision-support platform.
-            </p>
-            <div class="feature-row">
-                <span class="feature-pill">🌱 Soil Intelligence</span>
-                <span class="feature-pill">🌾 Crop Prediction</span>
-                <span class="feature-pill">🧪 Fertilizer Optimization</span>
-                <span class="feature-pill">🔬 Disease Detection</span>
-            </div>
+    h_col1, h_col2 = st.columns([3, 1])
+    h_col1.markdown(f"### SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION — Role: **{st.session_state.user_role.upper()}**")            </div>
         </div>
         """, unsafe_allow_html=True)
 
