@@ -807,8 +807,8 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
     IST = timezone(timedelta(hours=5, minutes=30))
     local_now = datetime.now(IST)
 
-    story.append(Paragraph("SMART KISHAN • CROP DISEASE & TREATMENT PRESCRIPTION", title_style))
-    story.append(Paragraph("Certified Plant Pathology & Remedial Action Dossier", subtitle_style))
+    story.append(Paragraph("SMART KISHAN • OFFICIAL CROP PRESCRIPTION", title_style))
+    story.append(Paragraph("Certified 4R Nutrient Stewardship & Field Application Dossier", subtitle_style))
     story.append(Paragraph(f"Dossier ID: SK-DIAG-{local_now.strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {local_now.strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
@@ -1082,7 +1082,6 @@ elif st.session_state.step == 2:
     if os.path.exists(LOGO_FILE_EXACT):
         st.image(LOGO_FILE_EXACT, width=150)
     
-    # Professional 5-Tab Navigation Bar matching modern AgriTech UI/UX
     nav_tabs = st.tabs(["🌱 Dashboard", "📋 Crop Management", "📊 Crop Report", "⚙️ Equipments", "🔬 Pest & Disease"])
     
     with nav_tabs[0]:
@@ -1646,7 +1645,7 @@ elif st.session_state.step == 8:
     st.markdown(f"<h3 style='text-align: center; color: #39FF88;'>★ {st.session_state.star_selection} / 5 Stars Rated ★</h3>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / તમારી प्रतिक्रिया):", placeholder="Write your feedback here...")
+    feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your feedback here...")
 
     b_fb_back, b_fb_sub = st.columns([1, 5])
     if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
