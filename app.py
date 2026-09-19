@@ -760,7 +760,7 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
 
     story = []
 
-    LOGO_FILE = "smart kishan logo.png"
+    LOGO_FILE = "smart_kishan_logo.jpg"
     if os.path.exists(LOGO_FILE):
         try:
             story.append(RLImage(LOGO_FILE, width=140, height=140))
@@ -885,7 +885,7 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
 
     story = []
 
-    LOGO_FILE = "smart kishan logo.png"
+    LOGO_FILE = "smart_kishan_logo.jpg"
     if os.path.exists(LOGO_FILE):
         try:
             story.append(RLImage(LOGO_FILE, width=140, height=140))
@@ -1005,7 +1005,7 @@ if st.session_state.step == 1:
     col_brand, col_login = st.columns([1.02, 0.98], gap="large")
 
     with col_brand:
-        LOGO_FILE = "smart kishan logo.png"
+        LOGO_FILE = "smart_kishan_logo.jpg"
 
         if os.path.exists(LOGO_FILE):
             st.image(LOGO_FILE, width=230)
