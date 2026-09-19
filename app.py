@@ -344,7 +344,8 @@ st.markdown(f"""
         border: 1px solid #EF4444;
     }}
 
-    label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption {{
+    /* Force pure white text, labels, chart captions, and text elements for 100% high-contrast visibility */
+    label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption, small, div {{
         color: #FFFFFF !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.8);
     }}
@@ -1355,7 +1356,6 @@ elif st.session_state.step == 4:
         st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("4. 🍩 Current Soil Nutrients vs Ideal Farm Target (Proportion Analysis)")
     
-    # Render modern Donut/Pie charts for each nutrient comparison
     d1, d2, d3 = st.columns(3)
     
     with d1:
@@ -1370,7 +1370,7 @@ elif st.session_state.step == 4:
                 color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
             ), use_container_width=True
         )
-        st.caption(f"Measured: {st.session_state.soil_n * 2.24:.1f} kg/ha (Target: 280 kg/ha)")
+        st.markdown(f"Measured: {st.session_state.soil_n * 2.24:.1f} kg/ha (Target: 280 kg/ha)")
 
     with d2:
         st.markdown("##### Phosphorus (P) Ratio")
@@ -1384,7 +1384,7 @@ elif st.session_state.step == 4:
                 color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
             ), use_container_width=True
         )
-        st.caption(f"Measured: {st.session_state.soil_p * 2.24:.1f} kg/ha (Target: 60 kg/ha)")
+        st.markdown(f"Measured: {st.session_state.soil_p * 2.24:.1f} kg/ha (Target: 60 kg/ha)")
 
     with d3:
         st.markdown("##### Potash (K) Ratio")
@@ -1398,7 +1398,7 @@ elif st.session_state.step == 4:
                 color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
             ), use_container_width=True
         )
-        st.caption(f"Measured: {st.session_state.soil_k * 2.24:.1f} kg/ha (Target: 150 kg/ha)")
+        st.markdown(f"Measured: {st.session_state.soil_k * 2.24:.1f} kg/ha (Target: 150 kg/ha)")
 
     st.divider()
     b1, b2 = st.columns([1, 5])
@@ -1444,7 +1444,7 @@ elif st.session_state.step == 5:
     with g2:
         st.markdown("##### 🌟 AI Dynamic Crop Recommendation:")
         st.success(f"🌱 **Best Suited Crop for Verified Soil**: **{dynamic_pred_crop.capitalize()}**")
-        st.caption(f"Calculated via Machine Learning based on active N={st.session_state.soil_n}, P={st.session_state.soil_p}, K={st.session_state.soil_k}, pH={st.session_state.soil_ph}")
+        st.markdown(f"Calculated via Machine Learning based on active N={st.session_state.soil_n}, P={st.session_state.soil_p}, K={st.session_state.soil_k}, pH={st.session_state.soil_ph}")
 
     st.divider()
     b1, b2 = st.columns([1, 5])
@@ -1646,7 +1646,7 @@ elif st.session_state.step == 8:
     st.markdown(f"<h3 style='text-align: center; color: #39FF88;'>★ {st.session_state.star_selection} / 5 Stars Rated ★</h3>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / आपकी प्रतिक्रिया):", placeholder="Write your feedback here...")
+    feedback_comments = st.text_area("Your Comments / Suggestions (ଆପଣଙ୍କ ମତାମତ / તમારી प्रतिक्रिया):", placeholder="Write your feedback here...")
 
     b_fb_back, b_fb_sub = st.columns([1, 5])
     if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
