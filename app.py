@@ -354,7 +354,11 @@ st.markdown(f"""
     }}
 
     /* Deep Black Colored Letters for Language Selection Dropdown options and active labels */
-    div[data-baseweb="select"] *, div[data-baseweb="select"] span, div[data-baseweb="select"] div {{
+    div[data-baseweb="menu"] *, 
+    ul[data-baseweb="menu"] *, 
+    [role="listbox"] *, 
+    div[data-baseweb="select"] *, 
+    [data-baseweb="popover"] * {{
         color: #000000 !important;
         text-shadow: none !important;
     }}
@@ -479,7 +483,7 @@ TRANSLATIONS = {
         "mobile_lbl": "Mobile Number",
         "pass_lbl": "Password",
         "conf_pass_lbl": "Confirm Password",
-        "lang_select": "Global Language Selection (Select from World Languages)",
+        "lang_select": "Global Language Selection",
         "mode_select": "Select Farm Service",
         "mode_opt": "🌾 Full Soil & Fertilizer Optimization Pipeline",
         "mode_diag": "🔬 Plant Disease, Pest & Medicine Diagnosis Only",
@@ -1007,7 +1011,7 @@ TRANSLATIONS = {
         "stage_2_period": "Estágio 2: Crescimento Vegetativo (20 - 25 Dias)",
         "stage_2_method": "Aplique 1/2 dose de ureia + 1/3 de MOP ao longo das linhas com umidade adequada.",
         "stage_3_period": "Estágio 3: Iniciação da Panícula / Floração (45 - 55 Dias)",
-        "stage_3_method": "Aplique o 1/4 restante de urea e o MOP final. Evite chuvas fortes.",
+        "stage_3_method": "Aplique o 1/4 restante de urea y el MOP final. Evite chuvas fuertes.",
         "soil_detected": "Solo detectado",
         "soil_not_detected": "Não detectado"
     },
