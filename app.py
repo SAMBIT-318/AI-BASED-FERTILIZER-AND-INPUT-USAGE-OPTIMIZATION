@@ -231,7 +231,7 @@ st.markdown(f"""
         line-height: 1.6;
         text-shadow: 0 1px 6px rgba(0,0,0,0.8);
         font-weight: 500;
-    }
+    }}
 
     /* Glassmorphism Popup Card on Right Side */
     .glass-login-card {{
@@ -245,7 +245,7 @@ st.markdown(f"""
         padding: 32px !important;
         box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important;
         width: 100% !important;
-    }
+    }}
 
     .farmer-hero {{
         background: rgba(11, 61, 46, 0.90);
@@ -1575,6 +1575,7 @@ elif st.session_state.step == 8:
     b_fb_back, b_fb_sub = st.columns([1, 5])
     if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
         st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
+        st.rer0un = False
         st.rerun()
 
     if b_fb_sub.button(T["feedback_submit"]):
