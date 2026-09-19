@@ -353,7 +353,7 @@ st.markdown(f"""
         border: 1px solid #EF4444;
     }}
 
-    /* Specific Black Colored Letters for Language Selection Dropdown */
+    /* Black Colored Letters for Language Selection Dropdown options and active labels */
     div[data-baseweb="select"] * {{
         color: #000000 !important;
         text-shadow: none !important;
@@ -1268,7 +1268,7 @@ if st.session_state.step == 1:
             else "Full Optimization"
         )
 
-        t_login, t_reg, t_fb = st.tabs([T["login_tab"], T["reg_tab"], T["feedback_tab"]])
+        t_login, t_reg = st.tabs([T["login_tab"], T["reg_tab"]])
 
         with t_login:
             m = st.text_input(
@@ -1356,23 +1356,6 @@ if st.session_state.step == 1:
                     st.warning(
                         "Please check mobile number and matching passwords."
                     )
-
-        with t_fb:
-            st.markdown("##### 🌟 Quick Feedback & Exit Session")
-            fb_mobile = st.text_input("Mobile Number for Feedback", max_chars=10, key="fb_mob")
-            fb_rating = st.slider("Rate your experience (1 to 5 Stars)", 1, 5, 5, key="fb_stars")
-            fb_text = st.text_area("Your Feedback / Comments:", placeholder="Write comments here...")
-            
-            if st.button("Submit & Exit Session ➔", key="btn_quick_exit"):
-                if not fb_text.strip():
-                    st.error("⚠️ Please enter feedback comments before exiting.")
-                else:
-                    save_feedback(fb_mobile or "0000000000", fb_rating, fb_text)
-                    st.success("✅ Thank you! Feedback recorded successfully. Session exited.")
-                    st.session_state.logged_in = False
-                    st.session_state.step = 1
-                    st.cache_data.clear()
-                    st.rerun()
 
         st.markdown('</div>', unsafe_allow_html=True)
 
