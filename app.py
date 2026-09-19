@@ -236,7 +236,6 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
-
     .farmer-hero {{
         background: rgba(11, 61, 46, 0.90);
         border-radius: 18px;
@@ -468,7 +467,7 @@ def save_feedback(mobile, rating, comments):
 # -------------------------------------------------------------
 TRANSLATIONS = {
     "English": {
-        "title": "Smart Kishan | AgriTech Control Center",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "Certified 4R Nutrient Allocation, Real-Soil Triage & Official Prescription",
         "login_tab": "Sign In",
         "reg_tab": "Register",
@@ -498,7 +497,7 @@ TRANSLATIONS = {
         "soil_not_detected": "Not detected"
     },
     "Mandarin Chinese (中文)": {
-        "title": "Smart Kishan | 农业科技控制中心",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "认证的 4R 养分分配、真实土壤筛查和官方处方",
         "login_tab": "登录",
         "reg_tab": "注册",
@@ -528,7 +527,7 @@ TRANSLATIONS = {
         "soil_not_detected": "未检测到"
     },
     "Hindi (हिन्दी)": {
-        "title": "स्मार्ट किसान | एग्रीटेक कंट्रोल सेंटर",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, वास्तविक मृदा विश्लेषण और आधिकारिक नुस्खा",
         "login_tab": "साइन इन",
         "reg_tab": "पंजीकरण",
@@ -558,7 +557,7 @@ TRANSLATIONS = {
         "soil_not_detected": "Not detected"
     },
     "Spanish (Español)": {
-        "title": "Smart Kishan | Centro de Control AgriTech",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "Asignación Certificada de Nutrientes 4R, Triaje de Suelo Real y Receta Oficial",
         "login_tab": "Iniciar Sesión",
         "reg_tab": "Registrarse",
@@ -588,7 +587,7 @@ TRANSLATIONS = {
         "soil_not_detected": "No detectado"
     },
     "Arabic (العربية)": {
-        "title": "Smart Kishan | مركز تحكم تكنولوجيا الزراعة",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "تخصيص المغذيات المعتمد 4R، وتقييم التربة الحقيقي، والوصفة الرسمية",
         "login_tab": "تسجيل الدخول",
         "reg_tab": "التسجيل",
@@ -618,7 +617,7 @@ TRANSLATIONS = {
         "soil_not_detected": "لم يتم الاكتشاف"
     },
     "French (Français)": {
-        "title": "Smart Kishan | Centre de Contrôle AgriTech",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "Allocation Certifiée de Nutriments 4R, Triage des Sols & Prescription Officielle",
         "login_tab": "Se Connecter",
         "reg_tab": "S'inscrire",
@@ -648,7 +647,7 @@ TRANSLATIONS = {
         "soil_not_detected": "Non détecté"
     },
     "Bengali (বাংলা)": {
-        "title": "স্মার্ট কিষান | এগ্রিটেক কন্ট্রোল সেন্টার",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "প্রত্যয়িত 4R পুষ্টি বরাদ্দ, প্রকৃত মাটি বিশ্লেষণ এবং অফিসিয়াল প্রেসক্রিপশন",
         "login_tab": "সাইন ইন",
         "reg_tab": "নিবন্ধন",
@@ -678,7 +677,7 @@ TRANSLATIONS = {
         "soil_not_detected": "সনাক্ত করা যায়নি"
     },
     "Portuguese (Português)": {
-        "title": "Smart Kishan | Centro de Controle AgriTech",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "Alocação Certificada de Nutrientes 4R, Triagem de Solo e Receita Oficial",
         "login_tab": "Entrar",
         "reg_tab": "Registrar",
@@ -708,7 +707,7 @@ TRANSLATIONS = {
         "soil_not_detected": "Não detectado"
     },
     "Russian (Русский)": {
-        "title": "Smart Kishan | Центр управления AgriTech",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "Сертифицированное распределение питательных веществ 4R, анализ почв и официальный рецепт",
         "login_tab": "Войти",
         "reg_tab": "Регистрация",
@@ -738,7 +737,7 @@ TRANSLATIONS = {
         "soil_not_detected": "Не обнаружено"
     },
     "Urdu (اردو)": {
-        "title": "اسمارٹ کسان | ایگری ٹیک کنٹرول سینٹر",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "تصدیق شدہ 4R غذائی اجزاء کی تخصیص، حقیقی مٹی کا تجزیہ اور آفیشل نسخہ",
         "login_tab": "سائن ان",
         "reg_tab": "رجستر",
@@ -768,7 +767,7 @@ TRANSLATIONS = {
         "soil_not_detected": "پتہ نہیں چلا"
     },
     "Odia (ଓଡ଼ିଆ)": {
-        "title": "ସ୍ମାର୍ଟ କିଷାନ | ଏଗ୍ରିଟେକ୍ କଣ୍ଟ୍ରୋଲ୍ ସେଣ୍ଟର",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ପ୍ରକୃତ ମୃତ୍ତିକା ବିଶ୍ଳେଷଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
         "login_tab": "ସାଇନ୍‌ ଇନ୍",
         "reg_tab": "ପଞ୍ଜୀକରଣ",
@@ -798,7 +797,7 @@ TRANSLATIONS = {
         "soil_not_detected": "Not detected"
     },
     "Marathi (मराठी)": {
-        "title": "स्मार्ट किसान | कृषी तंत्रज्ञान नियंत्रण केंद्र",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "प्रमाणित 4R पोषक तत्व व्यवस्थापन, वास्तविक माती परीक्षण आणि अधिकृत कृती",
         "login_tab": "साइन इन",
         "reg_tab": "नोंदणी",
@@ -828,7 +827,7 @@ TRANSLATIONS = {
         "soil_not_detected": "आढळली नाही"
     },
     "Telugu (తెలుగు)": {
-        "title": "స్మార్ట్ కిసాన్ | అగ్రిటెక్ కంట్రోల్ సెంటర్",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "ధృవీకరించబడిన 4R పోషక కేటాయింపు, నిజ-మట్టి విశ్లేషణ మరియు అధికారిక ప్రిస్క్రిప్షన్",
         "login_tab": "సైన్ ఇన్",
         "reg_tab": "నమోదు",
@@ -858,7 +857,7 @@ TRANSLATIONS = {
         "soil_not_detected": "కనుగొనబడలేదు"
     },
     "Kannada (ಕನ್ನಡ)": {
-        "title": "ಸ್ಮಾರ್ಟ್ ಕಿಸಾನ್ | ಅಗ್ರಿಟೆಕ್ ಕಂಟ್ರೋಲ್ ಸೆಂಟರ್",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "ಪ್ರಮಾಣೀಕೃತ 4R ಪೋಷಕಾಂಶಗಳ ಹಂಚಿಕೆ, ನೈಜ-ಮಣ್ಣಿನ ವಿಶ್ಲೇಷಣೆ ಮತ್ತು ಅಧಿಕೃತ ಪ್ರೆಸ್ಕ್ರಿಪ್ಷನ್",
         "login_tab": "ಸೈನ್ ಇನ್",
         "reg_tab": "ನೋಂದಣಿ",
@@ -888,7 +887,7 @@ TRANSLATIONS = {
         "soil_not_detected": "ಪತ್ತೆಯಾಗಿಲ್ಲ"
     },
     "Tamil (தமிழ்)": {
-        "title": "ஸ்மார்ட் கிசான் | அக்ரிடெக் கட்டுப்பாட்டு மையம்",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "சான்றளிக்கப்பட்ட 4R சத்து ஒதுக்கீடு, உண்மையான மண் பரிசோதனை & அதிகாரப்பூர்வ பரிந்துரை",
         "login_tab": "உள்நுழைக",
         "reg_tab": "பதிவு செய்க",
@@ -918,7 +917,7 @@ TRANSLATIONS = {
         "soil_not_detected": "கண்டறியப்படவில்லை"
     },
     "Persian (فارسی)": {
-        "title": "اسمارت کیشان | مرکز کنترل کشاورزی",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "تخصیص تایید شده مواد مغذی 4R، تریاژ واقعی خاک و نسخه رسمی",
         "login_tab": "ورود",
         "reg_tab": "ثبت نام",
@@ -948,7 +947,7 @@ TRANSLATIONS = {
         "soil_not_detected": "شناسایی نشد"
     },
     "Japanese (日本語)": {
-        "title": "Smart Kishan | アグリテックコントロールセンター",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "認定4R養分配分、リアル土壌トリアージ＆公式処方箋",
         "login_tab": "サインイン",
         "reg_tab": "登録",
@@ -978,7 +977,7 @@ TRANSLATIONS = {
         "soil_not_detected": "検出されませんでした"
     },
     "Punjabi (ਪੰਜਾਬੀ)": {
-        "title": "ਸਮਾਰਟ ਕਿਸਾਨ | ਐਗਰੀਟੈਕ ਕੰਟਰੋਲ ਸੈਂਟਰ",
+        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "ਪ੍ਰਮਾਣਿਤ 4R ਪੌਸ਼ਟਿਕ ਤੱਤ ਵੰਡ ਅਤੇ ਅਧਿਕਾਰਤ ਨੁਸਖ਼ਾ",
         "login_tab": "ਸਾਈਨ ਇਨ",
         "reg_tab": "ਰਜਿਸਟਰ",
