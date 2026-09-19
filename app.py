@@ -1081,9 +1081,15 @@ elif st.session_state.step == 2:
     if os.path.exists(LOGO_FILE_EXACT):
         st.image(LOGO_FILE_EXACT, width=150)
     
-    nav_tabs = st.tabs(["🌱 Dashboard", "📋 Crop Management", "📊 Crop Report", "⚙️ Equipments", "🔬 Pest & Disease"])
+    # User-interactive navigation options modeled after professional AgriTech dashboards
+    selected_nav = st.radio(
+        "Navigation Bar",
+        ["🌱 Dashboard", "📋 Crop Management", "📊 Crop Report", "⚙️ Equipments", "🔬 Pest & Disease"],
+        horizontal=True,
+        label_visibility="collapsed"
+    )
     
-    with nav_tabs[0]:
+    if selected_nav == "🌱 Dashboard":
         st.markdown("### 🌾 Smart Farming Overview & Real-Time Telemetry")
         m_c1, m_c2, m_c3, m_c4 = st.columns(4)
         m_c1.metric("Total Cultivated Fields", "24 Active")
@@ -1093,27 +1099,27 @@ elif st.session_state.step == 2:
         
         st.info("💡 **AI Recommendation**: Adjust irrigation schedules today to stabilize soil moisture balance and protect crop yields within 48 hours.")
 
-    with nav_tabs[1]:
+    elif selected_nav == "📋 Crop Management":
         st.markdown("### 📋 Crop Management & Growth Stages")
         st.write(f"• **Current Parcel ID**: {st.session_state.plot_id}")
         st.write(f"• **Cultivated Crop**: {st.session_state.sel_crop.capitalize()}")
         st.write("• **Growth Stage**: Vegetative / Tillering Phase")
         st.write("• **Recommended Action**: Monitor nitrogen uptake and apply split fertilizer dosages as prescribed.")
 
-    with nav_tabs[2]:
+    elif selected_nav == "📊 Crop Report":
         st.markdown("### 📊 Comprehensive Crop & Soil Reports")
         st.write("Review active telemetry metrics and historical sensor logs for your parcel.")
         c_rep1, c_rep2 = st.columns(2)
         c_rep1.metric("Active Soil pH", f"{st.session_state.soil_ph}", "Sweet & Balanced")
         c_rep2.metric("Organic Carbon (SOC)", f"{st.session_state.soc}%", "Healthy")
 
-    with nav_tabs[3]:
+    elif selected_nav == "⚙️ Equipments":
         st.markdown("### ⚙️ Farm Equipments & IoT Sensors")
         st.write("• **Smart Soil Sensor (Node #104)**: Online (Battery 94%)")
         st.write("• **Autonomous Drone Sprayer**: Ready for mission deployment")
         st.write("• **Drip Irrigation Valve**: Automated schedule active")
 
-    with nav_tabs[4]:
+    elif selected_nav == "🔬 Pest & Disease":
         st.markdown("### 🔬 Pest & Disease Detection Module")
         st.write("Switching to diagnostic mode for plant pathology scan...")
 
