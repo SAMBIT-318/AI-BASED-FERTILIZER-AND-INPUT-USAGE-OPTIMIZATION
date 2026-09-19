@@ -1381,7 +1381,23 @@ if st.session_state.step == 1:
 
     with col_brand:
         if os.path.exists(LOGO_FILE_EXACT):
-            st.image(LOGO_FILE_EXACT, width=230)
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown(
+                """
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
         st.markdown("""
         <div class="login-brand-side">
@@ -1545,7 +1561,23 @@ if st.session_state.step == 1:
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown(
+                """
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
     h_col1, h_col2 = st.columns([3, 1])
     h_col1.markdown(f"### SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION — Role: **{st.session_state.user_role.upper()}**")
@@ -1757,7 +1789,23 @@ elif st.session_state.step == 2:
 # -------------------------------------------------------------
 elif st.session_state.step == 3:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown(
+                """
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
     st.subheader("3. ⚙️ Soil Condition & Risk Assessment")
     
     k1, k2, k3 = st.columns(3)
@@ -1780,7 +1828,23 @@ elif st.session_state.step == 3:
 # -------------------------------------------------------------
 elif st.session_state.step == 4:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown(
+                """
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
     st.subheader("4. 🍩 Current Soil Nutrients vs Ideal Farm Target (Proportion Analysis)")
     
     d1, d2, d3 = st.columns(3)
