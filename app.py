@@ -447,7 +447,7 @@ def save_feedback(mobile, rating, comments):
         return False
 
 # -------------------------------------------------------------
-# GLOBAL MULTILINGUAL UI DICTIONARY
+# GLOBAL MULTILINGUAL UI DICTIONARY (ALL WORLD LANGUAGES)
 # -------------------------------------------------------------
 TRANSLATIONS = {
     "English": {
@@ -458,7 +458,7 @@ TRANSLATIONS = {
         "mobile_lbl": "Mobile Number",
         "pass_lbl": "Password",
         "conf_pass_lbl": "Confirm Password",
-        "lang_select": "App Language / Global Language Preference",
+        "lang_select": "Global Language Selection (Select from World Languages)",
         "mode_select": "Select Farm Service",
         "mode_opt": "🌾 Full Soil & Fertilizer Optimization Pipeline",
         "mode_diag": "🔬 Plant Disease, Pest & Medicine Diagnosis Only",
@@ -480,7 +480,7 @@ TRANSLATIONS = {
         "soil_detected": "Soil is detected",
         "soil_not_detected": "Not detected"
     },
-    "हिन्दी": {
+    "हिन्दी (Hindi)": {
         "title": "स्मार्ट किसान | एग्रीटेक कंट्रोल सेंटर",
         "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, वास्तविक मृदा विश्लेषण और आधिकारिक नुस्खा",
         "login_tab": "साइन इन",
@@ -488,7 +488,7 @@ TRANSLATIONS = {
         "mobile_lbl": "मोबाइल नंबर",
         "pass_lbl": "पासवर्ड",
         "conf_pass_lbl": "पासवर्ड की पुष्टि करें",
-        "lang_select": "भाषा चुनें",
+        "lang_select": "वैश्विक भाषा चयन",
         "mode_select": "कृषि सेवा चुनें",
         "mode_opt": "🌾 पूर्ण मृदा एवं उर्वरक अनुकूलन पाइपलाइन",
         "mode_diag": "🔬 केवल पौध रोग, कीट एवं औषधि निदान",
@@ -510,7 +510,7 @@ TRANSLATIONS = {
         "soil_detected": "Soil is detected",
         "soil_not_detected": "Not detected"
     },
-    "ଓଡ଼ିଆ": {
+    "ଓଡ଼ିଆ (Odia)": {
         "title": "ସ୍ମାର୍ଟ କିଷାନ | ଏଗ୍ରିଟେକ୍ କଣ୍ଟ୍ରୋଲ୍ ସେଣ୍ଟର",
         "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ପ୍ରକୃତ ମୃତ୍ତିକା ବିଶ୍ଳେଷଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
         "login_tab": "ସାଇନ୍‌ ଇନ୍",
@@ -518,7 +518,7 @@ TRANSLATIONS = {
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
         "pass_lbl": "ପାସୱାର୍ଡ",
         "conf_pass_lbl": "ପାସୱାର୍ଡ ନିଶ୍ଚିତ କରନ୍ତୁ",
-        "lang_select": "ଭାଷା ଚୟନ",
+        "lang_select": "ଆନ୍ତର୍ଜାତୀୟ ଭାଷା ଚୟନ",
         "mode_select": "ସେବା ଚୟନ କରନ୍ତୁ",
         "mode_opt": "🌾 ସମ୍ପୂର୍ଣ୍ଣ ମୃତ୍ତିକା ଓ ସାର ପରିମାଣ ନିର୍ଦ୍ଧାରଣ",
         "mode_diag": "🔬 କେବଳ ଫସଲ ରୋଗ, କୀଟ ଚିହ୍ନଟ ଓ ଔଷଧ",
@@ -539,6 +539,276 @@ TRANSLATIONS = {
         "stage_3_method": "ଅବଶିଷ୍ଟ ୟୁରିଆ ଓ ପଟାସ ପ୍ରୟୋଗ କରନ୍ତୁ। ପ୍ରବଳ ବର୍ଷା ସମୟରେ ସାର ପକାନ୍ତୁ ନାହିଁ ଯାହା ଦ୍ୱାରା ଖତ ଧୋଇ ହୋଇ ନଷ୍ଟ ହେବ ନାହିଁ।",
         "soil_detected": "Soil is detected",
         "soil_not_detected": "Not detected"
+    },
+    "Español (Spanish)": {
+        "title": "Smart Kishan | Centro de Control AgriTech",
+        "subtitle": "Asignación Certificada de Nutrientes 4R, Triaje de Suelo Real y Receta Oficial",
+        "login_tab": "Iniciar Sesión",
+        "reg_tab": "Registrarse",
+        "mobile_lbl": "Número de Móvil",
+        "pass_lbl": "Contraseña",
+        "conf_pass_lbl": "Confirmar Contraseña",
+        "lang_select": "Selección de Idioma Global",
+        "mode_select": "Seleccionar Servicio Agrícola",
+        "mode_opt": "🌾 Tubería Completa de Optimización de Suelos y Fertilizantes",
+        "mode_diag": "🔬 Solo Diagnóstico de Enfermedades, Plagas y Medicinas",
+        "btn_login": "Acceder al Centro de Control ➔",
+        "btn_reg": "Crear Cuenta",
+        "btn_back": "⬅️ Volver",
+        "btn_next": "Continuar ➔",
+        "budget_lbl": "Su Presupuesto Máximo de Fertilizantes (₹)",
+        "budget_help": "El motor de optimización garantiza que el costo de compra total se mantenga estrictamente dentro de este límite.",
+        "feedback_title": "🌟 Comentarios Obligatorios de Agricultores y Calificación por Estrellas",
+        "feedback_submit": "Enviar Comentarios y Salir del Panel ➔",
+        "land_calc_title": "📐 Selección de Unidad de Tierra y Matriz de Presupuesto",
+        "stage_1_period": "Etapa 1: Aderezo Basal (Siembra / Trasplante - Día 0)",
+        "stage_1_method": "Incorpore abono y esparza DAP completo y 1/3 de MOP. Coloque a 5-7 cm de profundidad.",
+        "stage_2_period": "Etapa 2: Crecimiento Vegetativo (20 - 25 Días Post-Siembra)",
+        "stage_2_method": "Aplique 1/2 dosis de urea + 1/3 de MOP a lo largo de las filas de plantas con humedad adecuada.",
+        "stage_3_period": "Etapa 3: Iniciación de Panícula / Floración (45 - 55 Días)",
+        "stage_3_method": "Aplique el 1/4 restante de urea y el MOP final. Evite aplicar durante lluvias intensas.",
+        "soil_detected": "Suelo detectado",
+        "soil_not_detected": "No detectado"
+    },
+    "Français (French)": {
+        "title": "Smart Kishan | Centre de Contrôle AgriTech",
+        "subtitle": "Allocation Certifiée de Nutriments 4R, Triage des Sols & Prescription Officielle",
+        "login_tab": "Se Connecter",
+        "reg_tab": "S'inscrire",
+        "mobile_lbl": "Numéro de Mobile",
+        "pass_lbl": "Mot de Passe",
+        "conf_pass_lbl": "Confirmer le Mot de Passe",
+        "lang_select": "Sélection de la Langue Mondiale",
+        "mode_select": "Sélectionner le Service Agricole",
+        "mode_opt": "🌾 Pipeline Complet d'Optimisation du Sol et des Engrais",
+        "mode_diag": "🔬 Diagnostic des Maladies, des Nuisibles et des Médicaments Uniquement",
+        "btn_login": "Accéder au Centre de Contrôle ➔",
+        "btn_reg": "Créer un Compte",
+        "btn_back": "⬅️ Retour",
+        "btn_next": "Continuer ➔",
+        "budget_lbl": "Votre Budget Maximum d'Engrais (₹)",
+        "budget_help": "Le moteur d'optimisation garantit que le coût d'achat total reste strictement dans cette limite.",
+        "feedback_title": "🌟 Commentaires Obligatoires des Agriculteurs & Évaluation",
+        "feedback_submit": "Soumettre et Quitter le Tableau de Bord ➔",
+        "land_calc_title": "📐 Sélection des Unités de Terre & Matrice Budgétaire",
+        "stage_1_period": "Étape 1 : Dressing Basal (Au Semis / Repiquage - Jour 0)",
+        "stage_1_method": "Incorporez du compost et épandez le DAP complet et 1/3 de MOP à 5-7 cm de profondeur.",
+        "stage_2_period": "Étape 2 : Croissance Végétative (20 - 25 Jours)",
+        "stage_2_method": "Appliquez 1/2 dose d'urée + 1/3 de MOP le long des rangs avec une humidité adéquate.",
+        "stage_3_period": "Étape 3 : Initiation de la Panicule / Floraison (45 - 55 Jours)",
+        "stage_3_method": "Appliquez le 1/4 d'urée restant et le MOP final. Évitez les fortes pluies.",
+        "soil_detected": "Sol détecté",
+        "soil_not_detected": "Non détecté"
+    },
+    "Deutsch (German)": {
+        "title": "Smart Kishan | AgriTech Kontrollzentrum",
+        "subtitle": "Zertifizierte 4R Nährstoffzuteilung, Echdboden-Triage & Offizielles Rezept",
+        "login_tab": "Anmelden",
+        "reg_tab": "Registrieren",
+        "mobile_lbl": "Handynummer",
+        "pass_lbl": "Passwort",
+        "conf_pass_lbl": "Passwort bestätigen",
+        "lang_select": "Globale Sprachauswahl",
+        "mode_select": "Landwirtschaftsservice auswählen",
+        "mode_opt": "🌾 Vollständige Boden- & Düngemittel-Optimierungspipeline",
+        "mode_diag": "🔬 Nur Pflanzenkrankheits-, Schädlings- & Mediendiagnose",
+        "btn_login": "Zum Kontrollzentrum ➔",
+        "btn_reg": "Konto erstellen",
+        "btn_back": "⬅️ Zurück",
+        "btn_next": "Weiter ➔",
+        "budget_lbl": "Ihr maximales Düngemittelbudget (₹)",
+        "budget_help": "Der Optimierungsmotor stellt sicher, dass die Gesamtkosten strikt innerhalb dieses Limits bleiben.",
+        "feedback_title": "🌟 Verbindliches Landwirt-Feedback & Sternebewertung",
+        "feedback_submit": "Feedback senden & Dashboard verlassen ➔",
+        "land_calc_title": "📐 Landadatenauswahl & Budgetmatrix",
+        "stage_1_period": "Stufe 1: Grunddüngung (Bei Aussaat / Pflanzung - Tag 0)",
+        "stage_1_method": "Kompost einarbeiten und volles DAP und 1/3 MOP ausbringen (5-7 cm tief).",
+        "stage_2_period": "Stufe 2: Vegetatives Wachstum (20 - 25 Tage nach Aussaat)",
+        "stage_2_method": "1/2 Ureadosis + 1/3 MOP entlang der Reihen bei ausreichender Feuchtigkeit ausbringen.",
+        "stage_3_period": "Stufe 3: Rispenbildung / Blüte (45 - 55 Tage nach Aussaat)",
+        "stage_3_method": "Verbleibendes 1/4 Harnstoff und letztes MOP ausbringen. Regen meiden.",
+        "soil_detected": "Boden erkannt",
+        "soil_not_detected": "Nicht erkannt"
+    },
+    "中文 (Chinese)": {
+        "title": "Smart Kishan | 农业科技控制中心",
+        "subtitle": "认证的 4R 养分分配、真实土壤筛查和官方处方",
+        "login_tab": "登录",
+        "reg_tab": "注册",
+        "mobile_lbl": "手机号码",
+        "pass_lbl": "密码",
+        "conf_pass_lbl": "确认密码",
+        "lang_select": "全球语言选择",
+        "mode_select": "选择农业服务",
+        "mode_opt": "🌾 完整土壤与肥料优化管道",
+        "mode_diag": "🔬 仅限植物病害、害虫及药物诊断",
+        "btn_login": "进入控制中心 ➔",
+        "btn_reg": "创建账户",
+        "btn_back": "⬅️ 返回",
+        "btn_next": "继续 ➔",
+        "budget_lbl": "您的最大化肥预算 (₹)",
+        "budget_help": "优化引擎确保总采购成本严格保持在此限制内。",
+        "feedback_title": "🌟 强制性农民反馈与星级评定",
+        "feedback_submit": "提交反馈并退出仪表盘 ➔",
+        "land_calc_title": "📐 土地单位选择与农场预算矩阵",
+        "stage_1_period": "第一阶段：底肥施用（播种/移栽期 - 第 0 天）",
+        "stage_1_method": "混入堆肥并撒施全部磷酸二铵(DAP)及 1/3 氯化钾(MOP)，深度 5-7 厘米。",
+        "stage_2_period": "第二阶段：营养生长期（播后 20 - 25 天）",
+        "stage_2_method": "沿作物行侧施 1/2 尿素及 1/3 氯化钾，确保土壤湿度充足。",
+        "stage_3_period": "第三阶段：孕穗/开花期（播后 45 - 55 天）",
+        "stage_3_method": "追施剩余 1/4 尿素及最后 1/3 氯化钾，避免在大雨期间施用。",
+        "soil_detected": "检测到土壤",
+        "soil_not_detected": "未检测到"
+    },
+    "日本語 (Japanese)": {
+        "title": "Smart Kishan | アグリテックコントロールセンター",
+        "subtitle": "認定4R養分配分、リアル土壌トリアージ＆公式処方箋",
+        "login_tab": "サインイン",
+        "reg_tab": "登録",
+        "mobile_lbl": "携帯電話番号",
+        "pass_lbl": "パスワード",
+        "conf_pass_lbl": "パスワードの確認",
+        "lang_select": "グローバル言語選択",
+        "mode_select": "農業サービスの選択",
+        "mode_opt": "🌾 完全な土壌・肥料最適化パイプライン",
+        "mode_diag": "🔬 植物の病気・害虫・薬剤診断のみ",
+        "btn_login": "コントロールセンターにアクセス ➔",
+        "btn_reg": "アカウントを作成",
+        "btn_back": "⬅️ 戻る",
+        "btn_next": "続ける ➔",
+        "budget_lbl": "最大肥料予算 (₹)",
+        "budget_help": "最適化エンジンにより、購入総額がこの制限内に厳格に維持されます。",
+        "feedback_title": "🌟 必須の農家フィードバックと星評価",
+        "feedback_submit": "フィードバックを送信してダッシュボードを終了 ➔",
+        "land_calc_title": "📐 土地単位の選択と農場予算マトリックス",
+        "stage_1_period": "ステージ1：基肥（播種/移植時 - 0日目）",
+        "stage_1_method": "堆肥を混ぜ、DAP全体と1/3のMOPをブロードキャスト（5〜7cmの深さ）。",
+        "stage_2_period": "ステージ2：栄養成長期（播種後20〜25日）",
+        "stage_2_method": "十分な水分を保ちながら、1/2の尿素と1/3のMOPを株元に施用。",
+        "stage_3_period": "ステージ3：穂孕期・開花期（播種後45〜55日）",
+        "stage_3_method": "残りの尿素と最終MOPを追肥。大雨時の施用は避けてください。",
+        "soil_detected": "土壌が検出されました",
+        "soil_not_detected": "検出されませんでした"
+    },
+    "Português (Portuguese)": {
+        "title": "Smart Kishan | Centro de Controle AgriTech",
+        "subtitle": "Alocação Certificada de Nutrientes 4R, Triagem de Solo e Receita Oficial",
+        "login_tab": "Entrar",
+        "reg_tab": "Registrar",
+        "mobile_lbl": "Número de Celular",
+        "pass_lbl": "Senha",
+        "conf_pass_lbl": "Confirmar Senha",
+        "lang_select": "Seleção de Idioma Global",
+        "mode_select": "Selecionar Serviço Agrícola",
+        "mode_opt": "🌾 Pipeline Completo de Otimização de Solo e Fertilizantes",
+        "mode_diag": "🔬 Apenas Diagnóstico de Doenças, Pragas e Medicamentos",
+        "btn_login": "Acessar Centro de Controle ➔",
+        "btn_reg": "Criar Conta",
+        "btn_back": "⬅️ Voltar",
+        "btn_next": "Continuar ➔",
+        "budget_lbl": "Seu Orçamento Máximo de Fertilizantes (₹)",
+        "budget_help": "O motor de otimização garante que o custo total de compra permaneça estritamente dentro deste limite.",
+        "feedback_title": "🌟 Feedback Obrigatório do Agricultor e Classificação",
+        "feedback_submit": "Enviar Feedback e Sair do Painel ➔",
+        "land_calc_title": "📐 Seleção de Unidade de Terra e Matriz de Orçamento",
+        "stage_1_period": "Estágio 1: Adubação Basal (Semeadura / Transplante - Dia 0)",
+        "stage_1_method": "Incorpore composto e espalhe DAP total e 1/3 de MOP a 5-7 cm de profundidade.",
+        "stage_2_period": "Estágio 2: Crescimento Vegetativo (20 - 25 Dias)",
+        "stage_2_method": "Aplique 1/2 dose de ureia + 1/3 de MOP ao longo das linhas com umidade adequada.",
+        "stage_3_period": "Estágio 3: Iniciação da Panícula / Floração (45 - 55 Dias)",
+        "stage_3_method": "Aplique o 1/4 restante de ureia e o MOP final. Evite chuvas fortes.",
+        "soil_detected": "Solo detectado",
+        "soil_not_detected": "Não detectado"
+    },
+    "Русский (Russian)": {
+        "title": "Smart Kishan | Центр управления AgriTech",
+        "subtitle": "Сертифицированное распределение питательных веществ 4R, анализ почв и официальный рецепт",
+        "login_tab": "Войти",
+        "reg_tab": "Регистрация",
+        "mobile_lbl": "Номер мобильного",
+        "pass_lbl": "Пароль",
+        "conf_pass_lbl": "Подтвердите пароль",
+        "lang_select": "Выбор глобального языка",
+        "mode_select": "Выберите сельскохозяйственную службу",
+        "mode_opt": "🌾 Полный цикл оптимизации почв и удобрений",
+        "mode_diag": "🔬 Только диагностика болезней, вредителей и лекарств",
+        "btn_login": "Войти в центр управления ➔",
+        "btn_reg": "Создать аккаунт",
+        "btn_back": "⬅️ Назад",
+        "btn_next": "Продолжить ➔",
+        "budget_lbl": "Ваш максимальный бюджет на удобрения (₹)",
+        "budget_help": "Механизм оптимизации гарантирует, что общая стоимость покупки строго не превысит этот лимит.",
+        "feedback_title": "🌟 Обязательный отзыв фермера и рейтинг",
+        "feedback_submit": "Отправить отзыв и выйти ➔",
+        "land_calc_title": "📐 Выбор единицы площади и матрица бюджета",
+        "stage_1_period": "Этап 1: Основное удобрение (При посеве/пересадке - День 0)",
+        "stage_1_method": "Внесите компост, DAP и 1/3 MOP на глубину 5-7 см.",
+        "stage_2_period": "Этап 2: Вегетативный рост (20 - 25 дней после посева)",
+        "stage_2_method": "Внесите 1/2 дозы мочевины и 1/3 MOP вдоль рядов при достаточной влажности почвы.",
+        "stage_3_period": "Этап 3: Колошение / Цветение (45 - 55 дней после посева)",
+        "stage_3_method": "Внесите оставшуюся 1/4 мочевины и финальный MOP. Избегайте дождей.",
+        "soil_detected": "Почва обнаружена",
+        "soil_not_detected": "Не обнаружено"
+    },
+    "Italiano (Italian)": {
+        "title": "Smart Kishan | Centro di Controllo AgriTech",
+        "subtitle": "Assegnazione Certificata dei Nutrienti 4R, Triage del Suolo e Prescrizione Ufficiale",
+        "login_tab": "Accedi",
+        "reg_tab": "Registrati",
+        "mobile_lbl": "Numero di Cellulare",
+        "pass_lbl": "Password",
+        "conf_pass_lbl": "Conferma Password",
+        "lang_select": "Selezione della Lingua Globale",
+        "mode_select": "Seleziona Servizio Agricolo",
+        "mode_opt": "🌾 Pipeline Completa di Ottimizzazione del Suolo e Concimi",
+        "mode_diag": "🔬 Solo Diagnosi di Malattie, Parassiti e Medicinali",
+        "btn_login": "Accedi al Centro di Controllo ➔",
+        "btn_reg": "Crea Account",
+        "btn_back": "⬅️ Indietro",
+        "btn_next": "Continua ➔",
+        "budget_lbl": "Il tuo budget massimo per i concimi (₹)",
+        "budget_help": "Il motore di ottimizzazione garantisce che il costo di acquisto totale rimanga rigorosamente entro questo limite.",
+        "feedback_title": "🌟 Feedback Obbligatorio dell'Agricoltore e Valutazione",
+        "feedback_submit": "Invia Feedback e Esci ➔",
+        "land_calc_title": "📐 Selezione Unità di Misura Terreno e Budget",
+        "stage_1_period": "Fase 1: Concimazione di Fondo (Semina / Trapianto - Giorno 0)",
+        "stage_1_method": "Incorporare il compost e distribuire DAP e 1/3 di MOP (5-7 cm di profondità).",
+        "stage_2_period": "Fase 2: Crescita Vegetativa (20 - 25 Giorni)",
+        "stage_2_method": "Applicare 1/2 dose di urea + 1/3 di MOP lungo le file con umidità adeguata.",
+        "stage_3_period": "Fase 3: Fioritura (45 - 55 Giorni)",
+        "stage_3_method": "Applicare il quarto rimanente di urea e il MOP finale. Evitare piogge intense.",
+        "soil_detected": "Suolo rilevato",
+        "soil_not_detected": "Non rilevato"
+    },
+    "العربية (Arabic)": {
+        "title": "Smart Kishan | مركز تحكم تكنولوجيا الزراعة",
+        "subtitle": "تخصيص المغذيات المعتمد 4R، وتقييم التربة الحقيقي، والوصفة الرسمية",
+        "login_tab": "تسجيل الدخول",
+        "reg_tab": "التسجيل",
+        "mobile_lbl": "رقم الجوال",
+        "pass_lbl": "كلمة المرور",
+        "conf_pass_lbl": "تأكيد كلمة المرور",
+        "lang_select": "اختيار اللغة العالمية",
+        "mode_select": "اختر الخدمة الزراعية",
+        "mode_opt": "🌾 خط أنابيب تحسين التربة والأسمدة بالكامل",
+        "mode_diag": "🔬 تشخيص أمراض النبات والآفات والأدوية فقط",
+        "btn_login": "الوصول إلى مركز التحكم ➔",
+        "btn_reg": "إنشاء حساب",
+        "btn_back": "⬅️ رجوع",
+        "btn_next": "متابعة ➔",
+        "budget_lbl": "الحد الأقصى لميزانية الأسمدة الخاصة بك (₹)",
+        "budget_help": "يضمن محرك التحسين أن تظل تكلفة الشراء الإجمالية ضمن هذا الحد بدقة.",
+        "feedback_title": "🌟 تقييم وملاحظات إجبارية للمزارع",
+        "feedback_submit": "إرسال الملاحظات والخروج ➔",
+        "land_calc_title": "📐 تحديد وحدة الأراضي ومصفوفة ميزانية المزرعة",
+        "stage_1_period": "المرحلة الأولى: التسميد الأساسي (عند الزراعة - اليوم 0)",
+        "stage_1_method": "دمج السماد العضوي ونشر DAP بالكامل و 1/3 MOP (عمق 5-7 سم).",
+        "stage_2_period": "المرحلة الثانية: النمو الخضري (20 - 25 يوماً بعد الزراعة)",
+        "stage_2_method": "ضع نصف جرعة اليوريا + 1/3 MOP على طول صفوف النباتات برطوبة كافية.",
+        "stage_3_period": "المرحلة الثالثة: الإزهار (45 - 55 يوماً بعد الزراعة)",
+        "stage_3_method": "ضع الربع المتبقي من اليوريا و MOP النهائي. تجنب الأمطار الغزيرة.",
+        "soil_detected": "تم اكتشاف التربة",
+        "soil_not_detected": "لم يتم الاكتشاف"
     }
 }
 
@@ -806,8 +1076,8 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
     IST = timezone(timedelta(hours=5, minutes=30))
     local_now = datetime.now(IST)
 
-    story.append(Paragraph("SMART KISHAN • OFFICIAL CROP PRESCRIPTION", title_style))
-    story.append(Paragraph("Certified 4R Nutrient Stewardship & Field Application Dossier", subtitle_style))
+    story.append(Paragraph("SMART KISHAN • CROP DISEASE & TREATMENT PRESCRIPTION", title_style))
+    story.append(Paragraph("Certified Plant Pathology & Remedial Action Dossier", subtitle_style))
     story.append(Paragraph(f"Dossier ID: SK-DIAG-{local_now.strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {local_now.strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
@@ -954,7 +1224,7 @@ if st.session_state.step == 1:
 
         c_lang, c_mode = st.columns([1, 1])
 
-        available_languages = ["English", "हिन्दी", "ଓଡ଼ିଆ"]
+        available_languages = list(TRANSLATIONS.keys())
         current_lang_index = (
             available_languages.index(st.session_state.app_lang)
             if st.session_state.app_lang in available_languages else 0
@@ -1080,50 +1350,7 @@ if st.session_state.step == 1:
 elif st.session_state.step == 2:
     if os.path.exists(LOGO_FILE_EXACT):
         st.image(LOGO_FILE_EXACT, width=150)
-    
-    # User-interactive navigation options modeled after professional AgriTech dashboards
-    selected_nav = st.radio(
-        "Navigation Bar",
-        ["🌱 Dashboard", "📋 Crop Management", "📊 Crop Report", "⚙️ Equipments", "🔬 Pest & Disease"],
-        horizontal=True,
-        label_visibility="collapsed"
-    )
-    
-    if selected_nav == "🌱 Dashboard":
-        st.markdown("### 🌾 Smart Farming Overview & Real-Time Telemetry")
-        m_c1, m_c2, m_c3, m_c4 = st.columns(4)
-        m_c1.metric("Total Cultivated Fields", "24 Active")
-        m_c2.metric("Total Farm Area", f"{st.session_state.raw_land_val:.1f} {st.session_state.land_unit.split(' ')[0]}")
-        m_c3.metric("AI Health Score", "86 / 100", "Optimal")
-        m_c4.metric("Weather Status", f"{st.session_state.temp}°C", "Partly Cloudy")
-        
-        st.info("💡 **AI Recommendation**: Adjust irrigation schedules today to stabilize soil moisture balance and protect crop yields within 48 hours.")
 
-    elif selected_nav == "📋 Crop Management":
-        st.markdown("### 📋 Crop Management & Growth Stages")
-        st.write(f"• **Current Parcel ID**: {st.session_state.plot_id}")
-        st.write(f"• **Cultivated Crop**: {st.session_state.sel_crop.capitalize()}")
-        st.write("• **Growth Stage**: Vegetative / Tillering Phase")
-        st.write("• **Recommended Action**: Monitor nitrogen uptake and apply split fertilizer dosages as prescribed.")
-
-    elif selected_nav == "📊 Crop Report":
-        st.markdown("### 📊 Comprehensive Crop & Soil Reports")
-        st.write("Review active telemetry metrics and historical sensor logs for your parcel.")
-        c_rep1, c_rep2 = st.columns(2)
-        c_rep1.metric("Active Soil pH", f"{st.session_state.soil_ph}", "Sweet & Balanced")
-        c_rep2.metric("Organic Carbon (SOC)", f"{st.session_state.soc}%", "Healthy")
-
-    elif selected_nav == "⚙️ Equipments":
-        st.markdown("### ⚙️ Farm Equipments & IoT Sensors")
-        st.write("• **Smart Soil Sensor (Node #104)**: Online (Battery 94%)")
-        st.write("• **Autonomous Drone Sprayer**: Ready for mission deployment")
-        st.write("• **Drip Irrigation Valve**: Automated schedule active")
-
-    elif selected_nav == "🔬 Pest & Disease":
-        st.markdown("### 🔬 Pest & Disease Detection Module")
-        st.write("Switching to diagnostic mode for plant pathology scan...")
-
-    st.markdown("---")
     h_col1, h_col2 = st.columns([3, 1])
     h_col1.markdown(f"### 🌾 AgriTech Control Center — Role: **{st.session_state.user_role.upper()}**")
     if h_col2.button("🚪 Sign Out"):
@@ -1658,7 +1885,9 @@ elif st.session_state.step == 8:
         st.rerun()
 
     if b_fb_sub.button(T["feedback_submit"]):
-        if not feedback_comments.strip():
+        if not feedback_comments.sign and not feedback_comments.strip():
+            st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
+        elif not feedback_comments.strip():
             st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
             save_feedback(st.session_state.user_mobile, st.session_state.star_selection, feedback_comments)
