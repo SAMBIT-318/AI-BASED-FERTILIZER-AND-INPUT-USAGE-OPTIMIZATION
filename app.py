@@ -214,26 +214,6 @@ st.markdown(f"""
         background-repeat: no-repeat !important;
     }}
 
-    .top-banner-box {{
-        background: rgba(11, 61, 46, 0.90);
-        border: 1px solid rgba(57, 255, 136, 0.6);
-        border-radius: 24px;
-        padding: 16px 24px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 25px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    }}
-
-    .top-banner-box h2 {{
-        color: #39FF88 !important;
-        margin: 0 !important;
-        font-size: 22px !important;
-        font-weight: 800 !important;
-        letter-spacing: 0.5px;
-    }}
-
     .login-brand-side {{
         position: relative;
         z-index: 10;
@@ -655,19 +635,19 @@ class NumberedCanvas(canvas.Canvas):
         self.circle(500, 85, 33, stroke=1, fill=0)
 
         self.setFont("Helvetica-Bold", 6.5)
-        self.setFillColor(colors.HexColor("#39FF88"))
-        self.drawCentredString(500, 104, "AI AGRITECH")
+        self.setFillColor(colors.HexColor("#1B5E20"))
+        self.drawCentredString(500, 104, "GOVT COMPLIANT")
         self.setFont("Helvetica-Bold", 8.5)
-        self.setFillColor(colors.HexColor("#FFFFFF"))
+        self.setFillColor(colors.HexColor("#B78103"))
         self.drawCentredString(500, 83, "SMART KISHAN")
         self.setFont("Helvetica-Bold", 6.5)
-        self.setFillColor(colors.HexColor("#39FF88"))
+        self.setFillColor(colors.HexColor("#1B5E20"))
         self.drawCentredString(500, 68, "4R CERTIFIED")
         self.restoreState()
 
         self.setFont("Helvetica", 8)
-        self.setFillColor(colors.HexColor("#A7F3D0"))
-        self.drawString(30, 28, "Smart Kishan • AgriTech Control Center • ISO 9001:2015 Standard")
+        self.setFillColor(colors.HexColor("#475569"))
+        self.drawString(30, 28, "Smart Kishan • Digital Farming Solutions • ISO 9001:2015 Standard")
         self.drawRightString(565, 28, f"Page {self._pageNumber} of {page_count}")
 
 
@@ -685,7 +665,7 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
 
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('DocTitle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=17, textColor=colors.HexColor('#0B3D2E'), leading=21, alignment=1)
-    subtitle_style = ParagraphStyle('DocSub', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.HexColor('#145A32'), leading=12, alignment=1)
+    subtitle_style = ParagraphStyle('DocSub', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.HexColor('#2E7D32'), leading=12, alignment=1)
     section_h1 = ParagraphStyle('SecH1', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10.5, textColor=colors.HexColor('#0B3D2E'), leading=14, spaceBefore=8, spaceAfter=4)
     body_style = ParagraphStyle('BodyText', parent=styles['Normal'], fontName='Helvetica', fontSize=8.5, textColor=colors.HexColor('#1E293B'), leading=11)
     bold_style = ParagraphStyle('BoldText', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8.5, textColor=colors.HexColor('#0F172A'), leading=11)
@@ -706,7 +686,7 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     story.append(Paragraph("Certified 4R Nutrient Stewardship & Field Application Dossier", subtitle_style))
     story.append(Paragraph(f"Dossier ID: SK-{local_now.strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {local_now.strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
     story.append(Spacer(1, 6))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#145A32"), spaceBefore=2, spaceAfter=8))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
     story.append(Paragraph("1. FARMER & LAND PROFILE", section_h1))
     profile_data = [
@@ -809,7 +789,7 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
 
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('DocTitle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=17, textColor=colors.HexColor('#0B3D2E'), leading=21, alignment=1)
-    subtitle_style = ParagraphStyle('DocSub', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.HexColor('#145A32'), leading=12, alignment=1)
+    subtitle_style = ParagraphStyle('DocSub', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.HexColor('#2E7D32'), leading=12, alignment=1)
     section_h1 = ParagraphStyle('SecH1', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10.5, textColor=colors.HexColor('#0B3D2E'), leading=14, spaceBefore=8, spaceAfter=4)
     body_style = ParagraphStyle('BodyText', parent=styles['Normal'], fontName='Helvetica', fontSize=8.5, textColor=colors.HexColor('#1E293B'), leading=11)
     bold_style = ParagraphStyle('BoldText', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8.5, textColor=colors.HexColor('#0F172A'), leading=11)
@@ -830,7 +810,7 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
     story.append(Paragraph("Certified Plant Pathology & Remedial Action Dossier", subtitle_style))
     story.append(Paragraph(f"Dossier ID: SK-DIAG-{local_now.strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {local_now.strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
     story.append(Spacer(1, 6))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#145A32"), spaceBefore=2, spaceAfter=8))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
     story.append(Paragraph("1. DIAGNOSTIC SPECIMEN & FARM PROFILE", section_h1))
     profile_data = [
@@ -1098,23 +1078,9 @@ if st.session_state.step == 1:
 # SCREEN 2: MUTUALLY EXCLUSIVE SOIL SCANNER OR MANUAL INPUT
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
-    if os.path.exists(LOGO_FILE_EXACT):
-        with open(LOGO_FILE_EXACT, "rb") as image_file:
-            encoded_logo = base64.b64encode(image_file.read()).decode()
-        st.markdown(f"""
-        <div class="top-banner-box">
-            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="top-banner-box">
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
-
     h_col1, h_col2 = st.columns([3, 1])
+    if os.path.exists(LOGO_FILE_EXACT):
+        h_col1.image(LOGO_FILE_EXACT, width=150)
     h_col1.markdown(f"### 🌾 AgriTech Control Center — Role: **{st.session_state.user_role.upper()}**")
     if h_col2.button("🚪 Sign Out"):
         st.session_state.logged_in = False
@@ -1324,20 +1290,7 @@ elif st.session_state.step == 2:
 # -------------------------------------------------------------
 elif st.session_state.step == 3:
     if os.path.exists(LOGO_FILE_EXACT):
-        with open(LOGO_FILE_EXACT, "rb") as image_file:
-            encoded_logo = base64.b64encode(image_file.read()).decode()
-        st.markdown(f"""
-        <div class="top-banner-box">
-            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="top-banner-box">
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("3. ⚙️ Soil Condition & Risk Assessment")
     
     k1, k2, k3 = st.columns(3)
@@ -1360,20 +1313,7 @@ elif st.session_state.step == 3:
 # -------------------------------------------------------------
 elif st.session_state.step == 4:
     if os.path.exists(LOGO_FILE_EXACT):
-        with open(LOGO_FILE_EXACT, "rb") as image_file:
-            encoded_logo = base64.b64encode(image_file.read()).decode()
-        st.markdown(f"""
-        <div class="top-banner-box">
-            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="top-banner-box">
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("4. 📊 Current Soil Nutrients vs Ideal Farm Target")
     chart_data = pd.DataFrame({
         "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"],
@@ -1396,20 +1336,7 @@ elif st.session_state.step == 4:
 # -------------------------------------------------------------
 elif st.session_state.step == 5:
     if os.path.exists(LOGO_FILE_EXACT):
-        with open(LOGO_FILE_EXACT, "rb") as image_file:
-            encoded_logo = base64.b64encode(image_file.read()).decode()
-        st.markdown(f"""
-        <div class="top-banner-box">
-            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="top-banner-box">
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("5. ⚠️ Required Nutrient Deficit & Dynamic Crop Recommendation")
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
@@ -1455,20 +1382,7 @@ elif st.session_state.step == 5:
 # -------------------------------------------------------------
 elif st.session_state.step == 6:
     if os.path.exists(LOGO_FILE_EXACT):
-        with open(LOGO_FILE_EXACT, "rb") as image_file:
-            encoded_logo = base64.b64encode(image_file.read()).decode()
-        st.markdown(f"""
-        <div class="top-banner-box">
-            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="top-banner-box">
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("6. 🚀 Your Fertilizer Bags & Application Schedule")
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
@@ -1530,20 +1444,7 @@ elif st.session_state.step == 6:
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
     if os.path.exists(LOGO_FILE_EXACT):
-        with open(LOGO_FILE_EXACT, "rb") as image_file:
-            encoded_logo = base64.b64encode(image_file.read()).decode()
-        st.markdown(f"""
-        <div class="top-banner-box">
-            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="top-banner-box">
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("7. 📋 Official Farmer Prescription Card (Smart Kishan Certified)")
     opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, "land_area": st.session_state.land_area})
     diag = st.session_state.get("scanned_diag", {
@@ -1644,20 +1545,7 @@ elif st.session_state.step == 7:
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     if os.path.exists(LOGO_FILE_EXACT):
-        with open(LOGO_FILE_EXACT, "rb") as image_file:
-            encoded_logo = base64.b64encode(image_file.read()).decode()
-        st.markdown(f"""
-        <div class="top-banner-box">
-            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="top-banner-box">
-            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader(T["feedback_title"])
     st.write("Please tap the stars below to rate your advisory experience before exiting:")
 
