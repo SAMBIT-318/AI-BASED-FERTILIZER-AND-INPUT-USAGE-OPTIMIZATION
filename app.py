@@ -217,14 +217,14 @@ st.markdown(f"""
         max-width: 550px;
         color: #FFFFFF;
         padding-top: 40px;
-    }}
+    }
     .login-brand-side h1 {{
         font-size: 42px;
         font-weight: 800;
         color: #39FF88;
         margin-bottom: 12px;
         text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-    }}
+    }
     .login-brand-side p {{
         font-size: 16px;
         color: #FFFFFF;
@@ -258,21 +258,21 @@ st.markdown(f"""
         justify-content: space-between;
         align-items: center;
         border: 1px solid rgba(57, 255, 136, 0.5);
-    }}
+    }
     .hero-text h1 {{
         font-size: 25px !important;
         font-weight: 800 !important;
         color: #39FF88 !important;
         margin: 0 !important;
         text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-    }}
+    }
     .hero-text p {{
         font-size: 13.5px !important;
         color: #FFFFFF !important;
         margin: 3px 0 0 0 !important;
         font-weight: 600;
         text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-    }}
+    }
 
     .metric-card {{
         background: rgba(11, 61, 46, 0.90) !important;
@@ -285,7 +285,7 @@ st.markdown(f"""
         box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important;
         margin-bottom: 12px;
         color: #FFFFFF !important;
-    }}
+    }
 
     .summary-card {{
         background: rgba(11, 61, 46, 0.92) !important;
@@ -295,7 +295,7 @@ st.markdown(f"""
         margin-bottom: 20px !important;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
         color: #FFFFFF !important;
-    }}
+    }
 
     div.stButton > button, div.stButton > button:focus {{
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
@@ -307,13 +307,13 @@ st.markdown(f"""
         border: 1px solid #39FF88 !important;
         box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important;
         transition: all 0.15s ease-in-out !important;
-    }}
+    }
     div.stButton > button:hover {{
         background: linear-gradient(180deg, #1B5E20 0%, #145A32 100%) !important;
         color: #FFFFFF !important;
         box-shadow: 0 6px 16px rgba(57, 255, 136, 0.5) !important;
         transform: translateY(-1px) !important;
-    }}
+    }
 
     div.stDownloadButton > button {{
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
@@ -881,6 +881,9 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
 # -------------------------------------------------------------
 def render_ai_chatbot_sidebar():
     with st.sidebar:
+        LOGO_FILE_SMALL = "smart kishan logo.png"
+        if os.path.exists(LOGO_FILE_SMALL):
+            st.image(LOGO_FILE_SMALL, width=120)
         st.markdown("""
         <div style="background: rgba(11, 61, 46, 0.95); padding: 16px; border-radius: 12px; border: 1px solid #39FF88; margin-bottom: 15px;">
             <h3 style="color: #39FF88; margin: 0 0 6px 0;">🤖 Smart Kishan AI Bot</h3>
@@ -1095,6 +1098,9 @@ if st.session_state.step == 1:
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     h_col1, h_col2 = st.columns([3, 1])
+    LOGO_TOP = "smart kishan logo.png"
+    if os.path.exists(LOGO_TOP):
+        h_col1.image(LOGO_TOP, width=150)
     h_col1.markdown(f"### 🌾 AgriTech Control Center — Role: **{st.session_state.user_role.upper()}**")
     if h_col2.button("🚪 Sign Out"):
         st.session_state.logged_in = False
@@ -1303,6 +1309,9 @@ elif st.session_state.step == 2:
 # SCREEN 3: SOIL HEALTH EVALUATION
 # -------------------------------------------------------------
 elif st.session_state.step == 3:
+    LOGO_TOP = "smart kishan logo.png"
+    if os.path.exists(LOGO_TOP):
+        st.image(LOGO_TOP, width=150)
     st.subheader("3. ⚙️ Soil Condition & Risk Assessment")
     
     k1, k2, k3 = st.columns(3)
@@ -1324,6 +1333,9 @@ elif st.session_state.step == 3:
 # SCREEN 4: SOIL COMPARISON BAR CHART
 # -------------------------------------------------------------
 elif st.session_state.step == 4:
+    LOGO_TOP = "smart kishan logo.png"
+    if os.path.exists(LOGO_TOP):
+        st.image(LOGO_TOP, width=150)
     st.subheader("4. 📊 Current Soil Nutrients vs Ideal Farm Target")
     chart_data = pd.DataFrame({
         "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"],
@@ -1345,6 +1357,9 @@ elif st.session_state.step == 4:
 # SCREEN 5: NUTRIENT GAP & DYNAMIC CROP RECOMMENDATION
 # -------------------------------------------------------------
 elif st.session_state.step == 5:
+    LOGO_TOP = "smart kishan logo.png"
+    if os.path.exists(LOGO_TOP):
+        st.image(LOGO_TOP, width=150)
     st.subheader("5. ⚠️ Required Nutrient Deficit & Dynamic Crop Recommendation")
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
@@ -1389,6 +1404,9 @@ elif st.session_state.step == 5:
 # SCREEN 6: OPTIMIZED FERTILIZER BAGS & TIMETABLE
 # -------------------------------------------------------------
 elif st.session_state.step == 6:
+    LOGO_TOP = "smart kishan logo.png"
+    if os.path.exists(LOGO_TOP):
+        st.image(LOGO_TOP, width=150)
     st.subheader("6. 🚀 Your Fertilizer Bags & Application Schedule")
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
@@ -1449,6 +1467,9 @@ elif st.session_state.step == 6:
 # SCREEN 7: PRESCRIPTION DOSSIER & MULTILINGUAL PDF DOWNLOAD
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
+    LOGO_TOP = "smart kishan logo.png"
+    if os.path.exists(LOGO_TOP):
+        st.image(LOGO_TOP, width=150)
     st.subheader("7. 📋 Official Farmer Prescription Card (Smart Kishan Certified)")
     opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, "land_area": st.session_state.land_area})
     diag = st.session_state.get("scanned_diag", {
@@ -1548,6 +1569,9 @@ elif st.session_state.step == 7:
 # SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
+    LOGO_TOP = "smart kishan logo.png"
+    if os.path.exists(LOGO_TOP):
+        st.image(LOGO_TOP, width=150)
     st.subheader(T["feedback_title"])
     st.write("Please tap the stars below to rate your advisory experience before exiting:")
 
