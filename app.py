@@ -236,6 +236,19 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
+    .glass-login-card {{
+        position: relative;
+        z-index: 10;
+        background: rgba(11, 61, 46, 0.94) !important;
+        backdrop-filter: blur(18px) !important;
+        -webkit-backdrop-filter: blur(18px) !important;
+        border: 1px solid rgba(57, 255, 136, 0.6) !important;
+        border-radius: 20px !important;
+        padding: 32px !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important;
+        width: 100% !important;
+    }}
+
     .farmer-hero {{
         background: rgba(11, 61, 46, 0.90);
         border-radius: 18px;
@@ -1548,7 +1561,7 @@ elif st.session_state.step == 2:
         st.image(LOGO_FILE_EXACT, width=150)
 
     h_col1, h_col2 = st.columns([3, 1])
-    h_col1.markdown(f"### 🌾 AgriTech Control Center — Role: **{st.session_state.user_role.upper()}**")
+    h_col1.markdown(f"### SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION — Role: **{st.session_state.user_role.upper()}**")
     if h_col2.button("🚪 Sign Out"):
         st.session_state.logged_in = False
         st.session_state.step = 1
@@ -2108,7 +2121,7 @@ elif st.session_state.step == 8:
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
 
     b_fb_back, b_fb_sub = st.columns([1, 5])
-    if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
+    if b_fb_back.button(T["B_BACK"] if "B_BACK" in T else T["btn_back"], key="feedback_back_btn"):
         st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
         st.rerun()
 
