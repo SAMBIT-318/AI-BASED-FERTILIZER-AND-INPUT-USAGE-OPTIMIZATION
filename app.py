@@ -224,7 +224,7 @@ st.markdown(f"""
         color: #39FF88;
         margin-bottom: 12px;
         text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-    }
+    }}
     .login-brand-side p {{
         font-size: 16px;
         color: #FFFFFF;
@@ -258,21 +258,21 @@ st.markdown(f"""
         justify-content: space-between;
         align-items: center;
         border: 1px solid rgba(57, 255, 136, 0.5);
-    }
+    }}
     .hero-text h1 {{
         font-size: 25px !important;
         font-weight: 800 !important;
         color: #39FF88 !important;
         margin: 0 !important;
         text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-    }
+    }}
     .hero-text p {{
         font-size: 13.5px !important;
         color: #FFFFFF !important;
         margin: 3px 0 0 0 !important;
         font-weight: 600;
         text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-    }
+    }}
 
     .metric-card {{
         background: rgba(11, 61, 46, 0.90) !important;
@@ -285,7 +285,7 @@ st.markdown(f"""
         box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important;
         margin-bottom: 12px;
         color: #FFFFFF !important;
-    }
+    }}
 
     .summary-card {{
         background: rgba(11, 61, 46, 0.92) !important;
@@ -295,7 +295,7 @@ st.markdown(f"""
         margin-bottom: 20px !important;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
         color: #FFFFFF !important;
-    }
+    }}
 
     div.stButton > button, div.stButton > button:focus {{
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
@@ -307,13 +307,13 @@ st.markdown(f"""
         border: 1px solid #39FF88 !important;
         box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important;
         transition: all 0.15s ease-in-out !important;
-    }
+    }}
     div.stButton > button:hover {{
         background: linear-gradient(180deg, #1B5E20 0%, #145A32 100%) !important;
         color: #FFFFFF !important;
         box-shadow: 0 6px 16px rgba(57, 255, 136, 0.5) !important;
         transform: translateY(-1px) !important;
-    }
+    }}
 
     div.stDownloadButton > button {{
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
@@ -347,7 +347,7 @@ st.markdown(f"""
         border-radius: 8px;
         font-weight: 700;
         border: 1px solid #39FF88;
-    }
+    }}
     .badge-warn {{
         background-color: rgba(239, 68, 68, 0.25);
         color: #F87171;
