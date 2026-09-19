@@ -1106,7 +1106,7 @@ elif st.session_state.step == 2:
             res = analyze_plant_disease_image(img)
             st.session_state.scanned_diag = res
 
-            # Organized Tabs for Disease & Treatment System
+            # Organized Tabs with individual Back buttons inside each tab
             diag_tab1, diag_tab2, diag_tab3 = st.tabs([
                 "📋 Disease & Plant Requirements", 
                 "💊 Medicine & Application Schedule", 
@@ -1119,6 +1119,11 @@ elif st.session_state.step == 2:
                 st.write(f"🐛 **Pest Recognition**: {res['pest']}")
                 st.write(f"🔬 **Visible Symptoms**: {res['symptoms']}")
                 st.info("💡 **Nutritional & Environmental Requirements**: Ensure balanced potassium and micronutrient supplementation alongside moisture retention to strengthen plant immunity.")
+                
+                st.divider()
+                if st.button(T["btn_back"], key="tab1_back"):
+                    st.session_state.step = 1
+                    st.rerun()
 
             with diag_tab2:
                 st.markdown("##### 💊 Prescribed Treatment & Application Schedule:")
@@ -1126,6 +1131,11 @@ elif st.session_state.step == 2:
                 st.write("• **Application Frequency**: Apply once every 7 to 10 days during early morning or late evening hours.")
                 st.metric("Survival & Recovery Chance", f"{res['recovery_chance']}%")
                 st.write(f"🌱 **Will this crop continue to grow?**: **{res['will_grow']}**")
+                
+                st.divider()
+                if st.button(T["btn_back"], key="tab2_back"):
+                    st.session_state.step = 1
+                    st.rerun()
 
             with diag_tab3:
                 st.markdown("##### 📄 Download Official Disease & Treatment Prescription")
@@ -1144,15 +1154,17 @@ elif st.session_state.step == 2:
                     file_name=disease_pdf_filename,
                     mime="application/pdf"
                 )
-        
-        st.divider()
-        b_prev, b_next_diag = st.columns([1, 5])
-        if b_prev.button(T["btn_back"], key="diag_back"):
-            st.session_state.step = 1
-            st.rerun()
-        if b_next_diag.button("Complete & Leave Feedback ➔", key="diag_next"):
-            st.session_state.step = 8
-            st.rerun()
+                
+                st.divider()
+                pdf_btn_col1, pdf_btn_col2 = st.columns([1, 4])
+                with pdf_btn_col1:
+                    if st.button(T["btn_back"], key="tab3_back"):
+                        st.session_state.step = 1
+                        st.rerun()
+                with pdf_btn_col2:
+                    if st.button("Proceed to Feedback & Exit ➔", key="tab3_proceed"):
+                        st.session_state.step = 8
+                        st.rerun()
 
     else:
         st.subheader("2. 📍 Land Size, Budget & Soil Input (Scanner OR Manual)")
