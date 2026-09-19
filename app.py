@@ -2080,7 +2080,7 @@ elif st.session_state.step == 8:
                 display: none;
             }
             .stars label {
-                font-size: 42px;
+                font-size: 100px;
                 color: #ccc;
                 cursor: pointer;
                 transition: color 0.2s ease;
