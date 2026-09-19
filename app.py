@@ -204,7 +204,7 @@ st.markdown(f"""
 
     /* Cinematic background image across the entire website using agritech_hero_bg.jpg with smooth Dark-to-Light Green Gradient */
     .stApp {{
-        background: linear-gradient(135deg, rgba(4, 25, 18, 0.92) 0%, rgba(11, 61, 46, 0.85) 50%, rgba(100, 230, 160, 0.38) 100%), url("data:image/jpeg;base64,{HERO_BG_DATA}") !important;
+        background: linear-gradient(135deg, rgba(6, 30, 22, 0.90) 0%, rgba(14, 75, 48, 0.82) 50%, rgba(110, 235, 175, 0.35) 100%), url("data:image/jpeg;base64,{HERO_BG_DATA}") !important;
         background-size: cover !important;
         background-position: center center !important;
         background-attachment: fixed !important;
@@ -238,17 +238,17 @@ st.markdown(f"""
         position: relative;
         z-index: 10;
         background: rgba(11, 61, 46, 0.94) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        border: 1px solid rgba(57, 255, 136, 0.7) !important;
+        backdrop-filter: blur(18px) !important;
+        -webkit-backdrop-filter: blur(18px) !important;
+        border: 1px solid rgba(57, 255, 136, 0.6) !important;
         border-radius: 20px !important;
         padding: 32px !important;
         box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important;
         width: 100% !important;
-    }}
+    }
 
     .farmer-hero {{
-        background: rgba(11, 61, 46, 0.92);
+        background: rgba(11, 61, 46, 0.90);
         border-radius: 18px;
         padding: 18px 24px;
         color: #FFFFFF !important;
@@ -257,7 +257,7 @@ st.markdown(f"""
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border: 1px solid rgba(57, 255, 136, 0.6);
+        border: 1px solid rgba(57, 255, 136, 0.5);
     }
     .hero-text h1 {{
         font-size: 25px !important;
@@ -275,20 +275,20 @@ st.markdown(f"""
     }
 
     .metric-card {{
-        background: rgba(11, 61, 46, 0.92) !important;
+        background: rgba(11, 61, 46, 0.90) !important;
         border-radius: 14px !important;
         padding: 16px 18px !important;
         border-left: 6px solid #39FF88 !important;
-        border-top: 1px solid rgba(57, 255, 136, 0.4) !important;
-        border-right: 1px solid rgba(57, 255, 136, 0.4) !important;
-        border-bottom: 1px solid rgba(57, 255, 136, 0.4) !important;
+        border-top: 1px solid rgba(57, 255, 136, 0.3) !important;
+        border-right: 1px solid rgba(57, 255, 136, 0.3) !important;
+        border-bottom: 1px solid rgba(57, 255, 136, 0.3) !important;
         box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important;
         margin-bottom: 12px;
         color: #FFFFFF !important;
     }
 
     .summary-card {{
-        background: rgba(11, 61, 46, 0.94) !important;
+        background: rgba(11, 61, 46, 0.92) !important;
         border: 2px solid #39FF88 !important;
         padding: 24px !important;
         border-radius: 16px !important;
