@@ -173,7 +173,7 @@ def analyze_plant_disease_image(image_obj):
         }
 
 # -------------------------------------------------------------
-# PAGE CONFIGURATION & FUTURISTIC AGRITECH SAAS THEME
+# PAGE CONFIGURATION & HIGH-CONTRAST AGRITECH SAAS THEME
 # -------------------------------------------------------------
 st.set_page_config(
     page_title="Smart Kishan | AgriTech Control Center",
@@ -182,35 +182,28 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom styling using your professional color palette: #061A14 background, #0B3D2E, #39FF88 accents, glassmorphism
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
     html, body, [class*="css"], .stApp {
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        background-color: #061A14 !important;
-        color: #F1F5F3 !important;
+        color: #FFFFFF !important;
     }
 
-    /* Cinematic background image container for Login phase */
-    .login-hero-bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: linear-gradient(rgba(6, 26, 20, 0.75), rgba(11, 61, 46, 0.85)), url('agritech_hero_bg.jpg');
-        background-size: cover;
-        background-position: center;
-        z-index: 1;
+    /* Cinematic background image across the entire website using agritech_hero_bg.jpg */
+    .stApp {
+        background: linear-gradient(rgba(6, 26, 20, 0.82), rgba(11, 61, 46, 0.90)), url('agritech_hero_bg.jpg') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
     }
 
     .login-brand-side {
         position: relative;
         z-index: 10;
         max-width: 550px;
-        color: #F1F5F3;
+        color: #FFFFFF;
         padding-top: 40px;
     }
     .login-brand-side h1 {
@@ -218,38 +211,40 @@ st.markdown("""
         font-weight: 800;
         color: #39FF88;
         margin-bottom: 12px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
     .login-brand-side p {
         font-size: 16px;
-        color: #A7F3D0;
+        color: #E2E8F0;
         line-height: 1.6;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.5);
     }
 
     /* Glassmorphism Popup Card on Right Side */
     .glass-login-card {
         position: relative;
         z-index: 10;
-        background: rgba(11, 61, 46, 0.75) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
-        border: 1px solid rgba(57, 255, 136, 0.3) !important;
+        background: rgba(10, 40, 30, 0.85) !important;
+        backdrop-filter: blur(18px) !important;
+        -webkit-backdrop-filter: blur(18px) !important;
+        border: 1px solid rgba(57, 255, 136, 0.4) !important;
         border-radius: 20px !important;
         padding: 32px !important;
-        box-shadow: 0 12px 40px rgba(6, 26, 20, 0.8) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8) !important;
         width: 100% !important;
     }
 
     .farmer-hero {
-        background: linear-gradient(135deg, #0B3D2E 0%, #145A32 60%, #1B5E20 100%);
+        background: rgba(11, 61, 46, 0.85);
         border-radius: 18px;
         padding: 18px 24px;
         color: #FFFFFF !important;
-        box-shadow: 0 8px 22px rgba(11, 61, 46, 0.4);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
         margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border: 1px solid rgba(57, 255, 136, 0.3);
+        border: 1px solid rgba(57, 255, 136, 0.4);
     }
     .hero-text h1 {
         font-size: 25px !important;
@@ -264,25 +259,26 @@ st.markdown("""
     }
 
     .metric-card {
-        background: #0B3D2E !important;
+        background: rgba(11, 61, 46, 0.85) !important;
         border-radius: 14px !important;
         padding: 16px 18px !important;
         border-left: 6px solid #39FF88 !important;
-        border-top: 1px solid rgba(57, 255, 136, 0.2) !important;
-        border-right: 1px solid rgba(57, 255, 136, 0.2) !important;
-        border-bottom: 1px solid rgba(57, 255, 136, 0.2) !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+        border-top: 1px solid rgba(57, 255, 136, 0.3) !important;
+        border-right: 1px solid rgba(57, 255, 136, 0.3) !important;
+        border-bottom: 1px solid rgba(57, 255, 136, 0.3) !important;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important;
         margin-bottom: 12px;
-        color: #F1F5F3 !important;
+        color: #FFFFFF !important;
     }
 
     .summary-card {
-        background: #0B3D2E !important;
+        background: rgba(11, 61, 46, 0.88) !important;
         border: 2px solid #39FF88 !important;
         padding: 24px !important;
         border-radius: 16px !important;
         margin-bottom: 20px !important;
-        box-shadow: 0 8px 24px rgba(11, 61, 46, 0.5) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+        color: #FFFFFF !important;
     }
 
     div.stButton > button, div.stButton > button:focus {
@@ -293,13 +289,13 @@ st.markdown("""
         border-radius: 10px !important;
         padding: 11px 24px !important;
         border: 1px solid #39FF88 !important;
-        box-shadow: 0 4px 12px rgba(57, 255, 136, 0.2) !important;
+        box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important;
         transition: all 0.15s ease-in-out !important;
     }
     div.stButton > button:hover {
         background: linear-gradient(180deg, #1B5E20 0%, #145A32 100%) !important;
         color: #FFFFFF !important;
-        box-shadow: 0 6px 16px rgba(57, 255, 136, 0.4) !important;
+        box-shadow: 0 6px 16px rgba(57, 255, 136, 0.5) !important;
         transform: translateY(-1px) !important;
     }
 
@@ -310,7 +306,7 @@ st.markdown("""
         border-radius: 10px !important;
         padding: 12px 24px !important;
         border: 1px solid #39FF88 !important;
-        box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(57, 255, 136, 0.4) !important;
     }
 
     .star-container button {
@@ -323,7 +319,7 @@ st.markdown("""
     }
 
     .badge-pass {
-        background-color: rgba(57, 255, 136, 0.15);
+        background-color: rgba(57, 255, 136, 0.2);
         color: #39FF88;
         padding: 5px 14px;
         border-radius: 8px;
@@ -331,12 +327,17 @@ st.markdown("""
         border: 1px solid #39FF88;
     }
     .badge-warn {
-        background-color: rgba(239, 68, 68, 0.15);
+        background-color: rgba(239, 68, 68, 0.2);
         color: #F87171;
         padding: 5px 14px;
         border-radius: 8px;
         font-weight: 700;
         border: 1px solid #EF4444;
+    }
+
+    /* Make all labels and inputs clearly readable against the background */
+    label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6 {
+        color: #FFFFFF !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -467,6 +468,66 @@ TRANSLATIONS = {
         "stage_2_method": "Side-dress 1/2 urea dose + 1/3 MOP along plant rows. Ensure adequate soil moisture or irrigate within 24 hours.",
         "stage_3_period": "Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)",
         "stage_3_method": "Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.",
+        "soil_detected": "Soil is detected",
+        "soil_not_detected": "Not detected"
+    },
+    "हिन्दी": {
+        "title": "स्मार्ट किसान | एग्रीटेक कंट्रोल सेंटर",
+        "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, वास्तविक मृदा विश्लेषण और आधिकारिक नुस्खा",
+        "login_tab": "साइन इन",
+        "reg_tab": "पंजीकरण",
+        "mobile_lbl": "मोबाइल नंबर",
+        "pass_lbl": "पासवर्ड",
+        "conf_pass_lbl": "पासवर्ड की पुष्टि करें",
+        "lang_select": "भाषा चुनें",
+        "mode_select": "कृषि सेवा चुनें",
+        "mode_opt": "🌾 पूर्ण मृदा एवं उर्वरक अनुकूलन पाइपलाइन",
+        "mode_diag": "🔬 केवल पौध रोग, कीट एवं औषधि निदान",
+        "btn_login": "कंट्रोल सेंटर में प्रवेश करें ➔",
+        "btn_reg": "खाता बनाएं",
+        "btn_back": "⬅️ पीछे",
+        "btn_next": "आगे बढ़ें ➔",
+        "budget_lbl": "आपका अधिकतम उर्वरक बजट (₹)",
+        "budget_help": "यह सुनिश्चित करता है कि कुल उर्वरक खरीद लागत इस बजट सीमा से अधिक न हो।",
+        "feedback_title": "🌟 अनिवार्य किसान समीक्षा और स्टार रेटिंग",
+        "feedback_submit": "समीक्षा जमा करें और बाहर निकलें ➔",
+        "land_calc_title": "📐 भूमि इकाई चयन और कृषि बजट तालिका",
+        "stage_1_period": "चरण 1: बुवाई / रोपाई के समय (दिन 0 - आधार खुराक)",
+        "stage_1_method": "कम्पोस्ट, डीएपी और 1/3 पोटाश को बीज से 5-7 सेमी गहराई में डालें। सूखी मिट्टी की ऊपरी सतह पर खुला न छोड़ें।",
+        "stage_2_period": "चरण 2: वनस्पति विकास अवस्था (बुवाई के 20 - 25 दिन बाद)",
+        "stage_2_method": "आधी यूरिया और 1/3 पोटाश को जड़ों के पास डालें। मिट्टी में पर्याप्त नमी होना अनिवार्य है या 24 घंटे में हल्की सिंचाई करें।",
+        "stage_3_period": "चरण 3: फूल आने और दाना भराव के समय (बुवाई के 45 - 55 दिन बाद)",
+        "stage_3_method": "बची हुई यूरिया और पोटाश का छिड़काव करें। भारी बारिश के समय न डालें ताकि खाद बह न जाए।",
+        "soil_detected": "Soil is detected",
+        "soil_not_detected": "Not detected"
+    },
+    "ଓଡ଼ିଆ": {
+        "title": "ସ୍ମାର୍ଟ କିଷାନ | ଏଗ୍ରିଟେକ୍ କଣ୍ଟ୍ରୋଲ୍ ସେଣ୍ଟର",
+        "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ପ୍ରକୃତ ମୃତ୍ତିକା ବିଶ୍ଳେଷଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
+        "login_tab": "ସାଇନ୍ ਇନ୍",
+        "reg_tab": "ପଞ୍ଜୀକରଣ",
+        "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
+        "pass_lbl": "ପାସୱାର୍ଡ",
+        "conf_pass_lbl": "ପାସୱାର୍ଡ ନିଶ୍ଚିତ କରନ୍ତୁ",
+        "lang_select": "ଭାଷା ଚୟନ",
+        "mode_select": "ସେବା ଚୟନ କରନ୍ତୁ",
+        "mode_opt": "🌾 ସମ୍ପୂର୍ଣ୍ଣ ମୃତ୍ତିକା ଓ ସାର ପରିମାଣ ନିର୍ଦ୍ଧାରଣ",
+        "mode_diag": "🔬 କେବଳ ଫସଲ ରୋଗ, କୀଟ ଚିହ୍ନଟ ଓ ଔଷଧ",
+        "btn_login": "କଣ୍ଟ୍ରୋଲ୍ ସେଣ୍ଟରରେ ପ୍ରବେଶ କରନ୍ତୁ ➔",
+        "btn_reg": "ଖାତା ତିଆରି କରନ୍ତୁ",
+        "btn_back": "⬅️ ପଛକୁ ଯାଆନ୍ତୁ",
+        "btn_next": "ଆଗକୁ ବଢ଼ନ୍ତୁ ➔",
+        "budget_lbl": "ଆପଣଙ୍କ ସର୍ବାଧିକ ସାର ଖର୍ଚ୍ଚ ବଜେଟ୍ (₹)",
+        "budget_help": "ଏହା ନିଶ୍ଚିତ କରେ ଯେ ଆପଣଙ୍କ ସାର ଖର୍ଚ୍ଚ ଏହି ବଜେଟ୍ ସୀମା ଭିତରେ ରହିବ।",
+        "feedback_title": "🌟 ବାଧ୍ୟତାମୂଳକ କୃଷକ ମତାମତ ଏବଂ ଷ୍ଟାର ରେଟିଂ",
+        "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ ଏବଂ ବାହାରକୁ ଯାଆନ୍ତୁ ➔",
+        "land_calc_title": "📐 ଜମି ଏକକ ଏବଂ କୃଷି ବଜେଟ୍ ସାରଣୀ",
+        "stage_1_period": "ପ୍ରଥମ ପର୍ଯ୍ୟାୟ: ତଳି ରୋପଣ / ବୁଣିବା ସମୟରେ (୦ ଦିନ - ମୂଳ ସାର)",
+        "stage_1_method": "ସମସ୍ତ ଜୈବିକ ଖତ, ସମ୍ପୂର୍ଣ୍ଣ ଡିଏପି ଏବଂ ୧/୩ ଭାଗ ପଟାସକୁ ମଞ୍ଜି ପୋତିବା ସ୍ଥାନର ୫-୭ ସେମି ଗଭୀରରେ ମିଶାନ୍ତୁ। ଶୁଖିଲା ମାଟି ଉପରେ ପକାନ୍ତୁ ନାହିଁ।",
+        "stage_2_period": "ଦ୍ୱିତୀୟ ପର୍ଯ୍ୟାୟ: ଗଛ ବୃଦ୍ଧି ଓ ପିଲ ବାହାରିବା ସମୟ (୨୦ ରୁ ୨୫ ଦିନ)",
+        "stage_2_method": "ଅଧା ୟୁରିଆ ଓ ୧/୩ ଭାଗ ପଟାସ ଗଛର ମୂଳ ନିକଟରେ ଦିଅନ୍ତୁ। ମାଟିରେ ଉପଯୁକ୍ତ ଓଦାଳିଆ ଅବସ୍ଥା ରହିବା ଦରକାର କିମ୍ବା ୨୪ ଘଣ୍ଟା ମଧ୍ୟରେ ପାଣି ମଡ଼ାନ୍ତୁ।",
+        "stage_3_period": "ତୃତୀୟ ପର୍ଯ୍ୟାୟ: ଫୁଲ ଫୁଟିବା ଓ ଶସ୍ୟ ଭରିବା ସମୟ (୪୫ ରୁ ୫୫ ଦିନ)",
+        "stage_3_method": "ଅବଶିଷ୍ଟ ୟୁରିଆ ଓ ପଟାସ ପ୍ରୟୋଗ କରନ୍ତୁ। ପ୍ରବଳ ବର୍ଷା ସମୟରେ ସାର ପକାନ୍ତୁ ନାହିଁ ଯାହା ଦ୍ୱାରା ଖତ ଧୋଇ ହୋଇ ନଷ୍ଟ ହେବ ନାହିଁ।",
         "soil_detected": "Soil is detected",
         "soil_not_detected": "Not detected"
     }
@@ -792,8 +853,6 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
 # SCREEN 1: CINEMATIC LOGIN & REGISTRATION POPUP (RIGHT SIDE)
 # -------------------------------------------------------------
 if st.session_state.step == 1:
-    st.markdown('<div class="login-hero-bg"></div>', unsafe_allow_html=True)
-    
     col_empty, col_card = st.columns([1.1, 1.1])
     with col_empty:
         st.markdown("""
@@ -808,8 +867,12 @@ if st.session_state.step == 1:
         st.markdown("### 🔐 Welcome Back")
         
         c_lang, c_mode = st.columns(2)
-        available_languages = ["English"]
-        new_lang = c_lang.selectbox(T["lang_select"], available_languages)
+        available_languages = ["English", "हिन्दी", "ଓଡ଼ିଆ"]
+        current_lang_index = available_languages.index(st.session_state.app_lang) if st.session_state.app_lang in available_languages else 0
+        new_lang = c_lang.selectbox(T["lang_select"], available_languages, index=current_lang_index)
+        if new_lang != st.session_state.app_lang:
+            st.session_state.app_lang = new_lang
+            st.rerun()
         
         mode_choice = c_mode.radio(
             T["mode_select"], 
