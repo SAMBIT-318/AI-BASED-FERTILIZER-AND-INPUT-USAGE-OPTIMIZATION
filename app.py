@@ -1,5 +1,6 @@
 import io
 import os
+import base64
 import urllib.parse
 import urllib.request
 import joblib
@@ -182,38 +183,49 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-st.markdown("""
+# Load background image as base64 for absolute reliability across all host containers
+HERO_BG_FILE = "agritech_hero_bg.jpg"
+HERO_BG_DATA = ""
+if os.path.exists(HERO_BG_FILE):
+    try:
+        with open(HERO_BG_FILE, "rb") as f:
+            HERO_BG_DATA = base64.b64encode(f.read()).decode("utf-8")
+    except Exception:
+        HERO_BG_DATA = ""
+
+st.markdown(f"""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-    html, body, [class*="css"], .stApp {
+    html, body, [class*="css"], .stApp {{
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         color: #FFFFFF !important;
-    }
+    }}
 
     /* Cinematic background image across the entire website using agritech_hero_bg.jpg with smooth Dark-to-Light Green Gradient */
-    .stApp {
-        background: linear-gradient(135deg, rgba(6, 30, 22, 0.90) 0%, rgba(14, 75, 48, 0.82) 50%, rgba(110, 235, 175, 0.35) 100%), url('agritech_hero_bg.jpg') !important;
+    .stApp {{
+        background: linear-gradient(135deg, rgba(4, 25, 18, 0.92) 0%, rgba(11, 61, 46, 0.85) 50%, rgba(100, 230, 160, 0.38) 100%), url("data:image/jpeg;base64,{HERO_BG_DATA}") !important;
         background-size: cover !important;
-        background-position: center !important;
+        background-position: center center !important;
         background-attachment: fixed !important;
-    }
+        background-repeat: no-repeat !important;
+    }}
 
-    .login-brand-side {
+    .login-brand-side {{
         position: relative;
         z-index: 10;
         max-width: 550px;
         color: #FFFFFF;
         padding-top: 40px;
     }
-    .login-brand-side h1 {
+    .login-brand-side h1 {{
         font-size: 42px;
         font-weight: 800;
         color: #39FF88;
         margin-bottom: 12px;
         text-shadow: 0 2px 10px rgba(0,0,0,0.8);
     }
-    .login-brand-side p {
+    .login-brand-side p {{
         font-size: 16px;
         color: #FFFFFF;
         line-height: 1.6;
@@ -222,21 +234,21 @@ st.markdown("""
     }
 
     /* Glassmorphism Popup Card on Right Side */
-    .glass-login-card {
+    .glass-login-card {{
         position: relative;
         z-index: 10;
-        background: rgba(11, 61, 46, 0.92) !important;
-        backdrop-filter: blur(18px) !important;
-        -webkit-backdrop-filter: blur(18px) !important;
-        border: 1px solid rgba(57, 255, 136, 0.6) !important;
+        background: rgba(11, 61, 46, 0.94) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(57, 255, 136, 0.7) !important;
         border-radius: 20px !important;
         padding: 32px !important;
         box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important;
         width: 100% !important;
-    }
+    }}
 
-    .farmer-hero {
-        background: rgba(11, 61, 46, 0.90);
+    .farmer-hero {{
+        background: rgba(11, 61, 46, 0.92);
         border-radius: 18px;
         padding: 18px 24px;
         color: #FFFFFF !important;
@@ -245,16 +257,16 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border: 1px solid rgba(57, 255, 136, 0.5);
+        border: 1px solid rgba(57, 255, 136, 0.6);
     }
-    .hero-text h1 {
+    .hero-text h1 {{
         font-size: 25px !important;
         font-weight: 800 !important;
         color: #39FF88 !important;
         margin: 0 !important;
         text-shadow: 0 1px 4px rgba(0,0,0,0.6);
     }
-    .hero-text p {
+    .hero-text p {{
         font-size: 13.5px !important;
         color: #FFFFFF !important;
         margin: 3px 0 0 0 !important;
@@ -262,21 +274,21 @@ st.markdown("""
         text-shadow: 0 1px 4px rgba(0,0,0,0.6);
     }
 
-    .metric-card {
-        background: rgba(11, 61, 46, 0.90) !important;
+    .metric-card {{
+        background: rgba(11, 61, 46, 0.92) !important;
         border-radius: 14px !important;
         padding: 16px 18px !important;
         border-left: 6px solid #39FF88 !important;
-        border-top: 1px solid rgba(57, 255, 136, 0.3) !important;
-        border-right: 1px solid rgba(57, 255, 136, 0.3) !important;
-        border-bottom: 1px solid rgba(57, 255, 136, 0.3) !important;
+        border-top: 1px solid rgba(57, 255, 136, 0.4) !important;
+        border-right: 1px solid rgba(57, 255, 136, 0.4) !important;
+        border-bottom: 1px solid rgba(57, 255, 136, 0.4) !important;
         box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important;
         margin-bottom: 12px;
         color: #FFFFFF !important;
     }
 
-    .summary-card {
-        background: rgba(11, 61, 46, 0.92) !important;
+    .summary-card {{
+        background: rgba(11, 61, 46, 0.94) !important;
         border: 2px solid #39FF88 !important;
         padding: 24px !important;
         border-radius: 16px !important;
@@ -285,7 +297,7 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    div.stButton > button, div.stButton > button:focus {
+    div.stButton > button, div.stButton > button:focus {{
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
         color: #39FF88 !important;
         font-weight: 700 !important;
@@ -296,14 +308,14 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important;
         transition: all 0.15s ease-in-out !important;
     }
-    div.stButton > button:hover {
+    div.stButton > button:hover {{
         background: linear-gradient(180deg, #1B5E20 0%, #145A32 100%) !important;
         color: #FFFFFF !important;
         box-shadow: 0 6px 16px rgba(57, 255, 136, 0.5) !important;
         transform: translateY(-1px) !important;
     }
 
-    div.stDownloadButton > button {
+    div.stDownloadButton > button {{
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
         color: #39FF88 !important;
         font-weight: 700 !important;
@@ -311,10 +323,10 @@ st.markdown("""
         padding: 12px 24px !important;
         border: 1px solid #39FF88 !important;
         box-shadow: 0 4px 12px rgba(57, 255, 136, 0.4) !important;
-    }
+    }}
 
     /* Large Golden Star Ratings */
-    .star-container button {
+    .star-container button {{
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
@@ -323,12 +335,12 @@ st.markdown("""
         padding: 0 !important;
         margin: 0 !important;
         transition: transform 0.15s ease;
-    }
-    .star-container button:hover {
+    }}
+    .star-container button:hover {{
         transform: scale(1.25);
-    }
+    }}
 
-    .badge-pass {
+    .badge-pass {{
         background-color: rgba(57, 255, 136, 0.25);
         color: #39FF88;
         padding: 5px 14px;
@@ -336,20 +348,20 @@ st.markdown("""
         font-weight: 700;
         border: 1px solid #39FF88;
     }
-    .badge-warn {
+    .badge-warn {{
         background-color: rgba(239, 68, 68, 0.25);
         color: #F87171;
         padding: 5px 14px;
         border-radius: 8px;
         font-weight: 700;
         border: 1px solid #EF4444;
-    }
+    }}
 
     /* Force pure white text, labels, and markdown elements for 100% clarity & high contrast */
-    label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption {
+    label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption {{
         color: #FFFFFF !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
