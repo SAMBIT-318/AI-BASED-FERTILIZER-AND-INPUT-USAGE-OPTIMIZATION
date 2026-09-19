@@ -183,7 +183,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Load background image as base64 for absolute reliability across all host containers
+# Load background image & logo as base64 for reliable rendering across containers
 HERO_BG_FILE = "agritech_hero_bg.jpg"
 HERO_BG_DATA = ""
 if os.path.exists(HERO_BG_FILE):
@@ -192,6 +192,10 @@ if os.path.exists(HERO_BG_FILE):
             HERO_BG_DATA = base64.b64encode(f.read()).decode("utf-8")
     except Exception:
         HERO_BG_DATA = ""
+
+LOGO_FILE_EXACT = "smart_kishan_logo.jpg"
+if not os.path.exists(LOGO_FILE_EXACT):
+    LOGO_FILE_EXACT = "smart kishan logo.png"
 
 st.markdown(f"""
 <style>
@@ -202,7 +206,6 @@ st.markdown(f"""
         color: #FFFFFF !important;
     }}
 
-    /* Cinematic background image across the entire website using agritech_hero_bg.jpg with smooth Dark-to-Light Green Gradient */
     .stApp {{
         background: linear-gradient(135deg, rgba(6, 30, 22, 0.90) 0%, rgba(14, 75, 48, 0.82) 50%, rgba(110, 235, 175, 0.35) 100%), url("data:image/jpeg;base64,{HERO_BG_DATA}") !important;
         background-size: cover !important;
@@ -233,7 +236,6 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
-    /* Glassmorphism Popup Card on Right Side */
     .glass-login-card {{
         position: relative;
         z-index: 10;
@@ -259,20 +261,6 @@ st.markdown(f"""
         align-items: center;
         border: 1px solid rgba(57, 255, 136, 0.5);
     }}
-    .hero-text h1 {{
-        font-size: 25px !important;
-        font-weight: 800 !important;
-        color: #39FF88 !important;
-        margin: 0 !important;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-    }}
-    .hero-text p {{
-        font-size: 13.5px !important;
-        color: #FFFFFF !important;
-        margin: 3px 0 0 0 !important;
-        font-weight: 600;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-    }}
 
     .metric-card {{
         background: rgba(11, 61, 46, 0.90) !important;
@@ -296,6 +284,7 @@ st.markdown(f"""
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
         color: #FFFFFF !important;
     }}
+    
 
     div.stButton > button, div.stButton > button:focus {{
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
@@ -325,7 +314,6 @@ st.markdown(f"""
         box-shadow: 0 4px 12px rgba(57, 255, 136, 0.4) !important;
     }}
 
-    /* Large Golden Star Ratings */
     .star-container button {{
         background: transparent !important;
         border: none !important;
@@ -357,7 +345,6 @@ st.markdown(f"""
         border: 1px solid #EF4444;
     }}
 
-    /* Force pure white text, labels, and markdown elements for 100% clarity & high contrast */
     label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption {{
         color: #FFFFFF !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.8);
@@ -686,10 +673,9 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
 
     story = []
 
-    LOGO_FILE = "smart kishan logo.png"
-    if os.path.exists(LOGO_FILE):
+    if os.path.exists(LOGO_FILE_EXACT):
         try:
-            story.append(RLImage(LOGO_FILE, width=140, height=140))
+            story.append(RLImage(LOGO_FILE_EXACT, width=140, height=140))
             story.append(Spacer(1, 4))
         except Exception:
             pass
@@ -811,10 +797,9 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
 
     story = []
 
-    LOGO_FILE = "smart kishan logo.png"
-    if os.path.exists(LOGO_FILE):
+    if os.path.exists(LOGO_FILE_EXACT):
         try:
-            story.append(RLImage(LOGO_FILE, width=140, height=140))
+            story.append(RLImage(LOGO_FILE_EXACT, width=140, height=140))
             story.append(Spacer(1, 4))
         except Exception:
             pass
@@ -881,9 +866,8 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
 # -------------------------------------------------------------
 def render_ai_chatbot_sidebar():
     with st.sidebar:
-        LOGO_FILE_SMALL = "smart kishan logo.png"
-        if os.path.exists(LOGO_FILE_SMALL):
-            st.image(LOGO_FILE_SMALL, width=120)
+        if os.path.exists(LOGO_FILE_EXACT):
+            st.image(LOGO_FILE_EXACT, width=120)
         st.markdown("""
         <div style="background: rgba(11, 61, 46, 0.95); padding: 16px; border-radius: 12px; border: 1px solid #39FF88; margin-bottom: 15px;">
             <h3 style="color: #39FF88; margin: 0 0 6px 0;">🤖 Smart Kishan AI Bot</h3>
@@ -931,9 +915,8 @@ if st.session_state.step == 1:
     col_brand, col_login = st.columns([1.02, 0.98], gap="large")
 
     with col_brand:
-        LOGO_FILE = "smart kishan logo.png"
-        if os.path.exists(LOGO_FILE):
-            st.image(LOGO_FILE, width=230)
+        if os.path.exists(LOGO_FILE_EXACT):
+            st.image(LOGO_FILE_EXACT, width=230)
 
         st.markdown("""
         <div class="login-brand-side">
@@ -959,9 +942,8 @@ if st.session_state.step == 1:
 
     with col_login:
         st.markdown('<div class="glass-login-card">', unsafe_allow_html=True)
-        LOGO_FILE_SMALL = "smart kishan logo.png"
-        if os.path.exists(LOGO_FILE_SMALL):
-            st.image(LOGO_FILE_SMALL, width=60)
+        if os.path.exists(LOGO_FILE_EXACT):
+            st.image(LOGO_FILE_EXACT, width=60)
 
         st.markdown("""
         <div class="cert-badge">🔐 SECURE AGRICULTURE CONTROL CENTER</div>
@@ -1098,9 +1080,8 @@ if st.session_state.step == 1:
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     h_col1, h_col2 = st.columns([3, 1])
-    LOGO_TOP = "smart kishan logo.png"
-    if os.path.exists(LOGO_TOP):
-        h_col1.image(LOGO_TOP, width=150)
+    if os.path.exists(LOGO_FILE_EXACT):
+        h_col1.image(LOGO_FILE_EXACT, width=150)
     h_col1.markdown(f"### 🌾 AgriTech Control Center — Role: **{st.session_state.user_role.upper()}**")
     if h_col2.button("🚪 Sign Out"):
         st.session_state.logged_in = False
@@ -1309,9 +1290,8 @@ elif st.session_state.step == 2:
 # SCREEN 3: SOIL HEALTH EVALUATION
 # -------------------------------------------------------------
 elif st.session_state.step == 3:
-    LOGO_TOP = "smart kishan logo.png"
-    if os.path.exists(LOGO_TOP):
-        st.image(LOGO_TOP, width=150)
+    if os.path.exists(LOGO_FILE_EXACT):
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("3. ⚙️ Soil Condition & Risk Assessment")
     
     k1, k2, k3 = st.columns(3)
@@ -1333,9 +1313,8 @@ elif st.session_state.step == 3:
 # SCREEN 4: SOIL COMPARISON BAR CHART
 # -------------------------------------------------------------
 elif st.session_state.step == 4:
-    LOGO_TOP = "smart kishan logo.png"
-    if os.path.exists(LOGO_TOP):
-        st.image(LOGO_TOP, width=150)
+    if os.path.exists(LOGO_FILE_EXACT):
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("4. 📊 Current Soil Nutrients vs Ideal Farm Target")
     chart_data = pd.DataFrame({
         "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"],
@@ -1357,9 +1336,8 @@ elif st.session_state.step == 4:
 # SCREEN 5: NUTRIENT GAP & DYNAMIC CROP RECOMMENDATION
 # -------------------------------------------------------------
 elif st.session_state.step == 5:
-    LOGO_TOP = "smart kishan logo.png"
-    if os.path.exists(LOGO_TOP):
-        st.image(LOGO_TOP, width=150)
+    if os.path.exists(LOGO_FILE_EXACT):
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("5. ⚠️ Required Nutrient Deficit & Dynamic Crop Recommendation")
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
@@ -1404,9 +1382,8 @@ elif st.session_state.step == 5:
 # SCREEN 6: OPTIMIZED FERTILIZER BAGS & TIMETABLE
 # -------------------------------------------------------------
 elif st.session_state.step == 6:
-    LOGO_TOP = "smart kishan logo.png"
-    if os.path.exists(LOGO_TOP):
-        st.image(LOGO_TOP, width=150)
+    if os.path.exists(LOGO_FILE_EXACT):
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("6. 🚀 Your Fertilizer Bags & Application Schedule")
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
@@ -1467,9 +1444,8 @@ elif st.session_state.step == 6:
 # SCREEN 7: PRESCRIPTION DOSSIER & MULTILINGUAL PDF DOWNLOAD
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
-    LOGO_TOP = "smart kishan logo.png"
-    if os.path.exists(LOGO_TOP):
-        st.image(LOGO_TOP, width=150)
+    if os.path.exists(LOGO_FILE_EXACT):
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("7. 📋 Official Farmer Prescription Card (Smart Kishan Certified)")
     opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, "land_area": st.session_state.land_area})
     diag = st.session_state.get("scanned_diag", {
@@ -1569,9 +1545,8 @@ elif st.session_state.step == 7:
 # SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
-    LOGO_TOP = "smart kishan logo.png"
-    if os.path.exists(LOGO_TOP):
-        st.image(LOGO_TOP, width=150)
+    if os.path.exists(LOGO_FILE_EXACT):
+        st.image(LOGO_FILE_EXACT, width=150)
     st.subheader(T["feedback_title"])
     st.write("Please tap the stars below to rate your advisory experience before exiting:")
 
