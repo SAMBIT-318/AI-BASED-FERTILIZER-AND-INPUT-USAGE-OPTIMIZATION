@@ -191,7 +191,7 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Cinematic background image across the entire website using agritech_hero_bg.jpg */
+    /* Cinematic background image across the entire website using your exact agritech_hero_bg.jpg */
     .stApp {
         background: linear-gradient(rgba(6, 26, 20, 0.82), rgba(11, 61, 46, 0.90)), url('agritech_hero_bg.jpg') !important;
         background-size: cover !important;
@@ -335,7 +335,6 @@ st.markdown("""
         border: 1px solid #EF4444;
     }
 
-    /* Make all labels and inputs clearly readable against the background */
     label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6 {
         color: #FFFFFF !important;
     }
@@ -504,7 +503,7 @@ TRANSLATIONS = {
     "ଓଡ଼ିଆ": {
         "title": "ସ୍ମାର୍ଟ କିଷାନ | ଏଗ୍ରିଟେକ୍ କଣ୍ଟ୍ରୋଲ୍ ସେଣ୍ଟର",
         "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ପ୍ରକୃତ ମୃତ୍ତିକା ବିଶ୍ଳେଷଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
-        "login_tab": "ସାଇନ୍ ਇନ୍",
+        "login_tab": "ସାଇନ୍‌ ଇନ୍",
         "reg_tab": "ପଞ୍ଜୀକରଣ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
         "pass_lbl": "ପାସୱାର୍ଡ",
