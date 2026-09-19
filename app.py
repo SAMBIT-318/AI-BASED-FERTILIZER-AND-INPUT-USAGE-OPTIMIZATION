@@ -344,7 +344,6 @@ st.markdown(f"""
         border: 1px solid #EF4444;
     }}
 
-    /* Force pure white text, labels, chart captions, and text elements for 100% high-contrast visibility */
     label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption, small, div {{
         color: #FFFFFF !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.8);
@@ -1369,7 +1368,7 @@ elif st.session_state.step == 4:
                 color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
             ), use_container_width=True
         )
-        st.markdown(f"Measured: {st.session_state.soil_n * 2.24:.1f} kg/ha (Target: 280 kg/ha)")
+        st.markdown(f"<span style='color: #FFFFFF !important;'>Measured: {st.session_state.soil_n * 2.24:.1f} kg/ha (Target: 280 kg/ha)</span>", unsafe_allow_html=True)
 
     with d2:
         st.markdown("##### Phosphorus (P) Ratio")
@@ -1383,7 +1382,7 @@ elif st.session_state.step == 4:
                 color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
             ), use_container_width=True
         )
-        st.markdown(f"Measured: {st.session_state.soil_p * 2.24:.1f} kg/ha (Target: 60 kg/ha)")
+        st.markdown(f"<span style='color: #FFFFFF !important;'>Measured: {st.session_state.soil_p * 2.24:.1f} kg/ha (Target: 60 kg/ha)</span>", unsafe_allow_html=True)
 
     with d3:
         st.markdown("##### Potash (K) Ratio")
@@ -1397,7 +1396,7 @@ elif st.session_state.step == 4:
                 color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
             ), use_container_width=True
         )
-        st.markdown(f"Measured: {st.session_state.soil_k * 2.24:.1f} kg/ha (Target: 150 kg/ha)")
+        st.markdown(f"<span style='color: #FFFFFF !important;'>Measured: {st.session_state.soil_k * 2.24:.1f} kg/ha (Target: 150 kg/ha)</span>", unsafe_allow_html=True)
 
     st.divider()
     b1, b2 = st.columns([1, 5])
