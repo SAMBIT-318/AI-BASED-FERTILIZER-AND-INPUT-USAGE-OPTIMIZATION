@@ -188,7 +188,7 @@ st.set_page_config(
 # -------------------------------------------------------------
 # HERO BACKGROUND AS BASE64 FOR RELIABLE LOCAL RENDERING
 # -------------------------------------------------------------
-HERO_BG_FILE = "agritech_green_background.jpg"
+HERO_BG_FILE = "agritech_hero_bg.jpg"
 HERO_BG_DATA = ""
 if os.path.exists(HERO_BG_FILE):
     try:
@@ -231,6 +231,33 @@ html, body, [class*="css"], .stApp {{
     padding-top: 1.5rem !important;
     padding-bottom: 1rem !important;
 }}
+
+/* WHOLE-PAGE AGRICULTURE BACKGROUND */
+[data-testid="stAppViewContainer"] {{ background: transparent !important; }}
+[data-testid="stHeader"] {{ background: rgba(0,0,0,0) !important; }}
+[data-testid="stSidebar"] {{
+    background: linear-gradient(180deg, rgba(2,20,15,.97), rgba(3,38,27,.94)) !important;
+    border-right: 1px solid rgba(57,255,136,.20) !important;
+}}
+[data-testid="stSidebarContent"] {{ padding: 16px 12px 20px 12px !important; }}
+.workspace-nav-title {{ font-size:21px; font-weight:800; color:#fff; margin:4px 8px 3px 8px; }}
+.workspace-nav-title span {{ color:#39ff88; }}
+.workspace-nav-sub {{ color:#86bda0; font-size:10px; margin:0 8px 14px 8px; }}
+.workspace-section {{ color:#6fa88a; font-size:10px; font-weight:800; letter-spacing:.9px; margin:18px 8px 7px 8px; text-transform:uppercase; }}
+.workspace-user {{ background:rgba(57,255,136,.07); border:1px solid rgba(57,255,136,.16); border-radius:14px; padding:11px; margin:0 0 12px 0; }}
+.workspace-user b {{ color:#fff; font-size:12px; }}
+.workspace-user small {{ color:#8fc6a9; font-size:10px; }}
+.workspace-footer {{ color:#6f9f87; font-size:9px; line-height:1.5; text-align:center; padding:15px 5px 5px 5px; }}
+[data-testid="stSidebar"] div[role="radiogroup"] {{ gap:5px !important; }}
+[data-testid="stSidebar"] div[role="radiogroup"] label {{ background:rgba(255,255,255,.025); border:1px solid transparent; border-radius:10px; padding:8px 9px !important; margin:0 !important; }}
+[data-testid="stSidebar"] div[role="radiogroup"] label:hover {{ background:rgba(57,255,136,.08); border-color:rgba(57,255,136,.14); }}
+.page-shell {{ background:linear-gradient(135deg, rgba(3,20,16,.72), rgba(6,50,35,.60)); border:1px solid rgba(167,243,208,.13); border-radius:24px; padding:20px; box-shadow:0 20px 70px rgba(0,0,0,.30); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); }}
+.page-header {{ display:flex; justify-content:space-between; align-items:center; gap:15px; padding:2px 0 15px 0; margin-bottom:15px; border-bottom:1px solid rgba(167,243,208,.12); }}
+.page-header h2 {{ margin:0; color:#fff; font-size:25px; }}
+.page-header h2 span {{ color:#39ff88; }}
+.page-header p {{ margin:4px 0 0 0; color:#8fbca5; font-size:11px; }}
+.section-panel {{ background:rgba(4,29,22,.62); border:1px solid rgba(57,255,136,.13); border-radius:16px; padding:16px; margin-bottom:14px; }}
+.section-panel h3 {{ margin-top:0; color:#dff9eb; }}
 
 /* LOGIN BRAND */
 .login-brand-side {{
@@ -956,49 +983,92 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
 # -------------------------------------------------------------
 # PERMANENT RIGHT-SIDE AI AGRI-BOT HELPER (WITH GREEN CHAT BACKGROUND)
 # -------------------------------------------------------------
-def render_ai_chatbot_sidebar():
-    with st.sidebar:
-        st.markdown("""
-        <div style="background: rgba(11, 61, 46, 0.95); padding: 16px; border-radius: 12px; border: 1px solid #39FF88; margin-bottom: 15px;">
-            <h3 style="color: #39FF88; margin: 0 0 6px 0;">🤖 Smart Kishan AI Bot</h3>
-            <p style="color: #FFFFFF; font-size: 13px; margin: 0;">Specialized AI Assistant for crop health, NPK budgeting, and agricultural formulas.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Chat container with solid dark green background
-        chat_container = st.container()
-        with chat_container:
-            st.markdown("""
-            <div style="background-color: #062319; padding: 14px; border-radius: 12px; border: 1px solid rgba(57,255,136,0.3); max-height: 400px; overflow-y: auto; margin-bottom: 12px;">
-            """, unsafe_allow_html=True)
-            for msg in st.session_state.chat_messages:
-                if msg["role"] == "user":
-                    st.markdown(f"💬 **You:** {msg['content']}")
-                else:
-                    st.markdown(f"🤖 **AgriAI:** {msg['content']}")
-            st.markdown("</div>", unsafe_allow_html=True)
-        
-        user_q = st.text_input("Ask agri question...", key="sidebar_chat_input")
-        if st.button("Send to AI", key="sidebar_chat_btn"):
-            if user_q.strip():
-                st.session_state.chat_messages.append({"role": "user", "content": user_q})
-                q_lower = user_q.lower()
-                
-                if "disease" in q_lower or "pest" in q_lower or "rust" in q_lower or "blight" in q_lower:
-                    reply = "🔬 **Plant Pathology AI**: For fungal infections (like Early Blight or Rust), apply Mancozeb 75% WP @ 2.5g/L or Hexaconazole 5% EC. Ensure spray is done during cool morning hours."
-                elif "urea" in q_lower or "nitrogen" in q_lower or "npk" in q_lower or "fertilizer" in q_lower:
-                    reply = "🧪 **Nutrient Advisory**: Split your nitrogen doses across basal, tillering, and flowering stages. Avoid applying urea on dry soils to prevent ammonia volatilization."
-                elif "budget" in q_lower or "cost" in q_lower or "price" in q_lower:
-                    reply = "💰 **Budget Engine**: Our 4R linear programming algorithm strictly limits total commercial chemical purchases to your designated budget cap while satisfying crop demand."
-                else:
-                    reply = f"🌱 **Agronomy AI**: I analyzed your query about '{user_q}'. Make sure your soil pH is maintained between 6.0 and 7.2 for optimal nutrient uptake!"
-                
-                st.session_state.chat_messages.append({"role": "assistant", "content": reply})
-                st.rerun()
+def _page_from_state():
+    if not st.session_state.logged_in:
+        return "Dashboard"
+    if st.session_state.step == 9:
+        return "AI Assistant"
+    if st.session_state.step == 1:
+        return "Dashboard"
+    if st.session_state.step == 2:
+        if st.session_state.get("dashboard_view", False):
+            return "Dashboard"
+        return "Disease Diagnosis" if st.session_state.app_mode == "Diagnostic Only" else "Soil & Crop"
+    return {3:"Soil Health",4:"Nutrient Analysis",5:"Crop Prediction",6:"Fertilizer Optimizer",7:"Reports",8:"Feedback"}.get(st.session_state.step,"Dashboard")
 
-# Render chat bot sidebar across all authenticated pages
+def _go_to_page(page):
+    mapping = {
+        "Dashboard": (2, True, "Full Optimization"),
+        "Soil & Crop": (2, False, "Full Optimization"),
+        "Soil Health": (3, False, "Full Optimization"),
+        "Nutrient Analysis": (4, False, "Full Optimization"),
+        "Crop Prediction": (5, False, "Full Optimization"),
+        "Fertilizer Optimizer": (6, False, "Full Optimization"),
+        "Disease Diagnosis": (2, False, "Diagnostic Only"),
+        "Reports": (7, False, "Full Optimization"),
+        "Feedback": (8, False, st.session_state.get("app_mode", "Full Optimization")),
+        "AI Assistant": (9, False, st.session_state.get("app_mode", "Full Optimization")),
+    }
+    step, dashboard, mode = mapping[page]
+    st.session_state.step = step
+    st.session_state.dashboard_view = dashboard
+    st.session_state.app_mode = mode
+
+def render_workspace_sidebar():
+    if not st.session_state.logged_in:
+        return
+    pages = ["Dashboard","Soil & Crop","Soil Health","Nutrient Analysis","Crop Prediction","Fertilizer Optimizer","Disease Diagnosis","Reports","AI Assistant","Feedback"]
+    current = _page_from_state()
+    with st.sidebar:
+        st.markdown("<div class='workspace-nav-title'>🌿 SMART <span>KISHAN</span></div><div class='workspace-nav-sub'>AI AGRICULTURE CONTROL CENTER</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='workspace-user'><b>👨‍🌾 Farmer Account</b><br><small>+91 {st.session_state.user_mobile} · {str(st.session_state.user_role).upper()}</small></div>", unsafe_allow_html=True)
+        st.markdown("<div class='workspace-section'>Workspace</div>", unsafe_allow_html=True)
+        selected = st.radio("Workspace navigation", pages, index=pages.index(current) if current in pages else 0, label_visibility="collapsed", key="workspace_navigation")
+        if selected != current:
+            _go_to_page(selected)
+            st.rerun()
+        st.markdown("<div class='workspace-section'>Quick Access</div>", unsafe_allow_html=True)
+        q1, q2 = st.columns(2)
+        with q1:
+            if st.button("🌱 Soil", key="quick_soil", use_container_width=True):
+                _go_to_page("Soil & Crop"); st.rerun()
+        with q2:
+            if st.button("🔬 Disease", key="quick_disease", use_container_width=True):
+                _go_to_page("Disease Diagnosis"); st.rerun()
+        st.markdown("<div class='workspace-section'>Account</div>", unsafe_allow_html=True)
+        if st.button("🚪 Sign Out", key="sidebar_signout", use_container_width=True):
+            st.session_state.logged_in = False
+            st.session_state.step = 1
+            st.session_state.dashboard_view = False
+            st.rerun()
+        st.markdown("<div class='workspace-footer'>🌱 Smart Kishan AI<br>Soil · Crop · Fertilizer · Plant Health<br>Precision Agriculture Decision Support</div>", unsafe_allow_html=True)
+
+def render_ai_chat_main():
+    st.markdown("<div class='page-shell'>", unsafe_allow_html=True)
+    st.markdown("<div class='page-header'><div><h2>🤖 Smart <span>Kishan AI Assistant</span></h2><p>Ask about soil health, crop selection, fertilizer planning, pests, diseases, and agricultural calculations.</p></div></div>", unsafe_allow_html=True)
+    for msg in st.session_state.chat_messages:
+        if msg["role"] == "user":
+            st.markdown(f"<div class='section-panel'><b>🧑 You</b><br>{msg['content']}</div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div class='section-panel'><b style='color:#39ff88'>🤖 AgriAI</b><br>{msg['content']}</div>", unsafe_allow_html=True)
+    user_q = st.text_input("Ask Smart Kishan AI", key="main_chat_input", placeholder="e.g. How can I improve nitrogen efficiency?")
+    if st.button("Send to AI →", key="main_chat_send", use_container_width=True) and user_q.strip():
+        st.session_state.chat_messages.append({"role":"user","content":user_q.strip()})
+        q_lower=user_q.lower()
+        if any(x in q_lower for x in ["disease","pest","rust","blight"]):
+            reply="🔬 Plant Pathology AI: Use the Disease Diagnosis tab to upload a crop image and review the generated advisory."
+        elif any(x in q_lower for x in ["urea","nitrogen","npk","fertilizer"]):
+            reply="🧪 Nutrient Advisory: Use the Fertilizer Optimizer tab to calculate a fertilizer blend from nutrient deficits, land area and budget."
+        elif any(x in q_lower for x in ["budget","cost","price"]):
+            reply="💰 Budget Engine: The Fertilizer Optimizer applies your budget cap to the fertilizer plan."
+        else:
+            reply=f"🌱 Agronomy AI: For '{user_q.strip()}', review Soil Health and Crop Prediction using your current field measurements."
+        st.session_state.chat_messages.append({"role":"assistant","content":reply})
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+
 if st.session_state.logged_in:
-    render_ai_chatbot_sidebar()
+    render_workspace_sidebar()
 
 # -------------------------------------------------------------
 # SCREEN 1: SMART KISHAN CINEMATIC LOGIN
@@ -1734,6 +1804,12 @@ elif st.session_state.step == 7:
     if st.button(T["btn_back"], key="step7_back"):
         st.session_state.step = 6
         st.rerun()
+
+# -------------------------------------------------------------
+# SCREEN 9: AI ASSISTANT WORKSPACE
+# -------------------------------------------------------------
+elif st.session_state.step == 9:
+    render_ai_chat_main()
 
 # -------------------------------------------------------------
 # SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
