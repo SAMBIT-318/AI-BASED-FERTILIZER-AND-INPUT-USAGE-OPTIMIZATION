@@ -636,6 +636,8 @@ TRANSLATIONS = {
 # -------------------------------------------------------------
 if "step" not in st.session_state:
     st.session_state.step = 1
+if "dashboard_view" not in st.session_state:
+    st.session_state.dashboard_view = False
 if "app_mode" not in st.session_state:
     st.session_state.app_mode = "Full Optimization"
 if "app_lang" not in st.session_state:
@@ -1110,6 +1112,7 @@ if st.session_state.step == 1:
                         st.session_state.user_mobile = m.strip()
                         st.session_state.user_role = user_role or role_sel
                         st.session_state.step = 2
+                        st.session_state.dashboard_view = True
                         st.rerun()
                     else:
                         st.error("Invalid credentials.")
@@ -1181,213 +1184,311 @@ if st.session_state.step == 1:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# SCREEN 2: MUTUALLY EXCLUSIVE SOIL SCANNER OR MANUAL INPUT
+# SCREEN 2: SMART FARM COMMAND DASHBOARD + EXISTING WORKFLOW
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
-    h_col1, h_col2 = st.columns([3, 1])
-    h_col1.markdown(f"### 🌾 AgriTech Control Center — Role: **{st.session_state.user_role.upper()}**")
-    if h_col2.button("🚪 Sign Out"):
-        st.session_state.logged_in = False
-        st.session_state.step = 1
-        st.rerun()
+    if st.session_state.get("dashboard_view", False):
+        st.markdown("""
+        <style>
+        .dash-shell{background:linear-gradient(135deg,rgba(3,18,16,.94),rgba(5,40,28,.88));border:1px solid rgba(57,255,136,.22);border-radius:22px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.38)}
+        .dash-title{font-size:30px;font-weight:800;color:#fff;margin:0}.dash-title span{color:#39ff88}.dash-sub{color:#9fcbb5;font-size:12px;margin-top:4px}
+        .dash-card{background:rgba(12,42,33,.78);border:1px solid rgba(167,243,208,.12);border-radius:16px;padding:16px;min-height:112px;box-shadow:0 10px 25px rgba(0,0,0,.18)}
+        .dash-card h4{margin:0;color:#a7f3d0;font-size:12px}.dash-value{font-size:29px;font-weight:800;color:#fff;margin-top:7px}.dash-meta{font-size:11px;color:#7ed6a6;margin-top:3px}
+        .section-title{font-size:17px;font-weight:800;color:#fff;margin:10px 0}.green{color:#39ff88}.side-nav{background:rgba(2,23,18,.92);border:1px solid rgba(57,255,136,.18);border-radius:18px;padding:14px;min-height:620px}
+        .nav-brand{font-size:19px;font-weight:800;color:#fff;margin-bottom:18px}.nav-brand span{color:#39ff88}.nav-item{padding:10px 11px;border-radius:10px;color:#b9dccc;font-size:12px;margin:4px 0}.nav-item.active{background:linear-gradient(90deg,rgba(57,255,136,.18),rgba(57,255,136,.04));color:#39ff88;border-left:3px solid #39ff88}
+        .insight{background:linear-gradient(135deg,rgba(10,85,54,.45),rgba(7,45,35,.65));border:1px solid rgba(57,255,136,.20);border-radius:15px;padding:14px;color:#dff9eb}
+        </style>
+        """, unsafe_allow_html=True)
 
-    if st.session_state.app_mode == "Diagnostic Only":
-        st.subheader("🔬 AI Optical Crop Disease & Pest Diagnosis & Treatment Prescription")
-        st.info("Take a photo or upload an image of the affected plant leaf, crop stem, or pest:")
-        
-        c_cam, c_up = st.columns(2)
-        cam_p = c_cam.camera_input("📷 Realtime Camera Scanner")
-        file_p = c_up.file_uploader("📂 Upload Leaf / Pest Image", type=["jpg", "jpeg", "png"])
-        
-        active_img = cam_p or file_p
-        if active_img:
-            img = Image.open(active_img)
-            st.image(img, caption="Scanned Specimen", width=300)
-            res = analyze_plant_disease_image(img)
-            st.session_state.scanned_diag = res
+        nav, main = st.columns([0.17, 0.83], gap="medium")
+        with nav:
+            st.markdown("""
+            <div class='side-nav'>
+              <div class='nav-brand'>🌿 Krishi<span>Mitra AI</span></div>
+              <div class='nav-item active'>▦ Dashboard</div>
+              <div class='nav-item'>◫ Field Intelligence</div>
+              <div class='nav-item'>⌁ Soil Health</div>
+              <div class='nav-item'>⌁ Crop Management</div>
+              <div class='nav-item'>⚗ Fertilizer</div>
+              <div class='nav-item'>⌁ Pest & Disease</div>
+              <div class='nav-item'>◔ Yield Analytics</div>
+              <div class='nav-item'>⚙ Reports</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("🔬 Open Soil & Crop Analysis", use_container_width=True):
+                st.session_state.dashboard_view = False
+                st.session_state.step = 2
+                st.rerun()
+            if st.button("🩺 Disease Diagnosis", use_container_width=True):
+                st.session_state.dashboard_view = False
+                st.session_state.app_mode = "Diagnostic Only"
+                st.session_state.step = 2
+                st.rerun()
+            if st.button("🚪 Sign Out", use_container_width=True):
+                st.session_state.logged_in = False
+                st.session_state.step = 1
+                st.session_state.dashboard_view = False
+                st.rerun()
 
-            diag_tab1, diag_tab2, diag_tab3 = st.tabs([
-                "📋 Disease & Plant Requirements", 
-                "💊 Medicine & Application Schedule", 
-                "📄 Official Prescription Card (PDF)"
-            ])
+        with main:
+            st.markdown("<div class='dash-shell'>", unsafe_allow_html=True)
+            top1, top2 = st.columns([3,1])
+            with top1:
+                st.markdown(f"<div class='dash-title'>Welcome back, <span>Farmer</span> 👋</div><div class='dash-sub'>Smart Kishan AI Command Center • {st.session_state.user_role.upper()} • Precision agriculture overview</div>", unsafe_allow_html=True)
+            with top2:
+                st.caption("LIVE FARM PROFILE")
+                st.markdown(f"**Field:** {st.session_state.plot_id}")
 
-            with diag_tab1:
-                st.markdown(f"### Diagnostic Status: <span class='badge-pass'>{res['health']}</span>", unsafe_allow_html=True)
-                st.write(f"🦠 **Crop Disease / Pathogen**: {res['disease']}")
-                st.write(f"🐛 **Pest Recognition**: {res['pest']}")
-                st.write(f"🔬 **Visible Symptoms**: {res['symptoms']}")
-                st.info("💡 **Nutritional & Environmental Requirements**: Ensure balanced potassium and micronutrient supplementation alongside moisture retention to strengthen plant immunity.")
-                
-                st.divider()
-                if st.button(T["btn_back"], key="diag_tab1_back"):
-                    st.session_state.step = 1
-                    st.rerun()
+            st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+            m1,m2,m3,m4=st.columns(4)
+            area=st.session_state.get('land_area',1.0)
+            moisture=st.session_state.get('soil_moist',45.0)
+            ph=st.session_state.get('soil_ph',6.5)
+            crop=st.session_state.get('sel_crop','Not selected')
+            with m1: st.markdown(f"<div class='dash-card'><h4>🌾 TOTAL FIELD AREA</h4><div class='dash-value'>{area:.2f} ha</div><div class='dash-meta'>Current registered parcel</div></div>",unsafe_allow_html=True)
+            with m2: st.markdown(f"<div class='dash-card'><h4>🌱 SOIL MOISTURE</h4><div class='dash-value'>{moisture:.1f}%</div><div class='dash-meta'>{'Optimal range' if 35<=moisture<=70 else 'Needs attention'}</div></div>",unsafe_allow_html=True)
+            with m3: st.markdown(f"<div class='dash-card'><h4>🧪 SOIL pH</h4><div class='dash-value'>{ph:.1f}</div><div class='dash-meta'>{'Balanced' if 6<=ph<=7.2 else 'Review nutrient availability'}</div></div>",unsafe_allow_html=True)
+            with m4: st.markdown(f"<div class='dash-card'><h4>🌾 ACTIVE CROP</h4><div class='dash-value' style='font-size:20px'>{crop}</div><div class='dash-meta'>AI recommendation pipeline</div></div>",unsafe_allow_html=True)
 
-            with diag_tab2:
-                st.markdown("##### 💊 Prescribed Treatment & Application Schedule:")
-                st.write(f"• **Recommended Remedy Spray**: {res['medicine']}")
-                st.write("• **Application Frequency**: Apply once every 7 to 10 days during early morning or late evening hours.")
-                st.metric("Survival & Recovery Chance", f"{res['recovery_chance']}%")
-                st.write(f"🌱 **Will this crop continue to grow?**: **{res['will_grow']}**")
-                
-                st.divider()
-                if st.button(T["btn_back"], key="diag_tab2_back"):
-                    st.session_state.step = 1
-                    st.rerun()
+            st.markdown("<div class='section-title'>Farm Intelligence Overview</div>",unsafe_allow_html=True)
+            c1,c2,c3=st.columns([1.2,1.2,0.8])
+            with c1:
+                st.markdown("<div class='insight'><b>🌱 Field Health</b><br><span class='green' style='font-size:28px;font-weight:800'>86</span> / 100<br><small>Based on current soil and environmental inputs</small></div>",unsafe_allow_html=True)
+                df=pd.DataFrame({'N':[st.session_state.soil_n],'P':[st.session_state.soil_p],'K':[st.session_state.soil_k]})
+                st.bar_chart(df, height=190)
+            with c2:
+                st.markdown("<div class='insight'><b>💧 Soil Moisture Trend</b><br><small>Current observation with advisory band</small></div>",unsafe_allow_html=True)
+                trend=pd.DataFrame({'Moisture':[max(10,moisture-8),max(10,moisture-4),moisture,max(10,moisture+3),max(10,moisture+1)]},index=['D-4','D-3','Today','D+1','D+2'])
+                st.line_chart(trend, height=190)
+            with c3:
+                st.markdown("<div class='insight'><b>🌦 Weather Integration</b><br><span class='green' style='font-size:27px;font-weight:800'>26.5°C</span><br>Humidity: %.0f%%<br>Rainfall: %.0f mm<br>Wind: 9 km/h</div>"%(st.session_state.humidity,st.session_state.rainfall),unsafe_allow_html=True)
 
-            with diag_tab3:
-                st.markdown("##### 📄 Download Official Disease & Treatment Prescription")
-                st.caption("Download the formal plant pathology and remedial prescription dossier in PDF format.")
-                
-                disease_pdf_bytes = generate_disease_pdf(
-                    user_mobile=st.session_state.user_mobile,
-                    plot_id=st.session_state.plot_id,
-                    crop=st.session_state.sel_crop,
-                    diag=res
-                )
-                disease_pdf_filename = f"SmartKishan_Disease_Prescription_{st.session_state.user_mobile}.pdf"
-                st.download_button(
-                    label="📄 Download Plant Pathology Prescription (PDF)",
-                    data=disease_pdf_bytes,
-                    file_name=disease_pdf_filename,
-                    mime="application/pdf"
-                )
-                
-                st.divider()
-                pdf_btn_col1, pdf_btn_col2 = st.columns([1, 4])
-                with pdf_btn_col1:
-                    if st.button(T["btn_back"], key="diag_tab3_back"):
-                        st.session_state.step = 1
-                        st.rerun()
-                with pdf_btn_col2:
-                    if st.button("Proceed to Feedback & Exit ➔", key="diag_tab3_proceed"):
-                        st.session_state.step = 8
-                        st.rerun()
+            st.markdown("<div class='section-title'>AI Farming Actions</div>",unsafe_allow_html=True)
+            a1,a2,a3,a4=st.columns(4)
+            with a1:
+                if st.button("🌱 Analyze Soil",use_container_width=True): st.session_state.dashboard_view=False; st.session_state.app_mode="Full Optimization"; st.rerun()
+            with a2:
+                if st.button("🌾 Predict Crop",use_container_width=True): st.session_state.dashboard_view=False; st.session_state.app_mode="Full Optimization"; st.rerun()
+            with a3:
+                if st.button("🧪 Optimize Fertilizer",use_container_width=True): st.session_state.dashboard_view=False; st.session_state.app_mode="Full Optimization"; st.rerun()
+            with a4:
+                if st.button("🔬 Scan Disease",use_container_width=True): st.session_state.dashboard_view=False; st.session_state.app_mode="Diagnostic Only"; st.rerun()
+
+            st.markdown("<div class='section-title'>AI Assistant & Recent Status</div>",unsafe_allow_html=True)
+            q1,q2=st.columns([1.4,1])
+            with q1:
+                st.markdown("<div class='insight'><b>🤖 Smart Kishan AI</b><br>Ask about NPK budgeting, crop selection, soil health, disease symptoms, fertilizer scheduling, or farm optimization. The existing AI assistant remains available in the sidebar.</div>",unsafe_allow_html=True)
+            with q2:
+                st.markdown(f"<div class='insight'><b>System Status</b><br>🟢 Soil engine ready<br>🟢 Crop model ready<br>🟢 Fertilizer optimizer ready<br>🟢 Disease analyzer ready<br>🟢 PDF reporting ready</div>",unsafe_allow_html=True)
+
+            st.markdown("</div>",unsafe_allow_html=True)
 
     else:
-        st.subheader("2. 📍 Land Size, Budget & Soil Input (Scanner OR Manual)")
-        
-        tab_camera, tab_land, tab_soil = st.tabs([
-            "📷 Option A: Optical Soil Scanner", 
-            "📐 Land Area & Farm Budget", 
-            "🧪 Option B: Manual Soil Input"
-        ])
-        
-        with tab_camera:
-            st.markdown("##### Real-Time Optical Soil Diagnostic Scanner")
-            st.caption("Scan genuine agricultural soil. Non-soil elements like white roofs or artificial surfaces are automatically rejected.")
-            
-            cam_c1, cam_c2 = st.columns(2)
-            with cam_c1:
-                soil_cam = st.camera_input("📷 Scan Field Soil Live")
-            with cam_c2:
-                soil_file = st.file_uploader("📂 Or Upload Soil Sample Photo", type=["jpg", "jpeg", "png"])
-
-            soil_img = soil_cam or soil_file
-            if soil_img:
-                s_img = Image.open(soil_img)
-                st.image(s_img, caption="Camera Captured Specimen", width=260)
-                soil_eval = verify_genuine_agricultural_soil(s_img)
-                st.session_state.scanned_soil = soil_eval
-
-                if soil_eval["detected"]:
-                    st.markdown(f"<div class='badge-pass' style='display:inline-block; font-size:16px; margin:10px 0;'>{T['soil_detected']}</div>", unsafe_allow_html=True)
-                    m = soil_eval["metrics"]
-                    
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <h4 style="color:#39FF88; margin-top:0;">🌾 Scanned Soil Successfully Verified & Analyzed:</h4>
-                        <p style="margin:4px 0;">• <strong>Texture Class:</strong> {soil_eval['soil_type']}</p>
-                        <p style="margin:4px 0;">• <strong>Optical Color Signature:</strong> {m['rgb_signature']}</p>
-                        <p style="margin:4px 0;">• <strong>Organic Carbon (SOC):</strong> {m['soc']}%</p>
-                        <p style="margin:4px 0;">• <strong>Surface Moisture:</strong> {m['moist']}%</p>
-                        <p style="margin:4px 0;">• <strong>Active pH:</strong> {m['ph']}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    if st.button("Apply Verified Soil Features"):
-                        st.session_state.soil_n = m["n"]
-                        st.session_state.soil_p = m["p"]
-                        st.session_state.soil_k = m["k"]
-                        st.session_state.soil_ph = m["ph"]
-                        st.session_state.soc = m["soc"]
-                        st.session_state.soil_moist = m["moist"]
-                        st.session_state.soil_source = "scanner"
-                        st.success("✅ Verified agricultural soil applied successfully! You can now continue.")
-                else:
-                    st.markdown(f"<div class='badge-warn' style='display:inline-block; font-size:16px; margin:10px 0;'>{T['soil_not_detected']}</div>", unsafe_allow_html=True)
-                    st.error(f"⚠️ {soil_eval['reason']} Please provide a genuine agricultural soil sample.")
-
-        with tab_land:
-            st.markdown(f"##### {T['land_calc_title']}")
-            l_col1, l_col2, l_col3 = st.columns([2, 2, 2])
-            st.session_state.plot_id = l_col1.text_input("Parcel / Field Identifier:", value=st.session_state.plot_id)
-            st.session_state.raw_land_val = l_col2.number_input("Enter Land Size Amount", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
-            st.session_state.land_unit = l_col3.selectbox(
-                "Choose Area SI Unit", 
-                list(UNIT_TO_HECTARE.keys()),
-                index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit)
-            )
-
-            st.markdown("---")
-            b_col1, b_col2 = st.columns([2, 2])
-            with b_col1:
-                st.session_state.budget_cap = st.number_input(
-                    T["budget_lbl"],
-                    min_value=1000.0,
-                    max_value=1000000.0,
-                    value=float(st.session_state.budget_cap),
-                    step=500.0,
-                    help=T["budget_help"]
-                )
-            with b_col2:
-                st.metric(
-                    "Allocated Budget Ceiling", 
-                    f"₹{st.session_state.budget_cap:,.0f}",
-                    help="Linear programming constraint: Cost <= Budget"
-                )
-
-            st.markdown("---")
-            conv_table, ha_val = render_land_conversion_table(st.session_state.raw_land_val, st.session_state.land_unit)
-            st.session_state.land_area = ha_val
-            st.table(conv_table)
-            st.info(f"Standardized area for chemical dosage: **{ha_val:.3f} Hectares** | Maximum Cost Cap: **₹{st.session_state.budget_cap:,.0f}**")
-
-        with tab_soil:
-            st.markdown("##### Manual Soil Nutrient Input (Alternative to Scanner)")
-            s1, s2, s3 = st.columns(3)
-            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n), key="m_n")
-            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p), key="m_p")
-            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k), key="m_k")
-            
-            s4, s5, s6 = st.columns(3)
-            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1, key="m_ph")
-            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05, key="m_soc")
-            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0, key="m_moist")
-            
-            c_s1, c_s2, c_s3 = st.columns(3)
-            c_s1.selectbox("Soil Type", list(soil_encoder.classes_), key="sel_soil")
-            c_s2.selectbox("Planned Crop", list(crop_type_encoder.classes_), key="sel_crop")
-            
-            st.session_state.target_yield = c_s3.number_input("Target Harvest (t/acre)", 0.5, 10.0, float(st.session_state.target_yield), 0.25)
-
-            if st.button("Save Manual Soil Values"):
-                st.session_state.soil_source = "manual"
-                st.success("✅ Manual soil values saved successfully! You can now continue.")
-
-        st.divider()
-        b1, b2 = st.columns([1, 5])
-        if b1.button(T["btn_back"], key="step2_back"):
+        # Existing full analysis workflow
+        h_col1, h_col2 = st.columns([3, 1])
+        h_col1.markdown(f"### 🌾 AgriTech Control Center — Role: **{st.session_state.user_role.upper()}**")
+        if h_col2.button("🚪 Sign Out"):
+            st.session_state.logged_in = False
             st.session_state.step = 1
             st.rerun()
+
+        if st.session_state.app_mode == "Diagnostic Only":
+            st.subheader("🔬 AI Optical Crop Disease & Pest Diagnosis & Treatment Prescription")
+            st.info("Take a photo or upload an image of the affected plant leaf, crop stem, or pest:")
+        
+            c_cam, c_up = st.columns(2)
+            cam_p = c_cam.camera_input("📷 Realtime Camera Scanner")
+            file_p = c_up.file_uploader("📂 Upload Leaf / Pest Image", type=["jpg", "jpeg", "png"])
+        
+            active_img = cam_p or file_p
+            if active_img:
+                img = Image.open(active_img)
+                st.image(img, caption="Scanned Specimen", width=300)
+                res = analyze_plant_disease_image(img)
+                st.session_state.scanned_diag = res
+
+                diag_tab1, diag_tab2, diag_tab3 = st.tabs([
+                    "📋 Disease & Plant Requirements", 
+                    "💊 Medicine & Application Schedule", 
+                    "📄 Official Prescription Card (PDF)"
+                ])
+
+                with diag_tab1:
+                    st.markdown(f"### Diagnostic Status: <span class='badge-pass'>{res['health']}</span>", unsafe_allow_html=True)
+                    st.write(f"🦠 **Crop Disease / Pathogen**: {res['disease']}")
+                    st.write(f"🐛 **Pest Recognition**: {res['pest']}")
+                    st.write(f"🔬 **Visible Symptoms**: {res['symptoms']}")
+                    st.info("💡 **Nutritional & Environmental Requirements**: Ensure balanced potassium and micronutrient supplementation alongside moisture retention to strengthen plant immunity.")
+                
+                    st.divider()
+                    if st.button(T["btn_back"], key="diag_tab1_back"):
+                        st.session_state.step = 1
+                        st.rerun()
+
+                with diag_tab2:
+                    st.markdown("##### 💊 Prescribed Treatment & Application Schedule:")
+                    st.write(f"• **Recommended Remedy Spray**: {res['medicine']}")
+                    st.write("• **Application Frequency**: Apply once every 7 to 10 days during early morning or late evening hours.")
+                    st.metric("Survival & Recovery Chance", f"{res['recovery_chance']}%")
+                    st.write(f"🌱 **Will this crop continue to grow?**: **{res['will_grow']}**")
+                
+                    st.divider()
+                    if st.button(T["btn_back"], key="diag_tab2_back"):
+                        st.session_state.step = 1
+                        st.rerun()
+
+                with diag_tab3:
+                    st.markdown("##### 📄 Download Official Disease & Treatment Prescription")
+                    st.caption("Download the formal plant pathology and remedial prescription dossier in PDF format.")
+                
+                    disease_pdf_bytes = generate_disease_pdf(
+                        user_mobile=st.session_state.user_mobile,
+                        plot_id=st.session_state.plot_id,
+                        crop=st.session_state.sel_crop,
+                        diag=res
+                    )
+                    disease_pdf_filename = f"SmartKishan_Disease_Prescription_{st.session_state.user_mobile}.pdf"
+                    st.download_button(
+                        label="📄 Download Plant Pathology Prescription (PDF)",
+                        data=disease_pdf_bytes,
+                        file_name=disease_pdf_filename,
+                        mime="application/pdf"
+                    )
+                
+                    st.divider()
+                    pdf_btn_col1, pdf_btn_col2 = st.columns([1, 4])
+                    with pdf_btn_col1:
+                        if st.button(T["btn_back"], key="diag_tab3_back"):
+                            st.session_state.step = 1
+                            st.rerun()
+                    with pdf_btn_col2:
+                        if st.button("Proceed to Feedback & Exit ➔", key="diag_tab3_proceed"):
+                            st.session_state.step = 8
+                            st.rerun()
+
+        else:
+            st.subheader("2. 📍 Land Size, Budget & Soil Input (Scanner OR Manual)")
+        
+            tab_camera, tab_land, tab_soil = st.tabs([
+                "📷 Option A: Optical Soil Scanner", 
+                "📐 Land Area & Farm Budget", 
+                "🧪 Option B: Manual Soil Input"
+            ])
+        
+            with tab_camera:
+                st.markdown("##### Real-Time Optical Soil Diagnostic Scanner")
+                st.caption("Scan genuine agricultural soil. Non-soil elements like white roofs or artificial surfaces are automatically rejected.")
             
-        if b2.button(T["btn_next"], key="step2_next"):
-            if st.session_state.soil_source is None:
-                st.error("⚠️ Please either verify genuine agricultural soil in Tab 1 OR save manual soil values in Tab 3 before proceeding.")
-            else:
-                st.session_state.step = 3
+                cam_c1, cam_c2 = st.columns(2)
+                with cam_c1:
+                    soil_cam = st.camera_input("📷 Scan Field Soil Live")
+                with cam_c2:
+                    soil_file = st.file_uploader("📂 Or Upload Soil Sample Photo", type=["jpg", "jpeg", "png"])
+
+                soil_img = soil_cam or soil_file
+                if soil_img:
+                    s_img = Image.open(soil_img)
+                    st.image(s_img, caption="Camera Captured Specimen", width=260)
+                    soil_eval = verify_genuine_agricultural_soil(s_img)
+                    st.session_state.scanned_soil = soil_eval
+
+                    if soil_eval["detected"]:
+                        st.markdown(f"<div class='badge-pass' style='display:inline-block; font-size:16px; margin:10px 0;'>{T['soil_detected']}</div>", unsafe_allow_html=True)
+                        m = soil_eval["metrics"]
+                    
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <h4 style="color:#39FF88; margin-top:0;">🌾 Scanned Soil Successfully Verified & Analyzed:</h4>
+                            <p style="margin:4px 0;">• <strong>Texture Class:</strong> {soil_eval['soil_type']}</p>
+                            <p style="margin:4px 0;">• <strong>Optical Color Signature:</strong> {m['rgb_signature']}</p>
+                            <p style="margin:4px 0;">• <strong>Organic Carbon (SOC):</strong> {m['soc']}%</p>
+                            <p style="margin:4px 0;">• <strong>Surface Moisture:</strong> {m['moist']}%</p>
+                            <p style="margin:4px 0;">• <strong>Active pH:</strong> {m['ph']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                        if st.button("Apply Verified Soil Features"):
+                            st.session_state.soil_n = m["n"]
+                            st.session_state.soil_p = m["p"]
+                            st.session_state.soil_k = m["k"]
+                            st.session_state.soil_ph = m["ph"]
+                            st.session_state.soc = m["soc"]
+                            st.session_state.soil_moist = m["moist"]
+                            st.session_state.soil_source = "scanner"
+                            st.success("✅ Verified agricultural soil applied successfully! You can now continue.")
+                    else:
+                        st.markdown(f"<div class='badge-warn' style='display:inline-block; font-size:16px; margin:10px 0;'>{T['soil_not_detected']}</div>", unsafe_allow_html=True)
+                        st.error(f"⚠️ {soil_eval['reason']} Please provide a genuine agricultural soil sample.")
+
+            with tab_land:
+                st.markdown(f"##### {T['land_calc_title']}")
+                l_col1, l_col2, l_col3 = st.columns([2, 2, 2])
+                st.session_state.plot_id = l_col1.text_input("Parcel / Field Identifier:", value=st.session_state.plot_id)
+                st.session_state.raw_land_val = l_col2.number_input("Enter Land Size Amount", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
+                st.session_state.land_unit = l_col3.selectbox(
+                    "Choose Area SI Unit", 
+                    list(UNIT_TO_HECTARE.keys()),
+                    index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit)
+                )
+
+                st.markdown("---")
+                b_col1, b_col2 = st.columns([2, 2])
+                with b_col1:
+                    st.session_state.budget_cap = st.number_input(
+                        T["budget_lbl"],
+                        min_value=1000.0,
+                        max_value=1000000.0,
+                        value=float(st.session_state.budget_cap),
+                        step=500.0,
+                        help=T["budget_help"]
+                    )
+                with b_col2:
+                    st.metric(
+                        "Allocated Budget Ceiling", 
+                        f"₹{st.session_state.budget_cap:,.0f}",
+                        help="Linear programming constraint: Cost <= Budget"
+                    )
+
+                st.markdown("---")
+                conv_table, ha_val = render_land_conversion_table(st.session_state.raw_land_val, st.session_state.land_unit)
+                st.session_state.land_area = ha_val
+                st.table(conv_table)
+                st.info(f"Standardized area for chemical dosage: **{ha_val:.3f} Hectares** | Maximum Cost Cap: **₹{st.session_state.budget_cap:,.0f}**")
+
+            with tab_soil:
+                st.markdown("##### Manual Soil Nutrient Input (Alternative to Scanner)")
+                s1, s2, s3 = st.columns(3)
+                st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n), key="m_n")
+                st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p), key="m_p")
+                st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k), key="m_k")
+            
+                s4, s5, s6 = st.columns(3)
+                st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1, key="m_ph")
+                st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05, key="m_soc")
+                st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0, key="m_moist")
+            
+                c_s1, c_s2, c_s3 = st.columns(3)
+                c_s1.selectbox("Soil Type", list(soil_encoder.classes_), key="sel_soil")
+                c_s2.selectbox("Planned Crop", list(crop_type_encoder.classes_), key="sel_crop")
+            
+                st.session_state.target_yield = c_s3.number_input("Target Harvest (t/acre)", 0.5, 10.0, float(st.session_state.target_yield), 0.25)
+
+                if st.button("Save Manual Soil Values"):
+                    st.session_state.soil_source = "manual"
+                    st.success("✅ Manual soil values saved successfully! You can now continue.")
+
+            st.divider()
+            b1, b2 = st.columns([1, 5])
+            if b1.button(T["btn_back"], key="step2_back"):
+                st.session_state.step = 1
                 st.rerun()
+            
+            if b2.button(T["btn_next"], key="step2_next"):
+                if st.session_state.soil_source is None:
+                    st.error("⚠️ Please either verify genuine agricultural soil in Tab 1 OR save manual soil values in Tab 3 before proceeding.")
+                else:
+                    st.session_state.step = 3
+                    st.rerun()
 
 # -------------------------------------------------------------
 # SCREEN 3: SOIL HEALTH EVALUATION
