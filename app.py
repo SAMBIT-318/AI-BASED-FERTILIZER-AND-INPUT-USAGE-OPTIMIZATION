@@ -285,6 +285,15 @@ st.markdown(f"""
         color: #FFFFFF !important;
     }}
 
+    /* Light Green Feedback Writing Box Customization */
+    textarea {{
+        background-color: #E8F8F0 !important;
+        color: #0B3D2E !important;
+        font-weight: 600 !important;
+        border: 2px solid #39FF88 !important;
+        border-radius: 12px !important;
+    }}
+
     div.stButton > button, div.stButton > button:focus {{
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
         color: #39FF88 !important;
