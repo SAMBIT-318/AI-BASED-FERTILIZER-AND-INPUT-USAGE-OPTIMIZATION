@@ -191,9 +191,9 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Cinematic background image across the entire website using your exact agritech_hero_bg.jpg */
+    /* Cinematic background image across the entire website using your exact agritech_hero_bg.jpg with smooth Dark-to-Light Green Gradient Overlay */
     .stApp {
-        background: linear-gradient(rgba(4, 20, 15, 0.88), rgba(8, 45, 33, 0.92)), url('agritech_hero_bg.jpg') !important;
+        background: linear-gradient(135deg, rgba(4, 20, 15, 0.88) 0%, rgba(20, 90, 50, 0.75) 50%, rgba(167, 243, 208, 0.35) 100%), url('agritech_hero_bg.jpg') !important;
         background-size: cover !important;
         background-position: center !important;
         background-attachment: fixed !important;
@@ -225,7 +225,7 @@ st.markdown("""
     .glass-login-card {
         position: relative;
         z-index: 10;
-        background: rgba(8, 45, 33, 0.90) !important;
+        background: rgba(11, 61, 46, 0.88) !important;
         backdrop-filter: blur(18px) !important;
         -webkit-backdrop-filter: blur(18px) !important;
         border: 1px solid rgba(57, 255, 136, 0.5) !important;
@@ -236,7 +236,7 @@ st.markdown("""
     }
 
     .farmer-hero {
-        background: rgba(8, 45, 33, 0.90);
+        background: rgba(11, 61, 46, 0.88);
         border-radius: 18px;
         padding: 18px 24px;
         color: #FFFFFF !important;
@@ -263,7 +263,7 @@ st.markdown("""
     }
 
     .metric-card {
-        background: rgba(8, 45, 33, 0.90) !important;
+        background: rgba(11, 61, 46, 0.88) !important;
         border-radius: 14px !important;
         padding: 16px 18px !important;
         border-left: 6px solid #39FF88 !important;
@@ -276,7 +276,7 @@ st.markdown("""
     }
 
     .summary-card {
-        background: rgba(8, 45, 33, 0.92) !important;
+        background: rgba(11, 61, 46, 0.90) !important;
         border: 2px solid #39FF88 !important;
         padding: 24px !important;
         border-radius: 16px !important;
@@ -859,28 +859,36 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
     return buffer.getvalue()
 
 # -------------------------------------------------------------
-# PERMANENT RIGHT-SIDE AI AGRI-BOT HELPER
+# PERMANENT RIGHT-SIDE AI AGRI-BOT HELPER (WITH GREEN CHAT BACKGROUND)
 # -------------------------------------------------------------
 def render_ai_chatbot_sidebar():
     with st.sidebar:
-        st.markdown("### 🤖 Smart Kishan AI Bot")
-        st.caption("Ask anything about crops, diseases, NPK, or fertilizer budgets.")
+        st.markdown("""
+        <div style="background: rgba(11, 61, 46, 0.95); padding: 16px; border-radius: 12px; border: 1px solid #39FF88; margin-bottom: 15px;">
+            <h3 style="color: #39FF88; margin: 0 0 6px 0;">🤖 Smart Kishan AI Bot</h3>
+            <p style="color: #FFFFFF; font-size: 13px; margin: 0;">Specialized AI Assistant for crop health, NPK budgeting, and agricultural formulas.</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Display chat history
-        for msg in st.session_state.chat_messages:
-            if msg["role"] == "user":
-                st.markdown(f"**You:** {msg['content']}")
-            else:
-                st.markdown(f"**AgriAI:** {msg['content']}")
+        # Chat container with solid dark green background
+        chat_container = st.container()
+        with chat_container:
+            st.markdown("""
+            <div style="background-color: #062319; padding: 14px; border-radius: 12px; border: 1px solid rgba(57,255,136,0.3); max-height: 400px; overflow-y: auto; margin-bottom: 12px;">
+            """, unsafe_allow_html=True)
+            for msg in st.session_state.chat_messages:
+                if msg["role"] == "user":
+                    st.markdown(f"💬 **You:** {msg['content']}")
+                else:
+                    st.markdown(f"🤖 **AgriAI:** {msg['content']}")
+            st.markdown("</div>", unsafe_allow_html=True)
         
-        st.markdown("---")
         user_q = st.text_input("Ask agri question...", key="sidebar_chat_input")
         if st.button("Send to AI", key="sidebar_chat_btn"):
             if user_q.strip():
                 st.session_state.chat_messages.append({"role": "user", "content": user_q})
                 q_lower = user_q.lower()
                 
-                # Rule-based agronomy AI intelligence
                 if "disease" in q_lower or "pest" in q_lower or "rust" in q_lower or "blight" in q_lower:
                     reply = "🔬 **Plant Pathology AI**: For fungal infections (like Early Blight or Rust), apply Mancozeb 75% WP @ 2.5g/L or Hexaconazole 5% EC. Ensure spray is done during cool morning hours."
                 elif "urea" in q_lower or "nitrogen" in q_lower or "npk" in q_lower or "fertilizer" in q_lower:
@@ -893,7 +901,7 @@ def render_ai_chatbot_sidebar():
                 st.session_state.chat_messages.append({"role": "assistant", "content": reply})
                 st.rerun()
 
-# Render chat bot in sidebar for all pages once logged in
+# Render chat bot sidebar across all authenticated pages
 if st.session_state.logged_in:
     render_ai_chatbot_sidebar()
 
@@ -915,7 +923,11 @@ if st.session_state.step == 1:
     
     with col_card:
         st.markdown('<div class="glass-login-card">', unsafe_allow_html=True)
-        st.markdown("### 🔐 Welcome Back")
+        LOGO_FILE_SMALL = "smart kishan logo.png"
+        if os.path.exists(LOGO_FILE_SMALL):
+            st.image(LOGO_FILE_SMALL, width=50)
+        st.markdown("### **Welcome Back**")
+        st.markdown("<p style='font-size: 13px; color: #A7F3D0;'>Sign in to your account and continue your journey towards smarter and sustainable farming.</p>", unsafe_allow_html=True)
         
         c_lang, c_mode = st.columns(2)
         available_languages = ["English", "हिन्दी", "ଓଡ଼ିଆ"]
@@ -934,7 +946,7 @@ if st.session_state.step == 1:
         t_login, t_reg = st.tabs([T["login_tab"], T["reg_tab"]])
         with t_login:
             m = st.text_input(T["mobile_lbl"], max_chars=10, key="log_m", placeholder="10-digit mobile number")
-            p = st.text_input(T["pass_lbl"], type="password", key="log_p")
+            p = st.text_input(T["pass_lbl"], type="password", key="log_p", placeholder="Enter your password")
             role_sel = st.selectbox("Select Account Role", ["farmer", "admin"], key="log_role")
             if st.button(T["btn_login"]):
                 if len(m.strip()) == 10:
@@ -952,8 +964,8 @@ if st.session_state.step == 1:
                     
         with t_reg:
             rm = st.text_input(T["mobile_lbl"], max_chars=10, key="reg_m", placeholder="10-digit mobile number")
-            rp = st.text_input(T["pass_lbl"], type="password", key="reg_p")
-            rpc = st.text_input(T["conf_pass_lbl"], type="password", key="reg_pc")
+            rp = st.text_input(T["pass_lbl"], type="password", key="reg_p", placeholder="Create password")
+            rpc = st.text_input(T["conf_pass_lbl"], type="password", key="reg_pc", placeholder="Confirm password")
             reg_role = st.selectbox("Register As", ["farmer", "admin"], key="reg_role")
             if st.button(T["btn_reg"]):
                 if len(rm.strip()) == 10 and rp == rpc and len(rp) > 0:
