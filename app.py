@@ -359,6 +359,12 @@ st.markdown(f"""
         text-shadow: none !important;
     }}
 
+    /* Deep Black Text for Uploader / Camera box elements and chart legends */
+    [data-testid="stFileUploader"] *, [data-testid="stCameraInput"] *, .stLegend *, .vega-bind * {{
+        color: #000000 !important;
+        text-shadow: none !important;
+    }}
+
     label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption, small, div {{
         color: #FFFFFF !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.8);
@@ -492,6 +498,66 @@ TRANSLATIONS = {
         "stage_2_method": "Side-dress 1/2 urea dose + 1/3 MOP along plant rows. Ensure adequate soil moisture or irrigate within 24 hours.",
         "stage_3_period": "Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)",
         "stage_3_method": "Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.",
+        "soil_detected": "Soil is detected",
+        "soil_not_detected": "Not detected"
+    },
+    "हिन्दी (Hindi)": {
+        "title": "स्मार्ट किसान | एग्रीटेक कंट्रोल सेंटर",
+        "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, वास्तविक मृदा विश्लेषण और आधिकारिक नुस्खा",
+        "login_tab": "साइन इन",
+        "reg_tab": "पंजीकरण",
+        "mobile_lbl": "मोबाइल नंबर",
+        "pass_lbl": "पासवर्ड",
+        "conf_pass_lbl": "पासवर्ड की पुष्टि करें",
+        "lang_select": "वैश्विक भाषा चयन",
+        "mode_select": "कृषि सेवा चुनें",
+        "mode_opt": "🌾 पूर्ण मृदा एवं उर्वरक अनुकूलन पाइपलाइन",
+        "mode_diag": "🔬 केवल पौध रोग, कीट एवं औषधि निदान",
+        "btn_login": "कंट्रोल सेंटर में प्रवेश करें ➔",
+        "btn_reg": "खाता बनाएं",
+        "btn_back": "⬅️ पीछे",
+        "btn_next": "आगे बढ़ें ➔",
+        "budget_lbl": "आपका अधिकतम उर्वरक बजट (₹)",
+        "budget_help": "यह सुनिश्चित करता है कि कुल उर्वरक खरीद लागत इस बजट सीमा से अधिक न हो।",
+        "feedback_title": "🌟 अनिवार्य किसान समीक्षा और स्टार रेटिंग",
+        "feedback_submit": "समीक्षा जमा करें और बाहर निकलें ➔",
+        "land_calc_title": "📐 भूमि इकाई चयन और कृषि बजट तालिका",
+        "stage_1_period": "चरण 1: बुवाई / रोपाई के समय (दिन 0 - आधार खुराक)",
+        "stage_1_method": "कम्पोस्ट, डीएपी और 1/3 पोटाश को बीज से 5-7 सेमी गहराई में डालें। सूखी मिट्टी की ऊपरी सतह पर खुला न छोड़ें।",
+        "stage_2_period": "चरण 2: वनस्पति विकास अवस्था (बुवाई के 20 - 25 दिन बाद)",
+        "stage_2_method": "आधी यूरिया और 1/3 पोटाश को जड़ों के पास डालें। मिट्टी में पर्याप्त नमी होना अनिवार्य है या 24 घंटे में हल्की सिंचाई करें।",
+        "stage_3_period": "चरण 3: फूल आने और दाना भराव के समय (बुवाई के 45 - 55 दिन बाद)",
+        "stage_3_method": "बची हुई यूरिया और पोटाश का छिड़काव करें। भारी बारिश के समय न डालें ताकि खाद बह न जाए।",
+        "soil_detected": "Soil is detected",
+        "soil_not_detected": "Not detected"
+    },
+    "ଓଡ଼ିଆ (Odia)": {
+        "title": "ସ୍ମାର୍ଟ କିଷାନ | ଏଗ୍ରିଟେକ୍ କଣ୍ଟ୍ରୋଲ୍ ସେଣ୍ଟର",
+        "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ପ୍ରକୃତ ମୃତ୍ତିକା ବିଶ୍ଳେଷଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
+        "login_tab": "ସାଇନ୍‌ ଇନ୍",
+        "reg_tab": "ପଞ୍ଜୀକରଣ",
+        "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
+        "pass_lbl": "ପାସୱାର୍ଡ",
+        "conf_pass_lbl": "ପାସୱାର୍ଡ ନିଶ୍ଚିତ କରନ୍ତୁ",
+        "lang_select": "ଆନ୍ତର୍ଜାତୀୟ ଭାଷା ଚୟନ",
+        "mode_select": "ସେବା ଚୟନ କରନ୍ତୁ",
+        "mode_opt": "🌾 ସମ୍ପୂର୍ଣ୍ଣ ମୃତ୍ତିକା ଓ ସାର ପରିମାଣ ନିର୍ଦ୍ଧାରଣ",
+        "mode_diag": "🔬 କେବଳ ଫସଲ ରୋଗ, କୀଟ ଚିହ୍ନଟ ଓ ଔଷଧ",
+        "btn_login": "କଣ୍ଟ୍ରୋଲ୍ ସେଣ୍ଟରରେ ପ୍ରବେଶ କରନ୍ତୁ ➔",
+        "btn_reg": "ଖାତା ତିଆରି କରନ୍ତୁ",
+        "btn_back": "⬅️ ପଛକୁ ଯାଆନ୍ତୁ",
+        "btn_next": "ଆଗକୁ ବଢ଼ନ୍ତୁ ➔",
+        "budget_lbl": "ଆପଣଙ୍କ ସର୍ବାଧିକ ସାର ଖର୍ଚ୍ଚ ବଜେଟ୍ (₹)",
+        "budget_help": "ଏହା ନିଶ୍ଚିତ କରେ ଯେ ଆପଣଙ୍କ ସାର ଖର୍ଚ୍ଚ ଏହି ବଜେଟ୍ ସୀମା ଭିତରେ ରହିବ।",
+        "feedback_title": "🌟 ବାଧ୍ୟତାମୂଳକ କୃଷକ ମତାମତ ଏବଂ ଷ୍ଟାର ରେଟିଂ",
+        "feedback_submit": "ମତାମତ ଦାଖଲ କରନ୍ତୁ ଏବଂ ବାହାରକୁ ଯାଆନ୍ତୁ ➔",
+        "land_calc_title": "📐 ଜମି ଏକକ ଏବଂ କୃଷି ବଜେଟ୍ ସାରଣୀ",
+        "stage_1_period": "ପ୍ରଥମ ପର୍ଯ୍ୟାୟ: ତଳି ରୋପଣ / ବୁଣିବା ସମୟରେ (୦ ଦିନ - ମୂଳ ସାର)",
+        "stage_1_method": "ସମସ୍ତ ଜୈବିକ ଖତ, ସମ୍ପୂର୍ଣ୍ଣ ଡିଏପି ଏବଂ ୧/୩ ଭାଗ ପଟାସକୁ ମଞ୍ଜି ପୋତିବା ସ୍ଥାନର ୫-୭ ସେମି ଗଭୀରରେ ମିଶାନ୍ତୁ। ଶୁଖିଲା ମାଟି ଉପରେ ପକାନ୍ତୁ ନାହିଁ।",
+        "stage_2_period": "ଦ୍ୱିତୀୟ ପର୍ଯ୍ୟାୟ: ଗଛ ବୃଦ୍ଧି ଓ ପିଲ ବାହାରିବା ସମୟ (୨୦ ରୁ ୨୫ ଦିନ)",
+        "stage_2_method": "ଅଧା ୟୁରିଆ ଓ ୧/୩ ଭାଗ ପଟାସ ଗଛର ମୂଳ ନିକଟରେ ଦିଅନ୍ତୁ। ମାଟିରେ ଉପଯୁକ୍ତ ଓଦାଳିଆ ଅବସ୍ଥା ରହିବା ଦରକାର କିମ୍ବା ୨୪ ଘଣ୍ଟା ମଧ୍ୟରେ ପାଣି ମଡ଼ାନ୍ତୁ।",
+        "stage_3_period": "ତୃତୀୟ ପର୍ଯ୍ୟାୟ: ଫୁଲ ଫୁଟିବା ଓ ଶସ୍ୟ ଭରିବା ସମୟ (୪୫ ରୁ ୫୫ ଦିନ)",
+        "stage_3_method": "ଅବଶିଷ୍ଟ ୟୁରିଆ ଓ ପଟାସ ପ୍ରୟୋଗ କରନ୍ତୁ। ପ୍ରବଳ ବର୍ଷା ସମୟରେ ସାର ପକାନ୍ତୁ ନାହିଁ ଯାହା ଦ୍ୱାରା ଖତ ଧୋଇ ହୋଇ ନଷ୍ଟ ହେବ ନାହିଁ।",
         "soil_detected": "Soil is detected",
         "soil_not_detected": "Not detected"
     },
@@ -1021,7 +1087,7 @@ TRANSLATIONS = {
         "btn_reg": "إنشاء حساب",
         "btn_back": "⬅️ رجوع",
         "btn_next": "متابعة ➔",
-        "budget_lbl": "الحد الأقصى لميزانية الأسمدة الخاصة بك (₹)",
+        "budget_lbl": "الحد الأقص لميزانية الأسمدة الخاصة بك (₹)",
         "budget_help": "يضمن محرك التحسين أن تظل تكلفة الشراء الإجمالية ضمن هذا الحد بدقة.",
         "feedback_title": "🌟 تقييم وملاحظات إجبارية للمزارع",
         "feedback_submit": "إرسال الملاحظات والخروج ➔",
@@ -1826,7 +1892,7 @@ elif st.session_state.step == 4:
                 color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
             ), use_container_width=True
         )
-        st.markdown(f"<span style='color: #FFFFFF !important;'>Measured: {st.session_state.soil_n * 2.24:.1f} kg/ha (Target: 280 kg/ha)</span>", unsafe_allow_html=True)
+        st.markdown(f"<span style='color: #000000 !important; font-weight: 700;'>Measured: {st.session_state.soil_n * 2.24:.1f} kg/ha (Target: 280 kg/ha)</span>", unsafe_allow_html=True)
 
     with d2:
         st.markdown("##### Phosphorus (P) Ratio")
@@ -1840,7 +1906,7 @@ elif st.session_state.step == 4:
                 color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
             ), use_container_width=True
         )
-        st.markdown(f"<span style='color: #FFFFFF !important;'>Measured: {st.session_state.soil_p * 2.24:.1f} kg/ha (Target: 60 kg/ha)</span>", unsafe_allow_html=True)
+        st.markdown(f"<span style='color: #000000 !important; font-weight: 700;'>Measured: {st.session_state.soil_p * 2.24:.1f} kg/ha (Target: 60 kg/ha)</span>", unsafe_allow_html=True)
 
     with d3:
         st.markdown("##### Potash (K) Ratio")
@@ -1854,7 +1920,7 @@ elif st.session_state.step == 4:
                 color=__import__('altair').Color(field="Category", type="nominal", scale=__import__('altair').Scale(range=["#39FF88", "#1B5E20"]))
             ), use_container_width=True
         )
-        st.markdown(f"<span style='color: #FFFFFF !important;'>Measured: {st.session_state.soil_k * 2.24:.1f} kg/ha (Target: 150 kg/ha)</span>", unsafe_allow_html=True)
+        st.markdown(f"<span style='color: #000000 !important; font-weight: 700;'>Measured: {st.session_state.soil_k * 2.24:.1f} kg/ha (Target: 150 kg/ha)</span>", unsafe_allow_html=True)
 
     st.divider()
     b1, b2 = st.columns([1, 5])
