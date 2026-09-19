@@ -193,7 +193,7 @@ st.markdown("""
 
     /* Cinematic background image across the entire website using your exact agritech_hero_bg.jpg */
     .stApp {
-        background: linear-gradient(rgba(6, 26, 20, 0.82), rgba(11, 61, 46, 0.90)), url('agritech_hero_bg.jpg') !important;
+        background: linear-gradient(rgba(4, 20, 15, 0.88), rgba(8, 45, 33, 0.92)), url('agritech_hero_bg.jpg') !important;
         background-size: cover !important;
         background-position: center !important;
         background-attachment: fixed !important;
@@ -211,73 +211,77 @@ st.markdown("""
         font-weight: 800;
         color: #39FF88;
         margin-bottom: 12px;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        text-shadow: 0 2px 10px rgba(0,0,0,0.8);
     }
     .login-brand-side p {
         font-size: 16px;
-        color: #E2E8F0;
+        color: #FFFFFF;
         line-height: 1.6;
-        text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+        text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+        font-weight: 500;
     }
 
     /* Glassmorphism Popup Card on Right Side */
     .glass-login-card {
         position: relative;
         z-index: 10;
-        background: rgba(10, 40, 30, 0.85) !important;
+        background: rgba(8, 45, 33, 0.90) !important;
         backdrop-filter: blur(18px) !important;
         -webkit-backdrop-filter: blur(18px) !important;
-        border: 1px solid rgba(57, 255, 136, 0.4) !important;
+        border: 1px solid rgba(57, 255, 136, 0.5) !important;
         border-radius: 20px !important;
         padding: 32px !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.9) !important;
         width: 100% !important;
     }
 
     .farmer-hero {
-        background: rgba(11, 61, 46, 0.85);
+        background: rgba(8, 45, 33, 0.90);
         border-radius: 18px;
         padding: 18px 24px;
         color: #FFFFFF !important;
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6);
         margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border: 1px solid rgba(57, 255, 136, 0.4);
+        border: 1px solid rgba(57, 255, 136, 0.5);
     }
     .hero-text h1 {
         font-size: 25px !important;
         font-weight: 800 !important;
         color: #39FF88 !important;
         margin: 0 !important;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.6);
     }
     .hero-text p {
         font-size: 13.5px !important;
-        color: #A7F3D0 !important;
+        color: #FFFFFF !important;
         margin: 3px 0 0 0 !important;
+        font-weight: 600;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.6);
     }
 
     .metric-card {
-        background: rgba(11, 61, 46, 0.85) !important;
+        background: rgba(8, 45, 33, 0.90) !important;
         border-radius: 14px !important;
         padding: 16px 18px !important;
         border-left: 6px solid #39FF88 !important;
         border-top: 1px solid rgba(57, 255, 136, 0.3) !important;
         border-right: 1px solid rgba(57, 255, 136, 0.3) !important;
         border-bottom: 1px solid rgba(57, 255, 136, 0.3) !important;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important;
         margin-bottom: 12px;
         color: #FFFFFF !important;
     }
 
     .summary-card {
-        background: rgba(11, 61, 46, 0.88) !important;
+        background: rgba(8, 45, 33, 0.92) !important;
         border: 2px solid #39FF88 !important;
         padding: 24px !important;
         border-radius: 16px !important;
         margin-bottom: 20px !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
         color: #FFFFFF !important;
     }
 
@@ -319,7 +323,7 @@ st.markdown("""
     }
 
     .badge-pass {
-        background-color: rgba(57, 255, 136, 0.2);
+        background-color: rgba(57, 255, 136, 0.25);
         color: #39FF88;
         padding: 5px 14px;
         border-radius: 8px;
@@ -327,7 +331,7 @@ st.markdown("""
         border: 1px solid #39FF88;
     }
     .badge-warn {
-        background-color: rgba(239, 68, 68, 0.2);
+        background-color: rgba(239, 68, 68, 0.25);
         color: #F87171;
         padding: 5px 14px;
         border-radius: 8px;
@@ -335,8 +339,10 @@ st.markdown("""
         border: 1px solid #EF4444;
     }
 
-    label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6 {
+    /* Force pure white text and labels for 100% clarity & high contrast */
+    label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown {
         color: #FFFFFF !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.7);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -583,6 +589,10 @@ if "sel_soil" not in st.session_state:
     st.session_state.sel_soil = list(soil_encoder.classes_)[0]
 if "sel_crop" not in st.session_state:
     st.session_state.sel_crop = list(crop_type_encoder.classes_)[0]
+if "chat_messages" not in st.session_state:
+    st.session_state.chat_messages = [
+        {"role": "assistant", "content": "🌱 Hello Farmer! I am your Smart Kishan AI Assistant. Ask me anything about crop diseases, NPK fertilizer budgeting, organic compost, or pesticide dosages!"}
+    ]
 
 T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
@@ -849,11 +859,53 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
     return buffer.getvalue()
 
 # -------------------------------------------------------------
+# PERMANENT RIGHT-SIDE AI AGRI-BOT HELPER
+# -------------------------------------------------------------
+def render_ai_chatbot_sidebar():
+    with st.sidebar:
+        st.markdown("### 🤖 Smart Kishan AI Bot")
+        st.caption("Ask anything about crops, diseases, NPK, or fertilizer budgets.")
+        
+        # Display chat history
+        for msg in st.session_state.chat_messages:
+            if msg["role"] == "user":
+                st.markdown(f"**You:** {msg['content']}")
+            else:
+                st.markdown(f"**AgriAI:** {msg['content']}")
+        
+        st.markdown("---")
+        user_q = st.text_input("Ask agri question...", key="sidebar_chat_input")
+        if st.button("Send to AI", key="sidebar_chat_btn"):
+            if user_q.strip():
+                st.session_state.chat_messages.append({"role": "user", "content": user_q})
+                q_lower = user_q.lower()
+                
+                # Rule-based agronomy AI intelligence
+                if "disease" in q_lower or "pest" in q_lower or "rust" in q_lower or "blight" in q_lower:
+                    reply = "🔬 **Plant Pathology AI**: For fungal infections (like Early Blight or Rust), apply Mancozeb 75% WP @ 2.5g/L or Hexaconazole 5% EC. Ensure spray is done during cool morning hours."
+                elif "urea" in q_lower or "nitrogen" in q_lower or "npk" in q_lower or "fertilizer" in q_lower:
+                    reply = "🧪 **Nutrient Advisory**: Split your nitrogen doses across basal, tillering, and flowering stages. Avoid applying urea on dry soils to prevent ammonia volatilization."
+                elif "budget" in q_lower or "cost" in q_lower or "price" in q_lower:
+                    reply = "💰 **Budget Engine**: Our 4R linear programming algorithm strictly limits total commercial chemical purchases to your designated budget cap while satisfying crop demand."
+                else:
+                    reply = f"🌱 **Agronomy AI**: I analyzed your query about '{user_q}'. Make sure your soil pH is maintained between 6.0 and 7.2 for optimal nutrient uptake!"
+                
+                st.session_state.chat_messages.append({"role": "assistant", "content": reply})
+                st.rerun()
+
+# Render chat bot in sidebar for all pages once logged in
+if st.session_state.logged_in:
+    render_ai_chatbot_sidebar()
+
+# -------------------------------------------------------------
 # SCREEN 1: CINEMATIC LOGIN & REGISTRATION POPUP (RIGHT SIDE)
 # -------------------------------------------------------------
 if st.session_state.step == 1:
     col_empty, col_card = st.columns([1.1, 1.1])
     with col_empty:
+        LOGO_FILE = "smart kishan logo.png"
+        if os.path.exists(LOGO_FILE):
+            st.image(LOGO_FILE, width=180)
         st.markdown("""
         <div class="login-brand-side">
             <h1>🌿 Smart Kishan</h1>
