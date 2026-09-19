@@ -1575,7 +1575,6 @@ elif st.session_state.step == 8:
     b_fb_back, b_fb_sub = st.columns([1, 5])
     if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
         st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
-        st.rer0un = False
         st.rerun()
 
     if b_fb_sub.button(T["feedback_submit"]):
