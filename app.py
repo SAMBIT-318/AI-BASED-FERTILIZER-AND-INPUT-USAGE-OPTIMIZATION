@@ -353,6 +353,12 @@ st.markdown(f"""
         border: 1px solid #EF4444;
     }}
 
+    /* Specific Black Colored Letters for Language Selection Dropdown */
+    div[data-baseweb="select"] * {{
+        color: #000000 !important;
+        text-shadow: none !important;
+    }}
+
     label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption, small, div {{
         color: #FFFFFF !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.8);
@@ -464,7 +470,6 @@ TRANSLATIONS = {
         "subtitle": "Certified 4R Nutrient Allocation, Real-Soil Triage & Official Prescription",
         "login_tab": "Sign In",
         "reg_tab": "Register",
-        "feedback_tab": "💬 Feedback & Exit",
         "mobile_lbl": "Mobile Number",
         "pass_lbl": "Password",
         "conf_pass_lbl": "Confirm Password",
@@ -495,7 +500,6 @@ TRANSLATIONS = {
         "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, वास्तविक मृदा विश्लेषण और आधिकारिक नुस्खा",
         "login_tab": "साइन इन",
         "reg_tab": "पंजीकरण",
-        "feedback_tab": "💬 प्रतिक्रिया और निकास",
         "mobile_lbl": "मोबाइल नंबर",
         "pass_lbl": "पासवर्ड",
         "conf_pass_lbl": "पासवर्ड की पुष्टि करें",
@@ -526,7 +530,6 @@ TRANSLATIONS = {
         "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ପ୍ରକୃତ ମୃତ୍ତିକା ବିଶ୍ଳେଷଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
         "login_tab": "ସାଇନ୍‌ ଇନ୍",
         "reg_tab": "ପଞ୍ଜୀକରଣ",
-        "feedback_tab": "💬 ମତାମତ ଏବଂ ପ୍ରସ୍ଥାନ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
         "pass_lbl": "ପାସୱାର୍ଡ",
         "conf_pass_lbl": "ପାସୱାର୍ଡ ନିଶ୍ଚିତ କରନ୍ତୁ",
@@ -557,7 +560,6 @@ TRANSLATIONS = {
         "subtitle": "Asignación Certificada de Nutrientes 4R, Triaje de Suelo Real y Receta Oficial",
         "login_tab": "Iniciar Sesión",
         "reg_tab": "Registrarse",
-        "feedback_tab": "💬 Comentarios y Salida",
         "mobile_lbl": "Número de Móvil",
         "pass_lbl": "Contraseña",
         "conf_pass_lbl": "Confirmar Contraseña",
@@ -588,7 +590,6 @@ TRANSLATIONS = {
         "subtitle": "Allocation Certifiée de Nutriments 4R, Triage des Sols & Prescription Officielle",
         "login_tab": "Se Connecter",
         "reg_tab": "S'inscrire",
-        "feedback_tab": "💬 Commentaires et Sortie",
         "mobile_lbl": "Numéro de Mobile",
         "pass_lbl": "Mot de Passe",
         "conf_pass_lbl": "Confirmer le Mot de Passe",
@@ -619,7 +620,6 @@ TRANSLATIONS = {
         "subtitle": "Zertifizierte 4R Nährstoffzuteilung, Echdboden-Triage & Offizielles Rezept",
         "login_tab": "Anmelden",
         "reg_tab": "Registrieren",
-        "feedback_tab": "💬 Feedback & Beenden",
         "mobile_lbl": "Handynummer",
         "pass_lbl": "Passwort",
         "conf_pass_lbl": "Passwort bestätigen",
@@ -650,7 +650,6 @@ TRANSLATIONS = {
         "subtitle": "认证的 4R 养分分配、真实土壤筛查和官方处方",
         "login_tab": "登录",
         "reg_tab": "注册",
-        "feedback_tab": "💬 反馈与退出",
         "mobile_lbl": "手机号码",
         "pass_lbl": "密码",
         "conf_pass_lbl": "确认密码",
@@ -681,7 +680,6 @@ TRANSLATIONS = {
         "subtitle": "認定4R養分配分、リアル土壌トリアージ＆公式処方箋",
         "login_tab": "サインイン",
         "reg_tab": "登録",
-        "feedback_tab": "💬 フィードバックと終了",
         "mobile_lbl": "携帯電話番号",
         "pass_lbl": "パスワード",
         "conf_pass_lbl": "パスワードの確認",
@@ -712,7 +710,6 @@ TRANSLATIONS = {
         "subtitle": "Alocação Certificada de Nutrientes 4R, Triagem de Solo e Receita Oficial",
         "login_tab": "Entrar",
         "reg_tab": "Registrar",
-        "feedback_tab": "💬 Comentários e Saída",
         "mobile_lbl": "Número de Celular",
         "pass_lbl": "Senha",
         "conf_pass_lbl": "Confirmar Senha",
@@ -743,7 +740,6 @@ TRANSLATIONS = {
         "subtitle": "Сертифицированное распределение питательных веществ 4R, анализ почв и официальный рецепт",
         "login_tab": "Войти",
         "reg_tab": "Регистрация",
-        "feedback_tab": "💬 Отзыв и выход",
         "mobile_lbl": "Номер мобильного",
         "pass_lbl": "Пароль",
         "conf_pass_lbl": "Подтвердите пароль",
@@ -774,7 +770,6 @@ TRANSLATIONS = {
         "subtitle": "Assegnazione Certificata dei Nutrienti 4R, Triage del Suolo e Prescrizione Ufficiale",
         "login_tab": "Accedi",
         "reg_tab": "Registrati",
-        "feedback_tab": "💬 Feedback e Esci",
         "mobile_lbl": "Numero di Cellulare",
         "pass_lbl": "Password",
         "conf_pass_lbl": "Conferma Password",
@@ -805,7 +800,6 @@ TRANSLATIONS = {
         "subtitle": "تخصيص المغذيات المعتمد 4R، وتقييم التربة الحقيقي، والوصفة الرسمية",
         "login_tab": "تسجيل الدخول",
         "reg_tab": "التسجيل",
-        "feedback_tab": "💬 الملاحظات والخروج",
         "mobile_lbl": "رقم الجوال",
         "pass_lbl": "كلمة المرور",
         "conf_pass_lbl": "تأكيد كلمة المرور",
