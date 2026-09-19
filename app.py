@@ -1279,8 +1279,8 @@ def generate_disease_pdf(user_mobile, plot_id, crop, diag):
     IST = timezone(timedelta(hours=5, minutes=30))
     local_now = datetime.now(IST)
 
-    story.append(Paragraph("SMART KISHAN • CROP DISEASE & TREATMENT PRESCRIPTION", title_style))
-    story.append(Paragraph("Certified Plant Pathology & Remedial Action Dossier", subtitle_style))
+    story.append(Paragraph("SMART KISHAN • OFFICIAL CROP PRESCRIPTION", title_style))
+    story.append(Paragraph("Certified 4R Nutrient Stewardship & Field Application Dossier", subtitle_style))
     story.append(Paragraph(f"Dossier ID: SK-DIAG-{local_now.strftime('%Y%m%d')}-{user_mobile[-4:]} | Generated: {local_now.strftime('%d-%b-%Y %I:%M %p')}", ParagraphStyle('Meta', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
@@ -2091,8 +2091,12 @@ elif st.session_state.step == 8:
         if not feedback_comments.strip():
             st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
-            save_feedback(st.session_state.user_mobile, st.session_state.rating if 'rating' in st.session_state else 5, feedback_comments)
-            st.success("✅ Thank you! Your feedback has been recorded safely. Exiting session...")
+            save_feedback(st.session_state.user_mobile, st.session_state.star_selection, feedback_comments)
+            st.success("✅ Thank you! Your star rating and feedback have been recorded safely. Exit session...")
+            
             st.session_state.logged_in = False
+            st.session_state.user_mobile = ""
+            st.session_state.feedback_given = True
             st.session_state.step = 1
+            st.cache_data.clear()
             st.rerun()
