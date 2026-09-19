@@ -1503,6 +1503,20 @@ elif st.session_state.step == 2:
 # -------------------------------------------------------------
 elif st.session_state.step == 3:
     if os.path.exists(LOGO_FILE_EXACT):
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown("""
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
     st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("3. ⚙️ Soil Condition & Risk Assessment")
     
@@ -1524,8 +1538,22 @@ elif st.session_state.step == 3:
 # -------------------------------------------------------------
 # SCREEN 4: SOIL COMPARISON DONUT / PIE CHARTS
 # -------------------------------------------------------------
-elif st.session_state.step == 4:
+elif st.session_state.step == 3:
     if os.path.exists(LOGO_FILE_EXACT):
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown("""
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
     st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("4. 🍩 Current Soil Nutrients vs Ideal Farm Target (Proportion Analysis)")
     
@@ -1585,8 +1613,22 @@ elif st.session_state.step == 4:
 # -------------------------------------------------------------
 # SCREEN 5: NUTRIENT GAP & DYNAMIC CROP RECOMMENDATION
 # -------------------------------------------------------------
-elif st.session_state.step == 5:
+elif st.session_state.step == 3:
     if os.path.exists(LOGO_FILE_EXACT):
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown("""
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
         col_logo, col_title = st.columns([1, 4], vertical_alignment="center")
         with col_logo:
             st.image(LOGO_FILE_EXACT, width=120)
@@ -1644,8 +1686,22 @@ elif st.session_state.step == 5:
 # -------------------------------------------------------------
 # SCREEN 6: OPTIMIZED FERTILIZER BAGS & TIMETABLE
 # -------------------------------------------------------------
-elif st.session_state.step == 6:
+elif st.session_state.step == 3:
     if os.path.exists(LOGO_FILE_EXACT):
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown("""
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
         st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("6. 🚀 Your Fertilizer Bags & Application Schedule")
     def_n, def_p, def_k = calculate_advanced_nutrients(
@@ -1706,8 +1762,22 @@ elif st.session_state.step == 6:
 # -------------------------------------------------------------
 # SCREEN 7: PRESCRIPTION DOSSIER & MULTILINGUAL PDF DOWNLOAD
 # -------------------------------------------------------------
-elif st.session_state.step == 7:
+elif st.session_state.step == 3:
     if os.path.exists(LOGO_FILE_EXACT):
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown("""
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
         st.image(LOGO_FILE_EXACT, width=150)
     st.subheader("7. 📋 Official Farmer Prescription Card (Smart Kishan Certified)")
     opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, "land_area": st.session_state.land_area})
@@ -1807,8 +1877,22 @@ elif st.session_state.step == 7:
 # -------------------------------------------------------------
 # SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
 # -------------------------------------------------------------
-elif st.session_state.step == 8:
+elif st.session_state.step == 3:
     if os.path.exists(LOGO_FILE_EXACT):
+        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
+        with col_logo:
+            st.image(LOGO_FILE_EXACT, width=110)
+        with col_title:
+            st.markdown("""
+                <div style="line-height: 1.2;">
+                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
+                        SMART KISHAN
+                    </h2>
+                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
+                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
         st.image(LOGO_FILE_EXACT, width=150)
     st.subheader(T["feedback_title"])
     st.write("Please rate your advisory experience before exiting:")
