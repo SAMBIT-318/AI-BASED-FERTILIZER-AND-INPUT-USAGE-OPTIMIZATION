@@ -354,7 +354,7 @@ st.markdown(f"""
     }}
 
     /* Deep Black Colored Letters for Language Selection Dropdown options and active labels */
-    div[data-baseweb="select"] * {{
+    div[data-baseweb="select"] *, div[data-baseweb="select"] span, div[data-baseweb="select"] div {{
         color: #000000 !important;
         text-shadow: none !important;
     }}
@@ -468,7 +468,7 @@ def save_feedback(mobile, rating, comments):
         return False
 
 # -------------------------------------------------------------
-# GLOBAL MULTILINGUAL UI DICTIONARY (ALL WORLD & REGIONAL LANGUAGES)
+# GLOBAL MULTILINGUAL UI DICTIONARY (ALL WORLD LANGUAGES)
 # -------------------------------------------------------------
 TRANSLATIONS = {
     "English": {
@@ -1007,7 +1007,7 @@ TRANSLATIONS = {
         "stage_2_period": "Estágio 2: Crescimento Vegetativo (20 - 25 Dias)",
         "stage_2_method": "Aplique 1/2 dose de ureia + 1/3 de MOP ao longo das linhas com umidade adequada.",
         "stage_3_period": "Estágio 3: Iniciação da Panícula / Floração (45 - 55 Dias)",
-        "stage_3_method": "Aplique o 1/4 restante de ureia e o MOP final. Evite chuvas fortes.",
+        "stage_3_method": "Aplique o 1/4 restante de urea e o MOP final. Evite chuvas fortes.",
         "soil_detected": "Solo detectado",
         "soil_not_detected": "Não detectado"
     },
@@ -1087,7 +1087,7 @@ TRANSLATIONS = {
         "btn_reg": "إنشاء حساب",
         "btn_back": "⬅️ رجوع",
         "btn_next": "متابعة ➔",
-        "budget_lbl": "الحد الأقص لميزانية الأسمدة الخاصة بك (₹)",
+        "budget_lbl": "الحد الأقصى لميزانية الأسمدة الخاصة بك (₹)",
         "budget_help": "يضمن محرك التحسين أن تظل تكلفة الشراء الإجمالية ضمن هذا الحد بدقة.",
         "feedback_title": "🌟 تقييم وملاحظات إجبارية للمزارع",
         "feedback_submit": "إرسال الملاحظات والخروج ➔",
