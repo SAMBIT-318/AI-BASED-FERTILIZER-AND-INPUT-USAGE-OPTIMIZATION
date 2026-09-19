@@ -741,7 +741,7 @@ TRANSLATIONS = {
         "subtitle": "تصدیق شدہ 4R غذائی اجزاء کی تخصیص، حقیقی مٹی کا تجزیہ اور آفیشل نسخہ",
         "login_tab": "سائن ان",
         "reg_tab": "رجستر",
-        "mobile_lbl": "موبائل نمبر",
+        "mobile_lbl": "موبایل نمبر",
         "pass_lbl": "پاس ورڈ",
         "conf_pass_lbl": "پاس ورڈ کی تصدیق کریں",
         "lang_select": "عالمی زبان کا انتخاب",
@@ -1545,10 +1545,18 @@ if st.session_state.step == 1:
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        c_logo, c_title = st.columns([0.15, 0.85], gap="small")
+        with c_logo:
+            st.image(LOGO_FILE_EXACT, width=120)
+        with c_title:
+            st.markdown(f"""
+            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Control Center &mdash; Role: <strong>{st.session_state.user_role.upper()}</strong></p>
+            </div>
+            """, unsafe_allow_html=True)
 
     h_col1, h_col2 = st.columns([3, 1])
-    h_col1.markdown(f"### SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION — Role: **{st.session_state.user_role.upper()}**")
     if h_col2.button("🚪 Sign Out"):
         st.session_state.logged_in = False
         st.session_state.step = 1
@@ -1757,8 +1765,16 @@ elif st.session_state.step == 2:
 # -------------------------------------------------------------
 elif st.session_state.step == 3:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
-    st.subheader("3. ⚙️ Soil Condition & Risk Assessment")
+        c_logo, c_title = st.columns([0.15, 0.85], gap="small")
+        with c_logo:
+            st.image(LOGO_FILE_EXACT, width=120)
+        with c_title:
+            st.markdown(f"""
+            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Soil Condition & Risk Assessment</p>
+            </div>
+            """, unsafe_allow_html=True)
     
     k1, k2, k3 = st.columns(3)
     ph_stat = "Acidic (Apply Lime)" if st.session_state.soil_ph < 6.0 else ("Alkaline (Apply Gypsum)" if st.session_state.soil_ph > 7.5 else "Sweet & Balanced")
@@ -1780,8 +1796,16 @@ elif st.session_state.step == 3:
 # -------------------------------------------------------------
 elif st.session_state.step == 4:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
-    st.subheader("4. 🍩 Current Soil Nutrients vs Ideal Farm Target (Proportion Analysis)")
+        c_logo, c_title = st.columns([0.15, 0.85], gap="small")
+        with c_logo:
+            st.image(LOGO_FILE_EXACT, width=120)
+        with c_title:
+            st.markdown(f"""
+            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Current Soil Nutrients vs Ideal Farm Target (Proportion Analysis)</p>
+            </div>
+            """, unsafe_allow_html=True)
     
     d1, d2, d3 = st.columns(3)
     
@@ -1841,8 +1865,16 @@ elif st.session_state.step == 4:
 # -------------------------------------------------------------
 elif st.session_state.step == 5:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
-    st.subheader("5. ⚠️ Required Nutrient Deficit & Dynamic Crop Recommendation")
+        c_logo, c_title = st.columns([0.15, 0.85], gap="small")
+        with c_logo:
+            st.image(LOGO_FILE_EXACT, width=120)
+        with c_title:
+            st.markdown(f"""
+            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Required Nutrient Deficit & Dynamic Crop Recommendation</p>
+            </div>
+            """, unsafe_allow_html=True)
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
         soil_n=st.session_state.soil_n,
@@ -1887,8 +1919,16 @@ elif st.session_state.step == 5:
 # -------------------------------------------------------------
 elif st.session_state.step == 6:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
-    st.subheader("6. 🚀 Your Fertilizer Bags & Application Schedule")
+        c_logo, c_title = st.columns([0.15, 0.85], gap="small")
+        with c_logo:
+            st.image(LOGO_FILE_EXACT, width=120)
+        with c_title:
+            st.markdown(f"""
+            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Your Fertilizer Bags & Application Schedule</p>
+            </div>
+            """, unsafe_allow_html=True)
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
         soil_n=st.session_state.soil_n,
@@ -1949,8 +1989,16 @@ elif st.session_state.step == 6:
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
-    st.subheader("7. 📋 Official Farmer Prescription Card (Smart Kishan Certified)")
+        c_logo, c_title = st.columns([0.15, 0.85], gap="small")
+        with c_logo:
+            st.image(LOGO_FILE_EXACT, width=120)
+        with c_title:
+            st.markdown(f"""
+            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Official Farmer Prescription Card (Smart Kishan Certified)</p>
+            </div>
+            """, unsafe_allow_html=True)
     opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, "land_area": st.session_state.land_area})
     diag = st.session_state.get("scanned_diag", {
         "health": "Optimal Vigor", "disease": "None detected", "pest": "None",
@@ -2050,7 +2098,16 @@ elif st.session_state.step == 7:
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        c_logo, c_title = st.columns([0.15, 0.85], gap="small")
+        with c_logo:
+            st.image(LOGO_FILE_EXACT, width=120)
+        with c_title:
+            st.markdown(f"""
+            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Farmer Feedback & Star Rating</p>
+            </div>
+            """, unsafe_allow_html=True)
     st.subheader(T["feedback_title"])
     st.write("Please rate your advisory experience before exiting:")
 
