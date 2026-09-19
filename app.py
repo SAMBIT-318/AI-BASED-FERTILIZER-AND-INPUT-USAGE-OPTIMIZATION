@@ -217,7 +217,7 @@ st.markdown(f"""
         max-width: 550px;
         color: #FFFFFF;
         padding-top: 40px;
-    }
+    }}
     .login-brand-side h1 {{
         font-size: 42px;
         font-weight: 800;
