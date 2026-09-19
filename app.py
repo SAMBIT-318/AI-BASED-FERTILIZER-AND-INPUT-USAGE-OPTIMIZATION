@@ -214,6 +214,26 @@ st.markdown(f"""
         background-repeat: no-repeat !important;
     }}
 
+    .top-banner-box {{
+        background: rgba(11, 61, 46, 0.90);
+        border: 1px solid rgba(57, 255, 136, 0.6);
+        border-radius: 24px;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }}
+
+    .top-banner-box h2 {{
+        color: #39FF88 !important;
+        margin: 0 !important;
+        font-size: 22px !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.5px;
+    }}
+
     .login-brand-side {{
         position: relative;
         z-index: 10;
@@ -284,7 +304,6 @@ st.markdown(f"""
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
         color: #FFFFFF !important;
     }}
-    
 
     div.stButton > button, div.stButton > button:focus {{
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
@@ -1079,9 +1098,23 @@ if st.session_state.step == 1:
 # SCREEN 2: MUTUALLY EXCLUSIVE SOIL SCANNER OR MANUAL INPUT
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
-    h_col1, h_col2 = st.columns([3, 1])
     if os.path.exists(LOGO_FILE_EXACT):
-        h_col1.image(LOGO_FILE_EXACT, width=150)
+        with open(LOGO_FILE_EXACT, "rb") as image_file:
+            encoded_logo = base64.b64encode(image_file.read()).decode()
+        st.markdown(f"""
+        <div class="top-banner-box">
+            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="top-banner-box">
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
+    h_col1, h_col2 = st.columns([3, 1])
     h_col1.markdown(f"### 🌾 AgriTech Control Center — Role: **{st.session_state.user_role.upper()}**")
     if h_col2.button("🚪 Sign Out"):
         st.session_state.logged_in = False
@@ -1291,7 +1324,20 @@ elif st.session_state.step == 2:
 # -------------------------------------------------------------
 elif st.session_state.step == 3:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        with open(LOGO_FILE_EXACT, "rb") as image_file:
+            encoded_logo = base64.b64encode(image_file.read()).decode()
+        st.markdown(f"""
+        <div class="top-banner-box">
+            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="top-banner-box">
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
     st.subheader("3. ⚙️ Soil Condition & Risk Assessment")
     
     k1, k2, k3 = st.columns(3)
@@ -1314,7 +1360,20 @@ elif st.session_state.step == 3:
 # -------------------------------------------------------------
 elif st.session_state.step == 4:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        with open(LOGO_FILE_EXACT, "rb") as image_file:
+            encoded_logo = base64.b64encode(image_file.read()).decode()
+        st.markdown(f"""
+        <div class="top-banner-box">
+            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="top-banner-box">
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
     st.subheader("4. 📊 Current Soil Nutrients vs Ideal Farm Target")
     chart_data = pd.DataFrame({
         "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"],
@@ -1337,7 +1396,20 @@ elif st.session_state.step == 4:
 # -------------------------------------------------------------
 elif st.session_state.step == 5:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        with open(LOGO_FILE_EXACT, "rb") as image_file:
+            encoded_logo = base64.b64encode(image_file.read()).decode()
+        st.markdown(f"""
+        <div class="top-banner-box">
+            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="top-banner-box">
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
     st.subheader("5. ⚠️ Required Nutrient Deficit & Dynamic Crop Recommendation")
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
@@ -1383,7 +1455,20 @@ elif st.session_state.step == 5:
 # -------------------------------------------------------------
 elif st.session_state.step == 6:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        with open(LOGO_FILE_EXACT, "rb") as image_file:
+            encoded_logo = base64.b64encode(image_file.read()).decode()
+        st.markdown(f"""
+        <div class="top-banner-box">
+            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="top-banner-box">
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
     st.subheader("6. 🚀 Your Fertilizer Bags & Application Schedule")
     def_n, def_p, def_k = calculate_advanced_nutrients(
         target_yield_per_acre=st.session_state.target_yield,
@@ -1445,7 +1530,20 @@ elif st.session_state.step == 6:
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        with open(LOGO_FILE_EXACT, "rb") as image_file:
+            encoded_logo = base64.b64encode(image_file.read()).decode()
+        st.markdown(f"""
+        <div class="top-banner-box">
+            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="top-banner-box">
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
     st.subheader("7. 📋 Official Farmer Prescription Card (Smart Kishan Certified)")
     opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, "land_area": st.session_state.land_area})
     diag = st.session_state.get("scanned_diag", {
@@ -1546,7 +1644,20 @@ elif st.session_state.step == 7:
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     if os.path.exists(LOGO_FILE_EXACT):
-        st.image(LOGO_FILE_EXACT, width=150)
+        with open(LOGO_FILE_EXACT, "rb") as image_file:
+            encoded_logo = base64.b64encode(image_file.read()).decode()
+        st.markdown(f"""
+        <div class="top-banner-box">
+            <img src="data:image/jpeg;base64,{encoded_logo}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #39FF88;" />
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="top-banner-box">
+            <h2>AI-BASED-FERTILIZER-AND-INPUT-USAGE-OPTIMIZATION</h2>
+        </div>
+        """, unsafe_allow_html=True)
     st.subheader(T["feedback_title"])
     st.write("Please tap the stars below to rate your advisory experience before exiting:")
 
