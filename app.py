@@ -1379,56 +1379,39 @@ if st.session_state.logged_in:
 if st.session_state.step == 1:
     col_brand, col_login = st.columns([1.02, 0.98], gap="large")
 
-   elif st.session_state.step == 2:
-    if os.path.exists(LOGO_FILE_EXACT):
-        col_logo, col_title = st.columns([1, 6], vertical_alignment="center")
-        with col_logo:
-            st.image(LOGO_FILE_EXACT, width=110)
-        with col_title:
-            st.markdown("""
-                <div style="line-height: 1.2;">
-                    <h2 style="color: #39FF88; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">
-                        SMART KISHAN
-                    </h2>
-                    <p style="color: #FFFFFF; margin: 2px 0 0 0; font-size: 15px; font-weight: 600; opacity: 0.95;">
-                        AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
-                    </p>
-                </div>
-            """, unsafe_allow_html=True)
-
-    h_col1, h_col2 = st.columns([3, 1])
-    h_col1.markdown(f"### SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION — Role: **{st.session_state.user_role.upper()}**")            </div>
-        </div>
+    with col_brand:
+        st.markdown("""
+            <div class="login-brand-side">
+                <h1>SMART KISHAN</h1>
+                <p>AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</p>
+            </div>
         """, unsafe_allow_html=True)
 
     with col_login:
         st.markdown('<div class="glass-login-card">', unsafe_allow_html=True)
         if os.path.exists(LOGO_FILE_EXACT):
             st.image(LOGO_FILE_EXACT, width=60)
-
         st.markdown("""
-        <div class="cert-badge">🔐 SECURE AGRICULTURE CONTROL CENTER</div>
-        <div class="login-title">🔐 Welcome Back</div>
-        <div class="login-subtitle">
-            Sign in to access your Smart Kishan agricultural intelligence platform.
-        </div>
+            <div class="cert-badge">🔐 SECURE AGRICULTURE CONTROL CENTER</div>
+            <div class="login-title">🔐 Welcome Back</div>
+            <div class="login-subtitle">
+                Sign in to access your Smart Kishan agricultural intelligence platform.
+            </div>
         """, unsafe_allow_html=True)
 
         c_lang, c_mode = st.columns([1, 1])
-
         available_languages = list(TRANSLATIONS.keys())
         current_lang_index = (
             available_languages.index(st.session_state.app_lang)
-            if st.session_state.app_lang in available_languages else 0
+            if st.session_state.app_lang in available_languages
+            else 0
         )
-
         new_lang = c_lang.selectbox(
             T["lang_select"],
             available_languages,
             index=current_lang_index,
             key="login_language"
         )
-
         if new_lang != st.session_state.app_lang:
             st.session_state.app_lang = new_lang
             st.rerun()
@@ -1438,43 +1421,22 @@ if st.session_state.step == 1:
             [T["mode_opt"], T["mode_diag"]],
             key="login_service_mode"
         )
-
         st.session_state.app_mode = (
-            "Diagnostic Only"
-            if mode_choice == T["mode_diag"]
-            else "Full Optimization"
+            "Diagnostic Only" if mode_choice == T["mode_diag"] else "Full Optimization"
         )
 
         t_login, t_reg = st.tabs([T["login_tab"], T["reg_tab"]])
-
         with t_login:
             m = st.text_input(
-                T["mobile_lbl"],
-                max_chars=10,
-                key="log_m",
-                placeholder="10-digit mobile number"
+                T["mobile_lbl"], max_chars=10, key="log_m", placeholder="10-digit mobile number"
             )
-
             p = st.text_input(
-                T["pass_lbl"],
-                type="password",
-                key="log_p",
-                placeholder="Enter your password"
+                T["pass_lbl"], type="password", key="log_p", placeholder="Enter your password"
             )
-
-            role_sel = st.selectbox(
-                "Select Account Role",
-                ["farmer", "admin"],
-                key="log_role"
-            )
-
-            if st.button(
-                "Access Control Center →",
-                key="login_button"
-            ):
+            role_sel = st.selectbox("Select Account Role", ["farmer", "admin"], key="log_role")
+            if st.button("Access Control Center →", key="login_button"):
                 if len(m.strip()) == 10:
                     valid, user_role = verify_user(m.strip(), p.strip())
-
                     if valid:
                         st.session_state.logged_in = True
                         st.session_state.user_mobile = m.strip()
@@ -1488,53 +1450,26 @@ if st.session_state.step == 1:
 
         with t_reg:
             rm = st.text_input(
-                T["mobile_lbl"],
-                max_chars=10,
-                key="reg_m",
-                placeholder="10-digit mobile number"
+                T["mobile_lbl"], max_chars=10, key="reg_m", placeholder="10-digit mobile number"
             )
-
             rp = st.text_input(
-                T["pass_lbl"],
-                type="password",
-                key="reg_p",
-                placeholder="Create password"
+                T["pass_lbl"], type="password", key="reg_p", placeholder="Create password"
             )
-
             rpc = st.text_input(
-                T["conf_pass_lbl"],
-                type="password",
-                key="reg_pc",
-                placeholder="Confirm password"
+                T["conf_pass_lbl"], type="password", key="reg_pc", placeholder="Confirm password"
             )
-
-            reg_role = st.selectbox(
-                "Register As",
-                ["farmer", "admin"],
-                key="reg_role"
-            )
-
-            if st.button(
-                "Create Smart Kishan Account →",
-                key="register_button"
-            ):
+            reg_role = st.selectbox("Register As", ["farmer", "admin"], key="reg_role")
+            if st.button("Create Smart Kishan Account →", key="register_button"):
                 if len(rm.strip()) == 10 and rp == rpc and len(rp) > 0:
-                    ok, msg = register_user(
-                        rm.strip(),
-                        rp.strip(),
-                        reg_role
-                    )
-
+                    ok, msg = register_user(rm.strip(), rp.strip(), reg_role)
                     if ok:
                         st.success(msg)
                     else:
                         st.error(msg)
                 else:
-                    st.warning(
-                        "Please check mobile number and matching passwords."
-                    )
-
+                    st.warning("Please check mobile number and matching passwords.")
         st.markdown('</div>', unsafe_allow_html=True)
+
 
 # -------------------------------------------------------------
 # SCREEN 2: MUTUALLY EXCLUSIVE SOIL SCANNER OR MANUAL INPUT
@@ -1557,211 +1492,11 @@ elif st.session_state.step == 2:
             """, unsafe_allow_html=True)
 
     h_col1, h_col2 = st.columns([3, 1])
-
-    h_col1, h_col2 = st.columns([3, 1])
     h_col1.markdown(f"### SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION — Role: **{st.session_state.user_role.upper()}**")
     if h_col2.button("🚪 Sign Out"):
         st.session_state.logged_in = False
         st.session_state.step = 1
         st.rerun()
-
-    if st.session_state.app_mode == "Diagnostic Only":
-        st.subheader("🔬 AI Optical Crop Disease & Pest Diagnosis & Treatment Prescription")
-        st.info("Take a photo or upload an image of the affected plant leaf, crop stem, or pest:")
-        
-        c_cam, c_up = st.columns(2)
-        cam_p = c_cam.camera_input("📷 Realtime Camera Scanner")
-        file_p = c_up.file_uploader("📂 Upload Leaf / Pest Image", type=["jpg", "jpeg", "png"])
-        
-        active_img = cam_p or file_p
-        if active_img:
-            img = Image.open(active_img)
-            st.image(img, caption="Scanned Specimen", width=300)
-            res = analyze_plant_disease_image(img)
-            st.session_state.scanned_diag = res
-
-            diag_tab1, diag_tab2, diag_tab3 = st.tabs([
-                "📋 Disease & Plant Requirements", 
-                "💊 Medicine & Application Schedule", 
-                "📄 Official Prescription Card (PDF)"
-            ])
-
-            with diag_tab1:
-                st.markdown(f"### Diagnostic Status: <span class='badge-pass'>{res['health']}</span>", unsafe_allow_html=True)
-                st.write(f"🦠 **Crop Disease / Pathogen**: {res['disease']}")
-                st.write(f"🐛 **Pest Recognition**: {res['pest']}")
-                st.write(f"🔬 **Visible Symptoms**: {res['symptoms']}")
-                st.info("💡 **Nutritional & Environmental Requirements**: Ensure balanced potassium and micronutrient supplementation alongside moisture retention to strengthen plant immunity.")
-                
-                st.divider()
-                if st.button(T["btn_back"], key="diag_tab1_back"):
-                    st.session_state.step = 1
-                    st.rerun()
-
-            with diag_tab2:
-                st.markdown("##### 💊 Prescribed Treatment & Application Schedule:")
-                st.write(f"• **Recommended Remedy Spray**: {res['medicine']}")
-                st.write("• **Application Frequency**: Apply once every 7 to 10 days during early morning or late evening hours.")
-                st.metric("Survival & Recovery Chance", f"{res['recovery_chance']}%")
-                st.write(f"🌱 **Will this crop continue to grow?**: **{res['will_grow']}**")
-                
-                st.divider()
-                if st.button(T["btn_back"], key="diag_tab2_back"):
-                    st.session_state.step = 1
-                    st.rerun()
-
-            with diag_tab3:
-                st.markdown("##### 📄 Download Official Disease & Treatment Prescription")
-                st.caption("Download the formal plant pathology and remedial prescription dossier in PDF format.")
-                
-                disease_pdf_bytes = generate_disease_pdf(
-                    user_mobile=st.session_state.user_mobile,
-                    plot_id=st.session_state.plot_id,
-                    crop=st.session_state.sel_crop,
-                    diag=res
-                )
-                disease_pdf_filename = f"SmartKishan_Disease_Prescription_{st.session_state.user_mobile}.pdf"
-                st.download_button(
-                    label="📄 Download Plant Pathology Prescription (PDF)",
-                    data=disease_pdf_bytes,
-                    file_name=disease_pdf_filename,
-                    mime="application/pdf"
-                )
-                
-                st.divider()
-                pdf_btn_col1, pdf_btn_col2 = st.columns([1, 4])
-                with pdf_btn_col1:
-                    if st.button(T["btn_back"], key="diag_tab3_back"):
-                        st.session_state.step = 1
-                        st.rerun()
-                with pdf_btn_col2:
-                    if st.button("Proceed to Feedback & Exit ➔", key="diag_tab3_proceed"):
-                        st.session_state.step = 8
-                        st.rerun()
-
-    else:
-        st.subheader("2. 📍 Land Size, Budget & Soil Input (Scanner OR Manual)")
-        
-        tab_camera, tab_land, tab_soil = st.tabs([
-            "📷 Option A: Optical Soil Scanner", 
-            "📐 Land Area & Farm Budget", 
-            "🧪 Option B: Manual Soil Input"
-        ])
-        
-        with tab_camera:
-            st.markdown("##### Real-Time Optical Soil Diagnostic Scanner")
-            st.caption("Scan genuine agricultural soil. Non-soil elements like white roofs or artificial surfaces are automatically rejected.")
-            
-            cam_c1, cam_c2 = st.columns(2)
-            with cam_c1:
-                soil_cam = st.camera_input("📷 Scan Field Soil Live")
-            with cam_c2:
-                soil_file = st.file_uploader("📂 Or Upload Soil Sample Photo", type=["jpg", "jpeg", "png"])
-
-            soil_img = soil_cam or soil_file
-            if soil_img:
-                s_img = Image.open(soil_img)
-                st.image(s_img, caption="Camera Captured Specimen", width=260)
-                soil_eval = verify_genuine_agricultural_soil(s_img)
-                st.session_state.scanned_soil = soil_eval
-
-                if soil_eval["detected"]:
-                    st.markdown(f"<div class='badge-pass' style='display:inline-block; font-size:16px; margin:10px 0;'>{T['soil_detected']}</div>", unsafe_allow_html=True)
-                    m = soil_eval["metrics"]
-                    
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <h4 style="color:#39FF88; margin-top:0;">🌾 Scanned Soil Successfully Verified & Analyzed:</h4>
-                        <p style="margin:4px 0;">• <strong>Texture Class:</strong> {soil_eval['soil_type']}</p>
-                        <p style="margin:4px 0;">• <strong>Optical Color Signature:</strong> {m['rgb_signature']}</p>
-                        <p style="margin:4px 0;">• <strong>Organic Carbon (SOC):</strong> {m['soc']}%</p>
-                        <p style="margin:4px 0;">• <strong>Surface Moisture:</strong> {m['moist']}%</p>
-                        <p style="margin:4px 0;">• <strong>Active pH:</strong> {m['ph']}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    if st.button("Apply Verified Soil Features"):
-                        st.session_state.soil_n = m["n"]
-                        st.session_state.soil_p = m["p"]
-                        st.session_state.soil_k = m["k"]
-                        st.session_state.soil_ph = m["ph"]
-                        st.session_state.soc = m["soc"]
-                        st.session_state.soil_moist = m["moist"]
-                        st.session_state.soil_source = "scanner"
-                        st.success("✅ Verified agricultural soil applied successfully! You can now continue.")
-                else:
-                    st.markdown(f"<div class='badge-warn' style='display:inline-block; font-size:16px; margin:10px 0;'>{T['soil_not_detected']}</div>", unsafe_allow_html=True)
-                    st.error(f"⚠️ {soil_eval['reason']} Please provide a genuine agricultural soil sample.")
-
-        with tab_land:
-            st.markdown(f"##### {T['land_calc_title']}")
-            l_col1, l_col2, l_col3 = st.columns([2, 2, 2])
-            st.session_state.plot_id = l_col1.text_input("Parcel / Field Identifier:", value=st.session_state.plot_id)
-            st.session_state.raw_land_val = l_col2.number_input("Enter Land Size Amount", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
-            st.session_state.land_unit = l_col3.selectbox(
-                "Choose Area SI Unit", 
-                list(UNIT_TO_HECTARE.keys()),
-                index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit)
-            )
-
-            st.markdown("---")
-            b_col1, b_col2 = st.columns([2, 2])
-            with b_col1:
-                st.session_state.budget_cap = st.number_input(
-                    T["budget_lbl"],
-                    min_value=1000.0,
-                    max_value=1000000.0,
-                    value=float(st.session_state.budget_cap),
-                    step=500.0,
-                    help=T["budget_help"]
-                )
-            with b_col2:
-                st.metric(
-                    "Allocated Budget Ceiling", 
-                    f"₹{st.session_state.budget_cap:,.0f}",
-                    help="Linear programming constraint: Cost <= Budget"
-                )
-
-            st.markdown("---")
-            conv_table, ha_val = render_land_conversion_table(st.session_state.raw_land_val, st.session_state.land_unit)
-            st.session_state.land_area = ha_val
-            st.table(conv_table)
-            st.info(f"Standardized area for chemical dosage: **{ha_val:.3f} Hectares** | Maximum Cost Cap: **₹{st.session_state.budget_cap:,.0f}**")
-
-        with tab_soil:
-            st.markdown("##### Manual Soil Nutrient Input (Alternative to Scanner)")
-            s1, s2, s3 = st.columns(3)
-            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n), key="m_n")
-            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p), key="m_p")
-            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k), key="m_k")
-            
-            s4, s5, s6 = st.columns(3)
-            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1, key="m_ph")
-            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05, key="m_soc")
-            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0, key="m_moist")
-            
-            c_s1, c_s2, c_s3 = st.columns(3)
-            c_s1.selectbox("Soil Type", list(soil_encoder.classes_), key="sel_soil")
-            c_s2.selectbox("Planned Crop", list(crop_type_encoder.classes_), key="sel_crop")
-            
-            st.session_state.target_yield = c_s3.number_input("Target Harvest (t/acre)", 0.5, 10.0, float(st.session_state.target_yield), 0.25)
-
-            if st.button("Save Manual Soil Values"):
-                st.session_state.soil_source = "manual"
-                st.success("✅ Manual soil values saved successfully! You can now continue.")
-
-        st.divider()
-        b1, b2 = st.columns([1, 5])
-        if b1.button(T["btn_back"], key="step2_back"):
-            st.session_state.step = 1
-            st.rerun()
-            
-        if b2.button(T["btn_next"], key="step2_next"):
-            if st.session_state.soil_source is None:
-                st.error("⚠️ Please either verify genuine agricultural soil in Tab 1 OR save manual soil values in Tab 3 before proceeding.")
-            else:
-                st.session_state.step = 3
-                st.rerun()
 
 # -------------------------------------------------------------
 # SCREEN 3: SOIL HEALTH EVALUATION
