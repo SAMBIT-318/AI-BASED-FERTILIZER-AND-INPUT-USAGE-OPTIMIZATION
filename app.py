@@ -54,7 +54,7 @@ def render_land_conversion_table(entered_val, chosen_unit):
     guntha = acres * 40.0
     decimals = acres * 100.0
     sq_ft = acres * 43560.0
-
+    
     table_df = pd.DataFrame({
         "Unit Name": ["Acre (ଏକର)", "Hectare (ହେକ୍ଟର)", "Guntha (ଗୁଣ୍ଠ)", "Decimal (ଡେସିମିଲ)", "Square Feet (Sq Ft)"],
         "Calculated Size": [f"{acres:.3f} Acres", f"{ha_base:.3f} Ha", f"{guntha:.2f} Guntha", f"{decimals:.1f} Decimals", f"{sq_ft:,.0f} Sq Ft"]
@@ -100,7 +100,7 @@ def verify_genuine_agricultural_soil(image_obj):
         return {"detected": False, "reason": "Non-soil sky, water, or blue surface detected."}
 
     is_earth_tone = (r_m >= g_m >= b_m) or (r_m < 110 and g_m < 110 and b_m < 110)
-
+    
     gray = img_rgb.convert("L")
     edges = gray.filter(ImageFilter.FIND_EDGES)
     edge_stat = ImageStat.Stat(edges)
@@ -139,7 +139,7 @@ def analyze_plant_disease_image(image_obj):
     img_rgb = image_obj.convert("RGB").resize((120, 120))
     arr = np.array(img_rgb)
     r_mean, g_mean, b_mean = np.mean(arr[:, :, 0]), np.mean(arr[:, :, 1]), np.mean(arr[:, :, 2])
-
+    
     if g_mean > r_mean + 10 and g_mean > b_mean:
         return {
             "health": "Vigorous Healthy Plant Canopy (100% Chlorophyll Index)",
@@ -423,7 +423,7 @@ engine = get_db_engine()
 def register_user(mobile, password, role="farmer"):
     fixed_admins = ["9348315602", "7735402865", "9692904951"]
     if mobile in fixed_admins:
-        return False, "This mobile number is reserved for admin access and cannot be registered."
+        return False, "This mobile number is reserved for administrative access and cannot be registered."
 
     if not engine:
         return False, "Database connection unavailable. Please verify network credentials."
@@ -435,9 +435,9 @@ def register_user(mobile, password, role="farmer"):
                 text("SELECT mobile_number FROM users WHERE mobile_number = :m"),
                 {"m": mobile}
             ).fetchone()
-
+            
             if existing:
-                return False, "This mobile number is already registered. Please go to the 'Sign In' tab to log in."
+                return False, "This mobile number is already registered. Please proceed to Sign In."
 
             conn.execute(
                 text("INSERT INTO users (mobile_number, password, role) VALUES (:m, :p, :r)"),
@@ -448,24 +448,29 @@ def register_user(mobile, password, role="farmer"):
     except Exception as e:
         return False, f"Registration error: {e}"
 
-def verify_user(mobile, password):
+def verify_user(mobile, password, selected_role="farmer"):
     fixed_admins = {
         "9348315602": hashlib.sha256("Sambit@123".encode()).hexdigest(),
         "7735402865": hashlib.sha256("Swastidhar@123".encode()).hexdigest(),
         "9692904951": hashlib.sha256("Prabhu@123".encode()).hexdigest(),
     }
     hashed_pw = hashlib.sha256(password.encode()).hexdigest()
-    if mobile in fixed_admins:
-        if fixed_admins[mobile] == hashed_pw:
-            return True, "admin"
-        else:
-            return False, "admin"
 
+    # Admin Login verification
+    if selected_role == "admin":
+        if mobile in fixed_admins and fixed_admins[mobile] == hashed_pw:
+            return True, "admin"
+        return False, "admin"
+
+    # Farmer / General User Login verification
     if not engine:
         return False, "farmer"
     try:
         with engine.connect() as conn:
-            res = conn.execute(text("SELECT password, role FROM users WHERE mobile_number = :m"), {"m": mobile}).fetchone()
+            res = conn.execute(
+                text("SELECT password, role FROM users WHERE mobile_number = :m"), 
+                {"m": mobile}
+            ).fetchone()
             if res and res[0] == hashed_pw:
                 return True, res[1]
     except Exception:
@@ -490,7 +495,8 @@ TRANSLATIONS = {
     "English": {
         "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "Certified 4R Nutrient Allocation, Real-Soil Triage & Official Prescription",
-        "login_tab": "Sign In",
+        "login_tab": "Farmer Sign In",
+        "admin_login_tab": "Admin Sign In",
         "reg_tab": "Farmer Registration",
         "mobile_lbl": "Mobile Number",
         "pass_lbl": "Password",
@@ -520,7 +526,8 @@ TRANSLATIONS = {
     "Hindi (हिन्दी)": {
         "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "प्रमाणित 4R पोषक तत्व प्रबंधन, वास्तविक मृदा विश्लेषण और आधिकारिक नुस्खा",
-        "login_tab": "साइन इन",
+        "login_tab": "किसान साइन इन",
+        "admin_login_tab": "एडमिन साइन इन",
         "reg_tab": "किसान पंजीकरण",
         "mobile_lbl": "मोबाइल नंबर",
         "pass_lbl": "पासवर्ड",
@@ -550,7 +557,8 @@ TRANSLATIONS = {
     "Odia (ଓଡ଼ିଆ)": {
         "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
         "subtitle": "ପ୍ରମାଣିତ ୪ଆର୍ ପୋଷକ ପରିଚାଳନା, ପ୍ରକୃତ ମୃତ୍ତିକା ବିଶ୍ଳେଷଣ ଓ ସରକାରୀ ପ୍ରେସକ୍ରିପସନ",
-        "login_tab": "ସାଇନ୍‌ ଇନ୍",
+        "login_tab": "କୃଷକ ସାଇନ୍‌ ଇନ୍",
+        "admin_login_tab": "ଆଡମିନ୍ ସାଇନ୍‌ ଇନ୍",
         "reg_tab": "କୃଷକ ପଞ୍ଜୀକରଣ",
         "mobile_lbl": "ମୋବାଇଲ୍ ନମ୍ବର",
         "pass_lbl": "ପାସୱାର୍ଡ",
@@ -1020,7 +1028,7 @@ if st.session_state.step == 1:
             else "Full Optimization"
         )
 
-        t_login, t_reg = st.tabs([T["login_tab"], T["reg_tab"]])
+        t_login, t_admin, t_reg = st.tabs([T["login_tab"], T["admin_login_tab"], T["reg_tab"]])
 
         with t_login:
             m = st.text_input(
@@ -1038,23 +1046,54 @@ if st.session_state.step == 1:
             )
 
             if st.button(
-                "Access Control Center →",
+                "Sign In as Farmer →",
                 key="login_button"
             ):
                 if len(m.strip()) == 10:
-                    valid, user_role = verify_user(m.strip(), p.strip())
+                    valid, user_role = verify_user(m.strip(), p.strip(), selected_role="farmer")
 
                     if valid:
                         st.session_state.logged_in = True
                         st.session_state.user_mobile = m.strip()
-                        st.session_state.user_role = user_role
-                        if user_role == "admin":
-                            st.session_state.step = 90
-                        else:
-                            st.session_state.step = 2
+                        st.session_state.user_role = "farmer"
+                        st.session_state.step = 2
                         st.rerun()
                     else:
                         st.error("Invalid credentials or unregistered mobile number.")
+                else:
+                    st.warning("Enter a valid 10-digit mobile number.")
+
+        with t_admin:
+            st.info("🔐 Authorized Administrators Only")
+            am = st.text_input(
+                "Admin Mobile Number",
+                max_chars=10,
+                key="admin_log_m",
+                placeholder="Admin 10-digit mobile"
+            )
+
+            ap = st.text_input(
+                "Admin Password",
+                type="password",
+                key="admin_log_p",
+                placeholder="Enter admin password"
+            )
+
+            if st.button(
+                "Sign In as Admin →",
+                key="admin_login_button"
+            ):
+                if len(am.strip()) == 10:
+                    valid, user_role = verify_user(am.strip(), ap.strip(), selected_role="admin")
+
+                    if valid:
+                        st.session_state.logged_in = True
+                        st.session_state.user_mobile = am.strip()
+                        st.session_state.user_role = "admin"
+                        st.session_state.step = 90
+                        st.rerun()
+                    else:
+                        st.error("Access Denied: Unauthorized admin number or incorrect password.")
                 else:
                     st.warning("Enter a valid 10-digit mobile number.")
 
@@ -1081,7 +1120,7 @@ if st.session_state.step == 1:
             )
 
             if st.button(
-                "Create Smart Kishan Account →",
+                "Create Farmer Account →",
                 key="register_button"
             ):
                 if len(rm.strip()) == 10 and rp == rpc and len(rp) > 0:
@@ -1592,7 +1631,7 @@ elif st.session_state.step == 5:
     if b1.button(T["btn_back"], key="step5_back"):
         st.session_state.step = 4
         st.rerun()
-    if b2.button(T["btn_next"], key="step5_next"):
+    if b2.button(T["btn_next"], key="step6_next"):
         st.session_state.step = 6
         st.rerun()
 
@@ -1824,7 +1863,7 @@ elif st.session_state.step == 8:
                 display: none;
             }
             .stars label {
-                font-size: 80px;
+                font-size: 100px;
                 color: #ccc;
                 cursor: pointer;
                 transition: color 0.2s ease;
@@ -1847,7 +1886,7 @@ elif st.session_state.step == 8:
         </div>
     </body>
     </html>
-    """, height=120)
+    """, height=150)
 
     st.markdown("<br>", unsafe_allow_html=True)
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
