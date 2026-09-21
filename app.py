@@ -419,6 +419,7 @@ def get_db_engine():
         with engine.connect() as conn:
             conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT, role TEXT DEFAULT 'farmer')"))
             conn.execute(text("CREATE TABLE IF NOT EXISTS feedback (id SERIAL PRIMARY KEY, mobile TEXT, rating INT, comments TEXT)"))
+            conn.execute(text("CREATE TABLE IF NOT EXISTS queries (id SERIAL PRIMARY KEY, mobile TEXT, query_text TEXT, status TEXT DEFAULT 'Pending', admin_reply TEXT)"))
             conn.commit()
         return engine
     except Exception:
@@ -439,9 +440,20 @@ def register_user(mobile, password, role="farmer"):
         return False, "This mobile number is already registered."
 
 def verify_user(mobile, password):
+    fixed_admins = {
+        "9348315602": hashlib.sha256("Sambit@123".encode()).hexdigest(),
+        "7735402865": hashlib.sha256("Swastidhar@123".encode()).hexdigest(),
+        "9692904951": hashlib.sha256("Prabhu@123".encode()).hexdigest(),
+    }
+    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
+    if mobile in fixed_admins:
+        if fixed_admins[mobile] == hashed_pw:
+            return True, "admin"
+        else:
+            return False, "admin"
+
     if not engine:
         return True, "farmer"
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
     try:
         with engine.connect() as conn:
             res = conn.execute(text("SELECT password, role FROM users WHERE mobile_number = :m"), {"m": mobile}).fetchone()
@@ -878,7 +890,7 @@ TRANSLATIONS = {
         "feedback_submit": "ಪ್ರತಿಕ್ರಿಯೆ ಸಲ್ಲಿಸಿ ಮತ್ತು ನಿರ್ಗಮಿಸಿ ➔",
         "land_calc_title": "📐 ಭೂಮಿ ಘಟಕ ಆಯ್ಕೆ ಮತ್ತು ಬಜೆಟ್ ಮ್ಯಾಟ್ರಿಕ್ಸ್",
         "stage_1_period": "ಹಂತ 1: ತಳದ ಡ್ರೆಸ್ಸಿಂಗ್ (ಬಿತ್ತನೆ/ನಾಟಿ ಸಮಯದಲ್ಲಿ - ದಿನ 0)",
-        "stage_1_method": "ಕಾಂಪೋಸ್ಟ್ ಮತ್ತು ಪೂರ್ಣ DAP ಹಾಗೂ 1/3 MOP ಅನ್ನು 5-7 ಸೆಂ.ಮೀ ಆಳದಲ್ಲಿ ಹಾಕಿ.",
+        "stage_1_method": "ಕಾಂಪೋಸ್ಟ್ ಮತ್ತು ಪೂರ್ಣ DAP ಹಾಗೂ 1/3 ಮOP ಅನ್ನು 5-7 ಸೆಂ.ಮೀ ಆಳದಲ್ಲಿ ಹಾಕಿ.",
         "stage_2_period": "ಹಂತ 2: ಸಸ್ಯಗಳ ಬೆಳವಣಿಗೆ (20 - 25 ದಿನಗಳು)",
         "stage_2_method": "ಸಾಲುಗಳಲ್ಲಿ 1/2 ಯೂರಿಯಾ ಡೋಸ್ + 1/3 MOP ಅನ್ನು ಅಳವಡಿಸಿ.",
         "stage_3_period": "ಹಂತ 3: ಹೂಬಿಡುವ ಹಂತ (45 - 55 ದಿನಗಳು)",
@@ -988,7 +1000,7 @@ TRANSLATIONS = {
         "mode_select": "ਖੇਤੀ ਸੇਵਾ ਚੁਣੋ",
         "mode_opt": "🌾 ਪੂਰੀ ਮਿੱਟੀ ਅਤੇ ਖਾਦ ਅਨੁਕੂਲਨ ਪਾਈਪਲਾਈਨ",
         "mode_diag": "🔬 ਸਿਰਫ਼ ਪੌਦਿਆਂ ਦੀ ਬੀਮਾਰੀ ਅਤੇ ਦਵਾਈ ਨਿਦਾਨ",
-        "btn_login": "ਕੰਟਰੋਲ ਸੈਂਟਰ ਦਾਖਲ ਕਰੋ ➔",
+        "btn_login": "ਕੰਟਰੋਲ ਸੈਂਟਰ ਦਾਖल ਕਰੋ ➔",
         "btn_reg": "ਖਾਤਾ ਬਣਾਓ",
         "btn_back": "⬅️ ਪਿੱਛੇ",
         "btn_next": "ਜਾਰੀ ਰੱਖੋ ➔",
@@ -1001,7 +1013,7 @@ TRANSLATIONS = {
         "stage_1_method": "ਕੰਪੋਸਟ, ਪੂਰਾ DAP ਅਤੇ 1/3 MOP ਮਿੱਟੀ ਵਿੱਚ ਪਾਓ (5-7 ਸੈਮੀ ਡੂੰਘਾ)।",
         "stage_2_period": "ਪੜਾਅ 2: ਵਾਧਾ ਪੜਾਅ (20 - 25 ਦਿਨ ਬਾਅਦ)",
         "stage_2_method": "ਅੱਧੀ ਯੂਰੀਆ ਅਤੇ 1/3 MOP ਪੌਦਿਆਂ ਦੀਆਂ ਕਤਾਰਾਂ ਵਿੱਚ ਪਾਓ।",
-        "stage_3_period": "ਪੜਾਅ 3: ਫੁੱਲ ਪੈਣ ਦਾ ਸਮਾਂ (45 - 55 ਦਿਨ ਬਾਅਦ)",
+        "stage_3_period": "ਪੜਾਅ 3: ਫੁੱਲ ਪੈਣ ਦਾ ਸਮਾਂ (45 - 55 ਦਿન ਬਾਅਦ)",
         "stage_3_method": "ਬਾਕੀ ਬਚੀ ਯੂਰੀਆ ਅਤੇ ਅੰਤਿਮ MOP ਪਾਓ।",
         "soil_detected": "ਮਿੱਟੀ ਦਾ ਪਤਾ ਲੱਗਿਆ ਹੈ",
         "soil_not_detected": "ਪਤਾ ਨਹੀਂ ਲੱਗਿਆ"
