@@ -366,26 +366,71 @@ def load_all_models():
 # -------------------------------------------------------------
 @st.cache_resource
 def get_db_engine():
-    try:
-        cfg_user = urllib.parse.quote_plus(str(st.secrets["postgres"]["user"]))
-        cfg_password = urllib.parse.quote_plus(str(st.secrets["postgres"]["password"]))
-        cfg_host = str(st.secrets["postgres"]["host"]).strip()
-        cfg_port = st.secrets["postgres"]["port"]
-        cfg_db = str(st.secrets["postgres"]["database"]).strip()
-        db_uri = f"postgresql://{cfg_user}:{cfg_password}@{cfg_host}:{cfg_port}/{cfg_db}?sslmode=require"
-    except Exception:
-        db_uri = "postgresql://postgres.ivshypgnhsprrkhkzkkx:SambitSwain2005@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
+    """Create and validate the Supabase PostgreSQL connection."""
 
     try:
-        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 8})
+        db_user = "postgres.ivshypgnhsprrkhkzkkx"
+        db_password = "SambitSwain2005"
+        db_host = "aws-0-ap-northeast-1.pooler.supabase.com"
+        db_port = 6543
+        db_name = "postgres"
+
+        cfg_user = urllib.parse.quote_plus(db_user)
+        cfg_password = urllib.parse.quote_plus(db_password)
+
+        db_uri = (
+            f"postgresql+psycopg2://{cfg_user}:{cfg_password}"
+            f"@{db_host}:{db_port}/{db_name}"
+            f"?sslmode=require"
+        )
+
+        engine = create_engine(
+            db_uri,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            connect_args={"connect_timeout": 10},
+        )
+
         with engine.connect() as conn:
-            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT, role TEXT DEFAULT 'farmer')"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS feedback (id SERIAL PRIMARY KEY, mobile TEXT, rating INT, comments TEXT)"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS queries (id SERIAL PRIMARY KEY, mobile TEXT, query_text TEXT, status TEXT DEFAULT 'Pending', admin_reply TEXT, attended_by TEXT)"))
+
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS users (
+                    mobile_number TEXT PRIMARY KEY,
+                    password TEXT NOT NULL,
+                    role TEXT DEFAULT 'farmer'
+                )
+            """))
+
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS feedback (
+                    id SERIAL PRIMARY KEY,
+                    mobile TEXT,
+                    rating INT,
+                    comments TEXT
+                )
+            """))
+
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS queries (
+                    id SERIAL PRIMARY KEY,
+                    mobile TEXT,
+                    query_text TEXT,
+                    status TEXT DEFAULT 'Pending',
+                    admin_reply TEXT,
+                    attended_by TEXT
+                )
+            """))
+
             conn.commit()
+
         return engine
-    except Exception:
+
+    except Exception as e:
+        print(f"Database connection error: {e}")
         return None
+
+
+engine = get_db_engine()
 
 engine = get_db_engine()
 
