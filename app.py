@@ -233,19 +233,6 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
-    .glass-login-card {{
-        position: relative;
-        z-index: 10;
-        background: rgba(11, 61, 46, 0.94) !important;
-        backdrop-filter: blur(18px) !important;
-        -webkit-backdrop-filter: blur(18px) !important;
-        border: 1px solid rgba(57, 255, 136, 0.6) !important;
-        border-radius: 20px !important;
-        padding: 32px !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important;
-        width: 100% !important;
-    }}
-
     .metric-card {{
         background: rgba(11, 61, 46, 0.90) !important;
         border-radius: 14px !important;
