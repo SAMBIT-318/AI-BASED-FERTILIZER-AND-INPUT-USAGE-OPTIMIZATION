@@ -232,7 +232,7 @@ st.markdown(f"""
         text-shadow: 0 1px 6px rgba(0,0,0,0.8);
         font-weight: 500;
     }}
-
+    
     .metric-card {{
         background: rgba(11, 61, 46, 0.90) !important;
         border-radius: 14px !important;
@@ -362,7 +362,7 @@ def load_all_models():
  yield_features, yield_crop_encoder) = load_all_models()
 
 # -------------------------------------------------------------
-# DATABASE ENGINE & AUTH HELPERS
+# DATABASE ENGINE & AUTH HELPERS (SCHEMA MIGRATION FIXED)
 # -------------------------------------------------------------
 @st.cache_resource
 def get_db_engine():
@@ -386,6 +386,7 @@ def get_db_engine():
         )
 
         with engine.connect() as conn:
+            # 1. Users table & schema alterations
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS users (
                     mobile_number TEXT PRIMARY KEY,
@@ -393,6 +394,9 @@ def get_db_engine():
                     role TEXT DEFAULT 'farmer'
                 )
             """))
+            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'farmer'"))
+
+            # 2. Feedback table
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS feedback (
                     id SERIAL PRIMARY KEY,
@@ -401,6 +405,8 @@ def get_db_engine():
                     comments TEXT
                 )
             """))
+
+            # 3. Queries table & schema alterations
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS queries (
                     id SERIAL PRIMARY KEY,
@@ -411,6 +417,10 @@ def get_db_engine():
                     attended_by TEXT
                 )
             """))
+            conn.execute(text("ALTER TABLE queries ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Pending'"))
+            conn.execute(text("ALTER TABLE queries ADD COLUMN IF NOT EXISTS admin_reply TEXT"))
+            conn.execute(text("ALTER TABLE queries ADD COLUMN IF NOT EXISTS attended_by TEXT"))
+
             conn.commit()
 
         return engine
@@ -423,7 +433,7 @@ engine = get_db_engine()
 def register_user(mobile, password, role="farmer"):
     fixed_admins = ["9348315602", "7735402865", "9692904951"]
     if mobile in fixed_admins:
-        return False, "This mobile number is reserved for administrative access and cannot be registered."
+        return False, "This mobile number is reserved for admin access and cannot be registered."
 
     if not engine:
         return False, "Database connection unavailable. Please verify network credentials."
@@ -435,7 +445,7 @@ def register_user(mobile, password, role="farmer"):
                 text("SELECT mobile_number FROM users WHERE mobile_number = :m"),
                 {"m": mobile}
             ).fetchone()
-            
+
             if existing:
                 return False, "This mobile number is already registered. Please proceed to Sign In."
 
@@ -472,7 +482,7 @@ def verify_user(mobile, password, selected_role="farmer"):
                 {"m": mobile}
             ).fetchone()
             if res and res[0] == hashed_pw:
-                return True, res[1]
+                return True, (res[1] or "farmer")
     except Exception:
         return False, "farmer"
     return False, "farmer"
@@ -953,7 +963,7 @@ if st.session_state.logged_in:
     render_ai_chatbot_sidebar()
 
 # -------------------------------------------------------------
-# SCREEN 1: SMART KISHAN CINEMATIC LOGIN
+# SCREEN 1: SMART KISHAN CINEMATIC LOGIN & REGISTRATION
 # -------------------------------------------------------------
 if st.session_state.step == 1:
     col_brand, col_login = st.columns([1.02, 0.98], gap="large")
@@ -1030,6 +1040,7 @@ if st.session_state.step == 1:
 
         t_login, t_admin, t_reg = st.tabs([T["login_tab"], T["admin_login_tab"], T["reg_tab"]])
 
+        # Farmer Sign In
         with t_login:
             m = st.text_input(
                 T["mobile_lbl"],
@@ -1063,6 +1074,7 @@ if st.session_state.step == 1:
                 else:
                     st.warning("Enter a valid 10-digit mobile number.")
 
+        # Admin Sign In
         with t_admin:
             st.info("🔐 Authorized Administrators Only")
             am = st.text_input(
@@ -1097,6 +1109,7 @@ if st.session_state.step == 1:
                 else:
                     st.warning("Enter a valid 10-digit mobile number.")
 
+        # Farmer Registration Only
         with t_reg:
             rm = st.text_input(
                 T["mobile_lbl"],
