@@ -233,19 +233,6 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
-    .farmer-hero {{
-        background: rgba(11, 61, 46, 0.90);
-        border-radius: 18px;
-        padding: 18px 24px;
-        color: #FFFFFF !important;
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6);
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 1px solid rgba(57, 255, 136, 0.5);
-    }}
-
     .metric-card {{
         background: rgba(11, 61, 46, 0.90) !important;
         border-radius: 14px !important;
@@ -477,7 +464,7 @@ TRANSLATIONS = {
         "mobile_lbl": "Mobile Number",
         "pass_lbl": "Password",
         "conf_pass_lbl": "Confirm Password",
-        "lang_select": "Global Language Selection (Select from World Languages)",
+        "lang_select": "Global Language Selection",
         "mode_select": "Select Farm Service",
         "mode_opt": "🌾 Full Soil & Fertilizer Optimization Pipeline",
         "mode_diag": "🔬 Plant Disease, Pest & Medicine Diagnosis Only",
@@ -1798,6 +1785,7 @@ elif st.session_state.step == 7:
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("#### Timed Application Periods & Methods for Farmers:")
     app_methods_df = pd.DataFrame({
         "Crop Stage & Time Period": [
             T["stage_1_period"],
@@ -1849,7 +1837,7 @@ elif st.session_state.step == 7:
             mime="application/pdf"
         )
     with p_col2:
-        if st.button("Proceed to Feedback & Exit"):
+        if st.button("Proceed to Feedback & Exit ➔"):
             st.session_state.step = 8
             st.rerun()
 
@@ -1900,7 +1888,7 @@ elif st.session_state.step == 8:
                 display: none;
             }
             .stars label {
-                font-size: 80px;
+                font-size: 100px;
                 color: #ccc;
                 cursor: pointer;
                 transition: color 0.2s ease;
@@ -1923,7 +1911,7 @@ elif st.session_state.step == 8:
         </div>
     </body>
     </html>
-    """, height=120)
+    """, height=150)
 
     st.markdown("<br>", unsafe_allow_html=True)
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
