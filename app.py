@@ -1892,7 +1892,7 @@ elif st.session_state.step == 6:
     })
     timeline_chart = (
         alt.Chart(timeline_df, width=400)
-        .mark_line(point=True, color="#1E88E5")
+        .mark_line(point=True, color="#1E88E5", strockWidth=3)
         .encode(
             x=alt.X(
                 "Stage:N",
@@ -1913,6 +1913,17 @@ elif st.session_state.step == 6:
             ),
         )
     )
+    timeline_points = (
+        alt.Chart(timeline_df)
+        .mark_point(filled=True, size=100, color="#1E88E5")
+        .encode(
+            x="Stage:N",
+            y="Nutrient Release Efficiency (%):Q",
+            tooltip=[alt.Tooltip("Stage:N"), alt.Tooltip("Nutrient Release Efficiency (%):Q")]
+        )
+    )
+
+    timeline_chart = timeline_line + timeline_points
     st.altair_chart(timeline_chart, use_container_width=True)
 
     st.divider()
