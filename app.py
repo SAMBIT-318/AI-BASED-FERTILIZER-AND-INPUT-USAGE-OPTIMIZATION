@@ -1224,7 +1224,6 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
                                 with engine.connect() as conn:
                                     conn.execute(text("DELETE FROM users WHERE mobile_number = :m"), {"m": str(del_mob.strip())})
                                     conn.commit()
-                                log_activity(st.session_state.user_mobile, "Admin Action", f"Deleted user {del_mob}")
                                 st.success(f"Successfully deleted user account: {del_mob}")
                                 st.rerun()
                     else:
