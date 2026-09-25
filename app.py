@@ -1891,7 +1891,7 @@ elif st.session_state.step == 6:
         "Nutrient Release Efficiency (%)": [90, 85, 95]
     })
     timeline_chart = (
-        alt.Chart(timeline_df)
+        alt.Chart(timeline_df, width=400)
         .mark_line(point=True, color="#39FF88")
         .encode(
             x=alt.X(
@@ -1899,7 +1899,7 @@ elif st.session_state.step == 6:
                 axis=alt.Axis(
                     labelColor="#000000",
                     titleColor="#000000",
-                    labelAngle=360,
+                    labelAngle=0,
                     title="Stage",
                 ),
             ),
