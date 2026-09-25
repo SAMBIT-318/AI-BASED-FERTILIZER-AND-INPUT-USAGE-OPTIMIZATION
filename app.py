@@ -2032,24 +2032,6 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
-# -------------------------------------------------------------
-elif st.session_state.step == 8:
-    if os.path.exists(LOGO_FILE_EXACT):
-        c_logo, c_title = st.columns([0.15, 0.85], gap="small")
-        with c_logo:
-            st.image(LOGO_FILE_EXACT, width=120)
-        with c_title:
-            st.markdown(f"""
-            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
-                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
-                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Farmer Feedback & Star Rating</p>
-            </div>
-            """, unsafe_allow_html=True)
-    st.subheader(T["feedback_title"])
-    st.write("Please rate your advisory experience before exiting:")
-
-# -------------------------------------------------------------
 # SCREEN 8: GREEN INTERACTIVE STAR RATING & EXIT
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
