@@ -1188,38 +1188,65 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
     ])
 
     with admin_tab1:
+    # Check if a sub-view is active, otherwise show the main navigation options
+    if "admin_sub_view" not in st.session_state:
+        st.session_state.admin_sub_view = "home"
+
+    if st.session_state.admin_sub_view == "home":
+        st.markdown("### 👥 Admin Management Hub")
+        st.write("Select a section below to view detailed records full-screen:")
+        
+        c_nav1, c_nav2 = st.columns(2)
+        with c_nav1:
+            if st.button("👥 Open Registered Users Management", use_container_width=True):
+                st.session_state.admin_sub_view = "users"
+                st.rerun()
+        with c_nav2:
+            if st.button("📜 Open User Activity History", use_container_width=True):
+                st.session_state.admin_sub_view = "activity"
+                st.rerun()
+
+    elif st.session_state.admin_sub_view == "users":
+        if st.button("⬅️ Back to Admin Hub"):
+            st.session_state.admin_sub_view = "home"
+            st.rerun()
+            
         st.markdown("### 👥 Registered Users Management")
         if engine:
             try:
                 with engine.connect() as conn:
                     users_df = pd.read_sql(text("SELECT mobile_number, role FROM users"), conn)
-                if not users_df.empty:
-                    st.dataframe(users_df, use_container_width=True)
-                    del_mob = st.text_input("Enter Mobile Number to Delete User Account:", key="del_user_input")
-                    if st.button("🗑️ Delete User ID"):
-                        if del_mob.strip():
-                            with engine.connect() as conn:
-                                conn.execute(text("DELETE FROM users WHERE mobile_number = :m"), {"m": str(del_mob.strip())})
-                                conn.commit()
-                            log_activity(st.session_state.user_mobile, "Admin Action", f"Deleted user {del_mob}")
-                            st.success(f"Successfully deleted user account: {del_mob}")
-                            st.rerun()
-                else:
-                    st.info("No registered users found in database.")
+                    if not users_df.empty:
+                        st.dataframe(users_df, use_container_width=True)
+                        del_mob = st.text_input("Enter Mobile Number to Delete User Account:", key="del_user_input")
+                        if st.button("🗑️ Delete User ID"):
+                            if del_mob.strip():
+                                with engine.connect() as conn:
+                                    conn.execute(text("DELETE FROM users WHERE mobile_number = :m"), {"m": str(del_mob.strip())})
+                                    conn.commit()
+                                log_activity(st.session_state.user_mobile, "Admin Action", f"Deleted user {del_mob}")
+                                st.success(f"Successfully deleted user account: {del_mob}")
+                                st.rerun()
+                    else:
+                        st.info("No registered users found in database.")
             except Exception as e:
                 st.error(f"Error loading users: {e}")
 
-            st.markdown("---")
-            st.markdown("### 📜 User Activity History")
-            try:
-                with engine.connect() as conn:
-                    act_df = pd.read_sql(text("SELECT mobile, activity_type, details, created_at FROM user_activity WHERE is_deleted = 0 ORDER BY created_at DESC"), conn)
+    elif st.session_state.admin_sub_view == "activity":
+        if st.button("⬅️ Back to Admin Hub"):
+            st.session_state.admin_sub_view = "home"
+            st.rerun()
+            
+        st.markdown("### 📜 User Activity History")
+        try:
+            with engine.connect() as conn:
+                act_df = pd.read_sql(text("SELECT mobile, activity_type, details, created_at FROM user_activity WHERE is_deleted = 0 ORDER BY created_at DESC"), conn)
                 if not act_df.empty:
                     st.dataframe(act_df, use_container_width=True)
                 else:
                     st.info("No active logs recorded.")
-            except Exception as e:
-                st.error(f"Error: {e}")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
     with admin_tab2:
         st.markdown("### ⭐ Farmer Reviews, Ratings & Admin Feedback Reply")
@@ -1330,19 +1357,15 @@ elif st.session_state.step == 2:
         st.session_state.step = 1
         st.rerun()
 
-    # --- 3 Navigation Action Buttons to separate pages ---
-    nav_btn1, nav_btn2, nav_btn3 = st.columns(3)
+   # --- 2 Redirectable Admin Hub Buttons ---
+    nav_btn1, nav_btn2 = st.columns(2)
     with nav_btn1:
-        if st.button("🆘 Help & Account Requests", use_container_width=True):
-            st.session_state.step = 21
+        if st.button("👥 Registered Users Management", use_container_width=True):
+            st.session_state.step = 24  # Dedicated view step for users management
             st.rerun()
     with nav_btn2:
-        if st.button("🔔 Resolved Notifications & Reply", use_container_width=True):
-            st.session_state.step = 22
-            st.rerun()
-    with nav_btn3:
-        if st.button("📜 My Activity History", use_container_width=True):
-            st.session_state.step = 23
+        if st.button("📜 User Activity History", use_container_width=True):
+            st.session_state.step = 25  # Dedicated view step for activity history
             st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -1624,6 +1647,53 @@ elif st.session_state.step == 23:
                 st.info("No activity logged yet.")
         except Exception as e:
             st.error(f"Error: {e}")
+
+# -------------------------------------------------------------
+# STEP 24: REGISTERED USERS MANAGEMENT VIEW
+# -------------------------------------------------------------
+elif st.session_state.step == 24:
+    if st.button("⬅️ Back to Control Center", key="back_to_control_users"):
+        st.session_state.step = 2
+        st.rerun()
+        
+    st.markdown("### 👥 Registered Users Management")
+    if engine:
+        try:
+            with engine.connect() as conn:
+                users_df = pd.read_sql(text("SELECT mobile_number, role FROM users"), conn)
+                if not users_df.empty:
+                    st.dataframe(users_df, use_container_width=True)
+                    del_mob = st.text_input("Enter Mobile Number to Delete User Account:", key="del_user_input")
+                    if st.button("🗑️ Delete User ID", key="delete_user_btn"):
+                        if del_mob.strip():
+                            with engine.connect() as conn:
+                                conn.execute(text("DELETE FROM users WHERE mobile_number = :m"), {"m": str(del_mob.strip())})
+                                conn.commit()
+                            st.success(f"Successfully deleted user account: {del_mob}")
+                            st.rerun()
+                else:
+                    st.info("No registered users found in database.")
+        except Exception as e:
+            st.error(f"Error loading users: {e}")
+
+# -------------------------------------------------------------
+# STEP 25: USER ACTIVITY HISTORY VIEW
+# -------------------------------------------------------------
+elif st.session_state.step == 25:
+    if st.button("⬅️ Back to Control Center", key="back_to_control_activity"):
+        st.session_state.step = 2
+        st.rerun()
+        
+    st.markdown("### 📜 User Activity History")
+    try:
+        with engine.connect() as conn:
+            act_df = pd.read_sql(text("SELECT mobile, activity_type, details, created_at FROM user_activity WHERE is_deleted = 0 ORDER BY created_at DESC"), conn)
+            if not act_df.empty:
+                st.dataframe(act_df, use_container_width=True)
+            else:
+                st.info("No active logs recorded.")
+    except Exception as e:
+        st.error(f"Error: {e}")
 
 # -------------------------------------------------------------
 # SCREEN 3: SOIL HEALTH, WATER & RISK EVALUATION
