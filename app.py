@@ -186,36 +186,31 @@ LOGO_FILE_EXACT = "smart_kishan_logo.jpg"
 if not os.path.exists(LOGO_FILE_EXACT):
     LOGO_FILE_EXACT = "smart kishan logo.png"
 
-st.markdown(f"""
+# SAFE CSS INJECTION: Split dynamic background from static CSS to avoid f-string NameError
+if HERO_BG_DATA:
+    st.markdown(
+        '<style>.stApp { background-image: linear-gradient(135deg, rgba(6, 30, 22, 0.90) 0%, rgba(14, 75, 48, 0.82) 50%, rgba(110, 235, 175, 0.35) 100%), url("data:image/jpeg;base64,' + HERO_BG_DATA + '") !important; }</style>',
+        unsafe_allow_html=True
+    )
+
+st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-    html, body, [class*="css"], .stApp {{
+    html, body, [class*="css"], .stApp {
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         color: #FFFFFF !important;
-    }}
+    }
 
-    .stApp {{
-        background: linear-gradient(135deg, rgba(6, 30, 22, 0.90) 0%, rgba(14, 75, 48, 0.82) 50%, rgba(110, 235, 175, 0.35) 100%), url("data:image/jpeg;base64,{HERO_BG_DATA}") !important;
+    .stApp {
         background-size: cover !important;
         background-position: center center !important;
         background-attachment: fixed !important;
         background-repeat: no-repeat !important;
-    }}
+    }
 
-    .glass-login-card {{
-        position: relative;
-        z-index: 10;
-        background: rgba(11, 61, 46, 0.94) !important;
-        backdrop-filter: blur(18px) !important;
-        border: 1px solid rgba(57, 255, 136, 0.6) !important;
-        border-radius: 20px !important;
-        padding: 32px !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important;
-        width: 100% !important;
-    }}
 
-    .metric-card {{
+    .metric-card {
         background: rgba(11, 61, 46, 0.90) !important;
         border-radius: 14px !important;
         padding: 16px 18px !important;
@@ -226,9 +221,9 @@ st.markdown(f"""
         box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important;
         margin-bottom: 12px;
         color: #FFFFFF !important;
-    }}
+    }
 
-    .summary-card {{
+    .summary-card {
         background: rgba(11, 61, 46, 0.92) !important;
         border: 2px solid #39FF88 !important;
         padding: 24px !important;
@@ -236,17 +231,17 @@ st.markdown(f"""
         margin-bottom: 20px !important;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
         color: #FFFFFF !important;
-    }}
+    }
 
-    textarea {{
+    textarea {
         background-color: #E8F8F0 !important;
         color: #0B3D2E !important;
         font-weight: 600 !important;
         border: 2px solid #39FF88 !important;
         border-radius: 12px !important;
-    }}
+    }
 
-    div.stButton > button, div.stButton > button:focus {{
+    div.stButton > button, div.stButton > button:focus {
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
         color: #39FF88 !important;
         font-weight: 700 !important;
@@ -254,33 +249,33 @@ st.markdown(f"""
         padding: 11px 24px !important;
         border: 1px solid #39FF88 !important;
         box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important;
-    }}
+    }
 
-    div.stDownloadButton > button {{
+    div.stDownloadButton > button {
         background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
         color: #39FF88 !important;
         font-weight: 700 !important;
         border-radius: 10px !important;
         padding: 12px 24px !important;
         border: 1px solid #39FF88 !important;
-    }}
+    }
 
-    .badge-pass {{
+    .badge-pass {
         background-color: rgba(57, 255, 136, 0.25);
         color: #39FF88;
         padding: 5px 14px;
         border-radius: 8px;
         font-weight: 700;
         border: 1px solid #39FF88;
-    }}
-    .badge-warn {{
+    }
+    .badge-warn {
         background-color: rgba(239, 68, 68, 0.25);
         color: #F87171;
         padding: 5px 14px;
         border-radius: 8px;
         font-weight: 700;
         border: 1px solid #EF4444;
-    }}
+    }
 
     /* Global Dark-Black styling for tooltips and contrast controls */
     #vg-tooltip-element, .vg-tooltip {
@@ -298,15 +293,15 @@ st.markdown(f"""
 
     div[data-baseweb="menu"] *, ul[data-baseweb="menu"] *, [role="listbox"] *, 
     div[data-baseweb="select"] *, [data-baseweb="popover"] *,
-    [data-testid="stFileUploader"] *, [data-testid="stCameraInput"] *, .stLegend *, .vega-bind * {{
+    [data-testid="stFileUploader"] *, [data-testid="stCameraInput"] *, .stLegend *, .vega-bind * {
         color: #000000 !important;
         text-shadow: none !important;
-    }}
+    }
 
-    label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption, small, div {{
+    label, .stTextInput label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stCaption, small, div {
         color: #FFFFFF !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-    }}
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1365,7 +1360,6 @@ elif st.session_state.step == 2:
         if engine:
             try:
                 with engine.connect() as conn:
-                    # FIX: Using text(...) binding to avoid psycopg2 syntax error
                     notif_df = pd.read_sql(
                         text("SELECT id, request_type, status, admin_reply, user_feedback FROM help_requests WHERE mobile = :m ORDER BY id DESC"),
                         conn,
@@ -1872,7 +1866,7 @@ elif st.session_state.step == 6:
     if b1.button(T["btn_back"], key="step6_back"):
         st.session_state.step = 5
         st.rerun()
-    if b2.button(T["btn_next"], key="step6_next"):
+    if b2.button(T["btn_next"], key="step7_next"):
         st.session_state.step = 7
         st.rerun()
 
