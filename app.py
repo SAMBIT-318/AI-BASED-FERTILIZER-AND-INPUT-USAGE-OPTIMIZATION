@@ -2050,7 +2050,7 @@ elif st.session_state.step == 8:
     st.write("Please rate your advisory experience before exiting:")
 
 # -------------------------------------------------------------
-# SCREEN 8: FARMER FEEDBACK & GREEN STAR RATING
+# SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     if os.path.exists(LOGO_FILE_EXACT):
@@ -2064,13 +2064,10 @@ elif st.session_state.step == 8:
                     <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Farmer Feedback & Star Rating</p>
                 </div>
             """, unsafe_allow_html=True)
-
+            
     st.subheader(T["feedback_title"])
-    st.markdown("Please rate your advisory experience by selecting the green rating stars below:")
-st.subheader(T["feedback_title"])
     st.markdown("Please rate your advisory experience by selecting the rating stars below:")
 
-    # Define rating choices clearly with star emojis
     rating_tier_map = {
         "⭐⭐⭐⭐⭐ Best (5/5)": (5, "Best"),
         "⭐⭐⭐⭐ Better (4/5)": (4, "Better"),
@@ -2079,9 +2076,7 @@ st.subheader(T["feedback_title"])
         "⭐ Worst (1/5)": (1, "Worst")
     }
 
-    # Render rating radio options inside a visible container box
     with st.container():
-        st.markdown("### ⭐ Select Experience Rating:")
         selected_tier_label = st.radio(
             "Rating Options",
             options=list(rating_tier_map.keys()),
@@ -2094,12 +2089,12 @@ st.subheader(T["feedback_title"])
 
     st.markdown("<br>", unsafe_allow_html=True)
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
-    
+
     b_fb_back, b_fb_sub = st.columns([1, 5])
     if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
         st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
         st.rerun()
-        
+
     if b_fb_sub.button(T["feedback_submit"]):
         if not feedback_comments.strip():
             st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
