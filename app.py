@@ -2049,55 +2049,31 @@ elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
     st.write("Please rate your advisory experience before exiting:")
 
-# 1. HTML/JS Component that captures the clicked star rating
-    rating_component = st.components.v1.html(
-        """
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <style>
-            body { font-family: sans-serif; background: transparent; margin: 0; padding: 5px; }
-            .rating-container { display: flex; gap: 15px; align-items: center; }
-            .star-item { display: flex; align-items: center; cursor: pointer; font-size: 18px; font-weight: bold; }
-            .star-item input { display: none; }
-            .star-item label { color: #FFA000; font-size: 22px; cursor: pointer; margin-right: 3px; }
-            .star-item input:checked + label ~ .star-label-text, 
-            .star-item input:checked + label { color: #2E7D32; }
-            .star-label-text { color: #000000; font-size: 14px; margin-left: 2px; }
-        </style>
-        </head>
-        <body>
-        <div class="rating-container">
-            <div class="star-item" onclick="selectRating(5, 'Best')"><input type="radio" name="rating" id="s5"><label>&#9733;&#9733;&#9733;&#9733;&#9733;</label><span class="star-label-text">Best</span></div>
-            <div class="star-item" onclick="selectRating(4, 'Better')"><input type="radio" name="rating" id="s4"><label>&#9733;&#9733;&#9733;&#9733;</label><span class="star-label-text">Better</span></div>
-            <div class="star-item" onclick="selectRating(3, 'Good')"><input type="radio" name="rating" id="s3"><label>&#9733;&#9733;&#9733;</label><span class="star-label-text">Good</span></div>
-            <div class="star-item" onclick="selectRating(2, 'Bad')"><input type="radio" name="rating" id="s2"><label>&#9733;&#9733;</label><span class="star-label-text">Bad</span></div>
-            <div class="star-item" onclick="selectRating(1, 'Worst')"><input type="radio" name="rating" id="s1"><label>&#9733;</label><span class="star-label-text">Worst</span></div>
-        </div>
-        <script>
-            function selectRating(val, text) {
-                // Send value to Streamlit component parent frame if needed, or update visual state
-                const parent = window.parent.document;
-                // Custom event dispatch to communicate with streamlit if configured, or handle state
-            }
-        </script>
-        </body>
-        </html>
-        """,
-        height=70,
+# -------------------------------------------------------------
+    # SCREEN 8: FARMER FEEDBACK & STAR RATING
+    # -------------------------------------------------------------
+    st.markdown("Please rate your advisory experience before exiting:")
+
+    # Define rating choices with green star symbols
+    rating_choices = {
+        "⭐⭐⭐⭐⭐ Best (5/5)": 5,
+        "⭐⭐⭐⭐ Better (4/5)": 4,
+        "⭐⭐⭐ Good (3/5)": 3,
+        "⭐⭐ Bad (2/5)": 2,
+        "⭐ Worst (1/5)": 1
+    }
+
+    selected_rating_label = st.radio(
+        "Rating Tier:",
+        options=list(rating_choices.keys()),
+        index=0,
+        horizontal=True,
+        key="star_rating_radio"
     )
 
-    # 2. Streamlit Radio backup/selector linked to session state so clicks register instantly
-    if "user_rating" not in st.session_state:
-        st.session_state.user_rating = 5
-
-    rating_options = {
-        5: "Best (5 Stars)",
-        4: "Better (4 Stars)",
-        3: "Good (3 Stars)",
-        2: "Bad (2 Stars)",
-        1: "Worst (1 Star)"
-    }
+    # Extract the numeric and text representation for your database/backend
+    num_rate = rating_choices[selected_rating_label]
+    text_rate = selected_rating_label.split(" ")[1]  # e.g., "Best", "Better", etc.
 
     selected_star_label = st.radio(
         "Confirm Rating Tier:",
