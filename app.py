@@ -2050,58 +2050,57 @@ elif st.session_state.step == 8:
     st.write("Please rate your advisory experience before exiting:")
 
 # -------------------------------------------------------------
-    # SCREEN 8: FARMER FEEDBACK & STAR RATING
-    # -------------------------------------------------------------
-    st.markdown("Please rate your advisory experience before exiting:")
+# SCREEN 8: FARMER FEEDBACK & GREEN STAR RATING
+# -------------------------------------------------------------
+elif st.session_state.step == 8:
+    if os.path.exists(LOGO_FILE_EXACT):
+        c_logo, c_title = st.columns([0.15, 0.85], gap="small")
+        with c_logo:
+            st.image(LOGO_FILE_EXACT, width=120)
+        with c_title:
+            st.markdown(f"""
+                <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                    <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
+                    <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Farmer Feedback & Star Rating</p>
+                </div>
+            """, unsafe_allow_html=True)
 
-    # Define rating choices with green star symbols
-    rating_choices = {
-        "⭐⭐⭐⭐⭐ Best (5/5)": 5,
-        "⭐⭐⭐⭐ Better (4/5)": 4,
-        "⭐⭐⭐ Good (3/5)": 3,
-        "⭐⭐ Bad (2/5)": 2,
-        "⭐ Worst (1/5)": 1
+    st.subheader(T["feedback_title"])
+    st.markdown("Please rate your advisory experience by selecting the green rating stars below:")
+
+    # Interactive Green Star Rating Component using Streamlit columns and selectbox/radio mapping
+    rating_tier_map = {
+        "⭐⭐⭐⭐⭐ Best (5/5)": (5, "Best"),
+        "⭐⭐⭐⭐ Better (4/5)": (4, "Better"),
+        "⭐⭐⭐ Good (3/5)": (3, "Good"),
+        "⭐⭐ Bad (2/5)": (2, "Bad"),
+        "⭐ Worst (1/5)": (1, "Worst")
     }
 
-    selected_rating_label = st.radio(
-        "Rating Tier:",
-        options=list(rating_choices.keys()),
-        index=0,
-        horizontal=True,
-        key="star_rating_radio"
+    selected_tier_label = st.radio(
+        "Select Experience Rating:",
+        options=list(rating_tier_map.keys()),
+        index=1,  # Defaults to Better (4/5) as shown in your design
+        horizontal=False,
+        key="green_star_rating_input"
     )
 
-    # Extract the numeric and text representation for your database/backend
-    num_rate = rating_choices[selected_rating_label]
-    text_rate = selected_rating_label.split(" ")[1]  # e.g., "Best", "Better", etc.
+    num_rate, text_rate = rating_tier_map[selected_tier_label]
 
-    selected_star_label = st.radio(
-        "Confirm Rating Tier:",
-        options=list(rating_options.values()),
-        index=0,
-        horizontal=True,
-        key="rating_radio_selection"
-    )
-
-    # Map back to numerical value and text
-    num_rate = [k for k, v in rating_options.items() if v == selected_star_label][0]
-    text_rate = rating_options[num_rate].split(" ")[0]
-    
     st.markdown("<br>", unsafe_allow_html=True)
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
-
+    
     b_fb_back, b_fb_sub = st.columns([1, 5])
     if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
         st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
         st.rerun()
-
+        
     if b_fb_sub.button(T["feedback_submit"]):
         if not feedback_comments.strip():
             st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
             save_feedback(st.session_state.user_mobile, num_rate, text_rate, feedback_comments.strip())
             st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
-
             st.session_state.logged_in = False
             st.session_state.user_mobile = ""
             st.session_state.feedback_given = True
