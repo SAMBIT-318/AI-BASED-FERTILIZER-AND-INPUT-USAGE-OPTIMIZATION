@@ -2067,8 +2067,10 @@ elif st.session_state.step == 8:
 
     st.subheader(T["feedback_title"])
     st.markdown("Please rate your advisory experience by selecting the green rating stars below:")
+st.subheader(T["feedback_title"])
+    st.markdown("Please rate your advisory experience by selecting the rating stars below:")
 
-    # Interactive Green Star Rating Component using Streamlit columns and selectbox/radio mapping
+    # Define rating choices clearly with star emojis
     rating_tier_map = {
         "⭐⭐⭐⭐⭐ Best (5/5)": (5, "Best"),
         "⭐⭐⭐⭐ Better (4/5)": (4, "Better"),
@@ -2077,13 +2079,16 @@ elif st.session_state.step == 8:
         "⭐ Worst (1/5)": (1, "Worst")
     }
 
-    selected_tier_label = st.radio(
-        "Select Experience Rating:",
-        options=list(rating_tier_map.keys()),
-        index=1,  # Defaults to Better (4/5) as shown in your design
-        horizontal=False,
-        key="green_star_rating_input"
-    )
+    # Render rating radio options inside a visible container box
+    with st.container():
+        st.markdown("### ⭐ Select Experience Rating:")
+        selected_tier_label = st.radio(
+            "Rating Options",
+            options=list(rating_tier_map.keys()),
+            index=1,
+            label_visibility="collapsed",
+            key="green_star_rating_input"
+        )
 
     num_rate, text_rate = rating_tier_map[selected_tier_label]
 
