@@ -1890,29 +1890,8 @@ st.markdown("##### 📈 Timeline Chart: Application Stages")
         "Stage": ["Stage 1: Basal (Day 0)", "Stage 2: Vegetative (Day 20-25)", "Stage 3: Flowering (Day 45-55)"],
         "Nutrient Release Efficiency (%)": [90, 85, 95]
     })
-    timeline_chart = (
-        alt.Chart(timeline_df)
-        .mark_line(point=True, color="#39FF88")
-        .encode(
-            x=alt.X(
-                "Stage:N",
-                axis=alt.Axis(
-                    labelColor="#000000",
-                    titleColor="#000000",
-                    labelAngle=0,
-                    title="Stage",
-                ),
-            ),
-            y=alt.Y(
-                "Nutrient Release Efficiency (%):Q",
-                axis=alt.Axis(
-                    labelColor="#000000",
-                    titleColor="#000000",
-                    title="Nutrient Release Efficiency (%)",
-                ),
-            ),
-        )
-    )
+
+st.line_chart(timeline_df.set_index("Stage"))
     st.altair_chart(timeline_chart, use_container_width=True)
     st.divider()
     b1, b2 = st.columns([1, 5])
