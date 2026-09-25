@@ -2568,54 +2568,95 @@ elif st.session_state.step == 8:
         st.rerun()
 
     # ---------------------------------------------------------
+    # BACK / SUBMIT BUTTONS
+    # ---------------------------------------------------------
+    
+    # Custom styling injection for green theme buttons
+    st.markdown("""
+        <style>
+        div.stButton > button:first-child {
+            background-color: #0b3d2e;
+            color: #39FF88;
+            border: 1px solid #39FF88;
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        div.stButton > button:first-child:hover {
+            background-color: #39FF88;
+            color: #0b3d2e;
+            border-color: #39FF88;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    b_fb_back, b_fb_sub = st.columns([1, 4])
+
+    # ---------------------------------------------------------
+    # BACK
+    # ---------------------------------------------------------
+    with b_fb_back:
+        if b_fb_back.button(
+            T["btn_back"],
+            key="feedback_back_btn"
+        ):
+            st.session_state.step = (
+                7 if st.session_state.app_mode == "Full Optimization" else 2
+            )
+            st.rerun()
+
+    # ---------------------------------------------------------
     # SUBMIT & EXIT
     # ---------------------------------------------------------
-    if b_fb_sub.button(
-        T["feedback_submit"],
-        key="feedback_submit_btn"
-    ):
+    with b_fb_sub:
+        if b_fb_sub.button(
+            T["feedback_submit"],
+            key="feedback_submit_btn"
+        ):
 
-        # Rating is mandatory
-        if num_rate == 0:
+            # Rating is mandatory
+            if num_rate == 0:
 
-            st.error(
-                "⭐ Please select a star rating before exiting."
-            )
+                st.error(
+                    "⭐ Please select a star rating before exiting."
+                )
 
-        # Comments are mandatory
-        elif not feedback_comments.strip():
+            # Comments are mandatory
+            elif not feedback_comments.strip():
 
-            st.error(
-                "⚠️ Mandatory Feedback Required: "
-                "Please enter your feedback comments before exiting."
-            )
+                st.error(
+                    "⚠️ Mandatory Feedback Required: "
+                    "Please enter your feedback comments before exiting."
+                )
 
-        else:
+            else:
 
-            save_feedback(
-                st.session_state.user_mobile,
-                num_rate,
-                text_rate,
-                feedback_comments.strip()
-            )
+                save_feedback(
+                    st.session_state.user_mobile,
+                    num_rate,
+                    text_rate,
+                    feedback_comments.strip()
+                )
 
-            st.success(
-                "✅ Thank you! Your feedback has been recorded safely. "
-                "Exit session..."
-            )
+                st.success(
+                    "✅ Thank you! Your feedback has been recorded safely. "
+                    "Exit session..."
+                )
 
-            st.session_state.logged_in = False
+                st.session_state.logged_in = False
 
-            st.session_state.user_mobile = ""
+                st.session_state.user_mobile = ""
 
-            st.session_state.feedback_given = True
+                st.session_state.feedback_given = True
 
-            st.session_state.rating = 0
+                st.session_state.rating = 0
 
-            st.session_state.rating_text = ""
+                st.session_state.rating_text = ""
 
-            st.session_state.step = 1
+                st.session_state.step = 1
 
-            st.cache_data.clear()
+                st.cache_data.clear()
 
-            st.rerun()
+                st.rerun()
