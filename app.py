@@ -1900,7 +1900,6 @@ elif st.session_state.step == 6:
                     labelColor="#000000",
                     titleColor="#000000",
                     labelAngle=0,
-                    lableFontSize=12,
                     title="Stage",
                 ),
             ),
