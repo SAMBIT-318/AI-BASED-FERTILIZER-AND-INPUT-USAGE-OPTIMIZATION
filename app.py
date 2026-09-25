@@ -186,7 +186,6 @@ LOGO_FILE_EXACT = "smart_kishan_logo.jpg"
 if not os.path.exists(LOGO_FILE_EXACT):
     LOGO_FILE_EXACT = "smart kishan logo.png"
 
-# SAFE CSS INJECTION: Split dynamic background from static CSS to avoid f-string NameError
 if HERO_BG_DATA:
     st.markdown(
         '<style>.stApp { background-image: linear-gradient(135deg, rgba(6, 30, 22, 0.90) 0%, rgba(14, 75, 48, 0.82) 50%, rgba(110, 235, 175, 0.35) 100%), url("data:image/jpeg;base64,' + HERO_BG_DATA + '") !important; }</style>',
@@ -208,7 +207,6 @@ st.markdown("""
         background-attachment: fixed !important;
         background-repeat: no-repeat !important;
     }
-
 
     .metric-card {
         background: rgba(11, 61, 46, 0.90) !important;
@@ -277,7 +275,6 @@ st.markdown("""
         border: 1px solid #EF4444;
     }
 
-    /* Global Dark-Black styling for tooltips and contrast controls */
     #vg-tooltip-element, .vg-tooltip {
         background-color: #FFFFFF !important;
         color: #000000 !important;
@@ -547,7 +544,7 @@ TRANSLATIONS = {
         "btn_next": "Continue ➔",
         "budget_lbl": "Your Maximum Fertilizer Budget (₹)",
         "budget_help": "Optimization engine ensures total purchase cost stays strictly within this limit.",
-        "feedback_title": "🌟 Mandatory Farmer Feedback & Experience Rating",
+        "feedback_title": "🌟 Mandatory Farmer Feedback & Star Rating",
         "feedback_submit": "Submit Feedback & Exit Dashboard ➔",
         "land_calc_title": "📐 Land Unit Selection & Farm Budget Matrix",
         "stage_1_period": "Stage 1: Basal Dressing (At Sowing / Transplanting - Day 0)",
@@ -1311,7 +1308,7 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
                 st.error(f"Error: {e}")
 
 # -------------------------------------------------------------
-# SCREEN 2: FARMER DASHBOARD & INPUT PIPELINE
+# SCREEN 2: CLEAN FARMER CONTROL PIPELINE
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
     if os.path.exists(LOGO_FILE_EXACT):
@@ -1332,85 +1329,22 @@ elif st.session_state.step == 2:
         st.session_state.step = 1
         st.rerun()
 
-    # Notification & Help Center Tab Bar for Farmer
-    f_help_tab, f_notify_tab, f_act_tab = st.tabs([
-        "🆘 Help & Account Requests", 
-        "🔔 Resolved Notifications & Reply", 
-        "📜 My Activity History"
-    ])
+    # --- 3 Navigation Action Buttons to separate pages ---
+    nav_btn1, nav_btn2, nav_btn3 = st.columns(3)
+    with nav_btn1:
+        if st.button("🆘 Help & Account Requests", use_container_width=True):
+            st.session_state.step = 21
+            st.rerun()
+    with nav_btn2:
+        if st.button("🔔 Resolved Notifications & Reply", use_container_width=True):
+            st.session_state.step = 22
+            st.rerun()
+    with nav_btn3:
+        if st.button("📜 My Activity History", use_container_width=True):
+            st.session_state.step = 23
+            st.rerun()
 
-    with f_help_tab:
-        st.caption("Submit an official request directly to the administration:")
-        h_type = st.selectbox("Select Request Category:", ["Delete My Account", "Recover My Deleted Activity", "General Inquiry"])
-        h_details = st.text_area("Provide details or query for the admin team:")
-        if st.button("Submit Request to Admin ➔"):
-            if h_details.strip() or h_type:
-                if engine:
-                    with engine.connect() as conn:
-                        conn.execute(text("""
-                            INSERT INTO help_requests (mobile, request_type, query_text)
-                            VALUES (:m, :rt, :q)
-                        """), {"m": str(st.session_state.user_mobile), "rt": h_type, "q": h_details.strip()})
-                        conn.commit()
-                log_activity(st.session_state.user_mobile, "Help Request", f"Submitted request: {h_type}")
-                st.success("Request sent to admin! Check the 'Resolved Notifications' tab for updates.")
-
-    with f_notify_tab:
-        st.markdown("### 🔔 Resolved Messages & Admin Responses")
-        if engine:
-            try:
-                with engine.connect() as conn:
-                    notif_df = pd.read_sql(
-                        text("SELECT id, request_type, status, admin_reply, user_feedback FROM help_requests WHERE mobile = :m ORDER BY id DESC"),
-                        conn,
-                        params={"m": str(st.session_state.user_mobile)}
-                    )
-                if not notif_df.empty:
-                    for idx, row in notif_df.iterrows():
-                        nid = row["id"]
-                        ntype = row["request_type"]
-                        nstat = row["status"]
-                        nreply = row["admin_reply"] or "Awaiting admin resolution..."
-                        nufeed = row["user_feedback"] or ""
-
-                        st.markdown(f"""
-                        <div style="background: rgba(11, 61, 46, 0.95); padding: 14px; border-radius: 12px; border-left: 5px solid #39FF88; margin-bottom: 10px;">
-                            <h4 style="margin:0; color:#39FF88;">Request #{nid}: {ntype} &mdash; Status: {nstat}</h4>
-                            <p style="margin:6px 0 0 0; color:#FFFFFF;"><strong>Admin Message:</strong> {nreply}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                        with st.expander(f"Reply or Give Feedback on Resolution #{nid}"):
-                            u_reply_msg = st.text_area("Your Reply / Feedback to this resolution:", value=nufeed, key=f"user_feedback_notif_{nid}")
-                            if st.button("Send Feedback to Admin", key=f"btn_send_ufeed_{nid}"):
-                                with engine.connect() as conn:
-                                    conn.execute(text("UPDATE help_requests SET user_feedback = :uf WHERE id = :id"), {"uf": u_reply_msg, "id": nid})
-                                    conn.commit()
-                                st.success("Feedback sent to admin!")
-                                st.rerun()
-                else:
-                    st.info("No notifications yet.")
-            except Exception as e:
-                st.error(f"Error loading notifications: {e}")
-
-    with f_act_tab:
-        st.markdown("### 📜 My Agricultural Activity History")
-        if engine:
-            try:
-                with engine.connect() as conn:
-                    my_act = pd.read_sql(
-                        text("SELECT activity_type, details, created_at FROM user_activity WHERE mobile = :m AND is_deleted = 0 ORDER BY created_at DESC"),
-                        conn,
-                        params={"m": str(st.session_state.user_mobile)}
-                    )
-                if not my_act.empty:
-                    st.dataframe(my_act, use_container_width=True)
-                else:
-                    st.info("No activity logged yet.")
-            except Exception as e:
-                st.error(f"Error: {e}")
-
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
 
     if st.session_state.app_mode == "Diagnostic Only":
         st.subheader("🔬 AI Optical Crop Disease & Pest Diagnosis & Treatment Prescription")
@@ -1591,6 +1525,104 @@ elif st.session_state.step == 2:
             else:
                 st.session_state.step = 3
                 st.rerun()
+
+# -------------------------------------------------------------
+# SUB-PAGE 21: HELP & ACCOUNT REQUESTS
+# -------------------------------------------------------------
+elif st.session_state.step == 21:
+    st.subheader("🆘 Official Farmer Help Desk & Support Requests")
+    st.caption("Submit your requests directly to the administration command team:")
+    h_type = st.selectbox("Select Request Category:", ["Delete My Account", "Recover My Deleted Activity", "General Inquiry"])
+    h_details = st.text_area("Provide details or query for the admin team:")
+
+    b_sub_col1, b_sub_col2 = st.columns([1, 4])
+    with b_sub_col1:
+        if st.button("⬅️ Back to Farm Dashboard", key="btn_back_p21"):
+            st.session_state.step = 2
+            st.rerun()
+    with b_sub_col2:
+        if st.button("Submit Request to Admin ➔", key="btn_sub_req_p21"):
+            if h_details.strip() or h_type:
+                if engine:
+                    with engine.connect() as conn:
+                        conn.execute(text("""
+                            INSERT INTO help_requests (mobile, request_type, query_text)
+                            VALUES (:m, :rt, :q)
+                        """), {"m": str(st.session_state.user_mobile), "rt": h_type, "q": h_details.strip()})
+                        conn.commit()
+                log_activity(st.session_state.user_mobile, "Help Request", f"Submitted request: {h_type}")
+                st.success("✅ Request sent to admin! Check 'Resolved Notifications' for resolutions.")
+
+# -------------------------------------------------------------
+# SUB-PAGE 22: RESOLVED NOTIFICATIONS & FEEDBACK
+# -------------------------------------------------------------
+elif st.session_state.step == 22:
+    st.subheader("🔔 Resolved Messages & Admin Responses")
+    if st.button("⬅️ Back to Farm Dashboard", key="btn_back_p22"):
+        st.session_state.step = 2
+        st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if engine:
+        try:
+            with engine.connect() as conn:
+                notif_df = pd.read_sql(
+                    text("SELECT id, request_type, status, admin_reply, user_feedback FROM help_requests WHERE mobile = :m ORDER BY id DESC"),
+                    conn,
+                    params={"m": str(st.session_state.user_mobile)}
+                )
+            if not notif_df.empty:
+                for idx, row in notif_df.iterrows():
+                    nid = row["id"]
+                    ntype = row["request_type"]
+                    nstat = row["status"]
+                    nreply = row["admin_reply"] or "Awaiting admin resolution..."
+                    nufeed = row["user_feedback"] or ""
+
+                    st.markdown(f"""
+                    <div style="background: rgba(11, 61, 46, 0.95); padding: 14px; border-radius: 12px; border-left: 5px solid #39FF88; margin-bottom: 10px;">
+                        <h4 style="margin:0; color:#39FF88;">Request #{nid}: {ntype} &mdash; Status: {nstat}</h4>
+                        <p style="margin:6px 0 0 0; color:#FFFFFF;"><strong>Admin Resolution Message:</strong> {nreply}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    with st.expander(f"Reply or Give Feedback on Resolution #{nid}"):
+                        u_reply_msg = st.text_area("Your Reply / Feedback to this resolution:", value=nufeed, key=f"user_feedback_notif_{nid}")
+                        if st.button("Send Feedback to Admin", key=f"btn_send_ufeed_{nid}"):
+                            with engine.connect() as conn:
+                                conn.execute(text("UPDATE help_requests SET user_feedback = :uf WHERE id = :id"), {"uf": u_reply_msg, "id": nid})
+                                conn.commit()
+                            st.success("✅ Reply sent to admin!")
+                            st.rerun()
+            else:
+                st.info("No notifications recorded yet.")
+        except Exception as e:
+            st.error(f"Error loading notifications: {e}")
+
+# -------------------------------------------------------------
+# SUB-PAGE 23: USER ACTIVITY HISTORY
+# -------------------------------------------------------------
+elif st.session_state.step == 23:
+    st.subheader("📜 My Agricultural Activity History")
+    if st.button("⬅️ Back to Farm Dashboard", key="btn_back_p23"):
+        st.session_state.step = 2
+        st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if engine:
+        try:
+            with engine.connect() as conn:
+                my_act = pd.read_sql(
+                    text("SELECT activity_type, details, created_at FROM user_activity WHERE mobile = :m AND is_deleted = 0 ORDER BY created_at DESC"),
+                    conn,
+                    params={"m": str(st.session_state.user_mobile)}
+                )
+            if not my_act.empty:
+                st.dataframe(my_act, use_container_width=True)
+            else:
+                st.info("No activity logged yet.")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
 # -------------------------------------------------------------
 # SCREEN 3: SOIL HEALTH, WATER & RISK EVALUATION
@@ -1871,7 +1903,7 @@ elif st.session_state.step == 6:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 7: OFFICIAL PRESCRIPTION DOSSIER & PDF
+# SCREEN 7: PRESCRIPTION DOSSIER & MULTILINGUAL PDF DOWNLOAD
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
     if os.path.exists(LOGO_FILE_EXACT):
@@ -1885,11 +1917,7 @@ elif st.session_state.step == 7:
                 <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Official Farmer Prescription Card (Smart Kishan Certified)</p>
             </div>
             """, unsafe_allow_html=True)
-
-    opt = st.session_state.get("opt_results", {
-        "urea_kg": 0.0, "dap_kg": 0.0, "mop_kg": 0.0, "complex_kg": 0.0,
-        "compost_kg": 0.0, "total_cost": 0.0, "land_area": st.session_state.get("land_area", 0.6)
-    })
+    opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, "land_area": st.session_state.land_area})
     diag = st.session_state.get("scanned_diag", {
         "health": "Optimal Vigor", "disease": "None detected", "pest": "None",
         "symptoms": "Healthy foliage", "medicine": "Prophylactic Neem Spray",
@@ -1898,8 +1926,12 @@ elif st.session_state.step == 7:
 
     st.markdown(f"""
     <div class="summary-card">
-        <h2 style="color: #39FF88; margin-top: 0; margin-bottom:4px;">🌾 Smart Kishan • Official Crop & Fertilizer Prescription</h2>
-        <span style="font-size:13px; color:#A7F3D0; font-weight:700;">AGRITECH CONTROL CENTER • 4R CERTIFIED ADVISORY</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div>
+                <h2 style="color: #39FF88; margin-top: 0; margin-bottom:4px;">🌾 Smart Kishan • Official Crop & Fertilizer Prescription</h2>
+                <span style="font-size:13px; color:#A7F3D0; font-weight:700;">AGRITECH CONTROL CENTER • 4R CERTIFIED ADVISORY</span>
+            </div>
+        </div>
         <hr style="border: 1px solid rgba(57, 255, 136, 0.3); margin: 12px 0;"/>
         <p style="margin:4px 0;"><strong>Farmer Mobile:</strong> +91 {st.session_state.user_mobile} | <strong>Parcel ID:</strong> {st.session_state.plot_id}</p>
         <p style="margin:4px 0;"><strong>Cultivated Crop:</strong> {st.session_state.sel_crop} | <strong>Target Harvest:</strong> {st.session_state.target_yield} t/acre</p>
@@ -1916,10 +1948,23 @@ elif st.session_state.step == 7:
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("#### 📅 Timed Application Periods & Methods for Farmers:")
     app_methods_df = pd.DataFrame({
-        "Crop Stage & Time Period": [T["stage_1_period"], T["stage_2_period"], T["stage_3_period"]],
-        "Input Blend": ["All Compost + All DAP + 1/3 Potash + 1/4 Urea", "1/2 Urea + 1/3 Potash", "Remaining 1/4 Urea + Remaining 1/3 Potash"],
-        "Farmer Application Method": [T["stage_1_method"], T["stage_2_method"], T["stage_3_method"]]
+        "Crop Stage & Time Period": [
+            T["stage_1_period"],
+            T["stage_2_period"],
+            T["stage_3_period"]
+        ],
+        "Input Blend": [
+            "All Compost + All DAP + 1/3 Potash + 1/4 Urea",
+            "1/2 Urea + 1/3 Potash",
+            "Remaining 1/4 Urea + Remaining 1/3 Potash"
+        ],
+        "Farmer Application Method": [
+            T["stage_1_method"],
+            T["stage_2_method"],
+            T["stage_3_method"]
+        ]
     })
     st.table(app_methods_df)
 
@@ -1965,7 +2010,7 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY FEEDBACK WITH WORST-BAD-GOOD-BETTER-BEST OPTIONS
+# SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     if os.path.exists(LOGO_FILE_EXACT):
@@ -1976,30 +2021,106 @@ elif st.session_state.step == 8:
             st.markdown(f"""
             <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
                 <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
-                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Farmer Feedback & Rating System</p>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Farmer Feedback & Star Rating</p>
             </div>
             """, unsafe_allow_html=True)
-
     st.subheader(T["feedback_title"])
-    st.write("Please choose your rating option and leave your valuable comments before exiting:")
+    st.write("Please rate your advisory experience before exiting:")
 
-    rating_map = {
-        "⭐ Worst (1 Star)": 1,
-        "⭐⭐ Bad (2 Stars)": 2,
-        "⭐⭐⭐ Good (3 Stars)": 3,
-        "⭐⭐⭐⭐ Better (4 Stars)": 4,
-        "⭐⭐⭐⭐⭐ Best (5 Stars)": 5
+    st.components.v1.html("""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {
+                font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+                background-color: transparent;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            .stars {
+                display: flex;
+                flex-direction: row-reverse;
+                justify-content: center;
+                gap: 16px;
+            }
+            .stars input {
+                display: none;
+            }
+            .star-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .stars label {
+                font-size: 85px;
+                color: #ccc;
+                cursor: pointer;
+                transition: color 0.2s ease;
+                line-height: 1;
+            }
+            .star-label-text {
+                font-size: 14px;
+                font-weight: 700;
+                color: #A7F3D0;
+                margin-top: 6px;
+            }
+            .stars input:checked ~ .star-item label,
+            .stars input:checked ~ .star-item .star-label-text,
+            .star-item:hover label,
+            .star-item:hover ~ .star-item label,
+            .star-item:hover .star-label-text,
+            .star-item:hover ~ .star-item .star-label-text {
+                color: #39FF88 !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="stars">
+            <div class="star-item">
+                <input type="radio" id="star5" name="rating" value="5" checked>
+                <label for="star5">&#9733;</label>
+                <span class="star-label-text">Best</span>
+            </div>
+            <div class="star-item">
+                <input type="radio" id="star4" name="rating" value="4">
+                <label for="star4">&#9733;</label>
+                <span class="star-label-text">Better</span>
+            </div>
+            <div class="star-item">
+                <input type="radio" id="star3" name="rating" value="3">
+                <label for="star3">&#9733;</label>
+                <span class="star-label-text">Good</span>
+            </div>
+            <div class="star-item">
+                <input type="radio" id="star2" name="rating" value="2">
+                <label for="star2">&#9733;</label>
+                <span class="star-label-text">Bad</span>
+            </div>
+            <div class="star-item">
+                <input type="radio" id="star1" name="rating" value="1">
+                <label for="star1">&#9733;</label>
+                <span class="star-label-text">Worst</span>
+            </div>
+        </div>
+    </body>
+    </html>
+    """, height=140)
+
+    # Streamlit selector to capture the rating into Postgres
+    rating_options = {
+        "⭐⭐⭐⭐⭐ Best (5 Stars)": (5, "Best"),
+        "⭐⭐⭐⭐ Better (4 Stars)": (4, "Better"),
+        "⭐⭐⭐ Good (3 Stars)": (3, "Good"),
+        "⭐⭐ Bad (2 Stars)": (2, "Bad"),
+        "⭐ Worst (1 Star)": (1, "Worst")
     }
-
-    selected_rating_option = st.radio(
-        "Select your experience rating:",
-        list(rating_map.keys()),
-        index=4,
-        horizontal=True
-    )
-
-    numeric_rating = rating_map[selected_rating_option]
-    label_text = selected_rating_option.split(" ")[1]
+    sel_opt = st.radio("Confirm Rating Tier:", list(rating_options.keys()), index=0, horizontal=True)
+    num_rate, text_rate = rating_options[sel_opt]
 
     st.markdown("<br>", unsafe_allow_html=True)
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
@@ -2011,10 +2132,10 @@ elif st.session_state.step == 8:
 
     if b_fb_sub.button(T["feedback_submit"]):
         if not feedback_comments.strip():
-            st.error("Mandatory Feedback Required: Please enter your feedback comments before exiting.")
+            st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
         else:
-            save_feedback(st.session_state.user_mobile, numeric_rating, label_text, feedback_comments.strip())
-            st.success("Thank you! Your feedback has been recorded safely. Exit session...")
+            save_feedback(st.session_state.user_mobile, num_rate, text_rate, feedback_comments.strip())
+            st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
 
             st.session_state.logged_in = False
             st.session_state.user_mobile = ""
