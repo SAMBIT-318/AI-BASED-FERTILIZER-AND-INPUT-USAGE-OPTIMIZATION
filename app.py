@@ -2050,30 +2050,28 @@ elif st.session_state.step == 8:
     st.write("Please rate your advisory experience before exiting:")
 
 # -------------------------------------------------------------
-# SCREEN 8: INTERACTIVE GREEN STAR RATING & EXIT
+# SCREEN 8: GREEN INTERACTIVE STAR RATING & EXIT
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
 
     # ---------------------------------------------------------
-    # GREEN STAR RATING STYLE
+    # STAR RATING CSS
     # ---------------------------------------------------------
     st.markdown("""
     <style>
 
-    .rating-main-box {
+    .rating-banner {
         width: 100%;
-        min-height: 125px;
-        margin: 18px 0 25px 0;
+        height: 130px;
+        margin-top: 18px;
+        margin-bottom: 25px;
         border-radius: 14px;
-        overflow: hidden;
-        position: relative;
 
         background:
             linear-gradient(
                 90deg,
-                rgba(6, 40, 25, 0.92),
-                rgba(20, 80, 45, 0.78),
-                rgba(45, 110, 60, 0.55)
+                rgba(10, 55, 35, 0.88),
+                rgba(20, 85, 45, 0.72)
             ),
             url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80");
 
@@ -2086,72 +2084,54 @@ elif st.session_state.step == 8:
 
         box-shadow:
             0 8px 25px rgba(0,0,0,0.55),
-            inset 0 0 30px rgba(57,255,136,0.08);
+            inset 0 0 25px rgba(57,255,136,0.12);
     }
 
-    .rating-content {
+    .rating-inner {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 22px;
-        width: 100%;
     }
 
     .rating-stars {
         display: flex;
         align-items: center;
-        gap: 7px;
+        gap: 5px;
+        white-space: nowrap;
     }
 
-    .rating-star {
-        font-family: Arial, sans-serif;
+    .star-filled {
         font-size: 58px;
         line-height: 1;
-        font-weight: 400;
-
         color: #39FF88;
-
         text-shadow:
-            0 0 5px rgba(57,255,136,0.65),
-            0 0 12px rgba(57,255,136,0.35);
-
-        -webkit-text-stroke: 1px #39FF88;
+            0 0 6px rgba(57,255,136,0.75),
+            0 0 14px rgba(57,255,136,0.45);
     }
 
-    .rating-star.empty {
+    .star-empty {
+        font-size: 58px;
+        line-height: 1;
         color: transparent;
-
-        text-shadow:
-            0 0 3px rgba(57,255,136,0.25);
-
         -webkit-text-stroke: 2px #39FF88;
+        text-shadow: none;
     }
 
-    .rating-label {
+    .rating-text {
         color: #FFFFFF !important;
         font-size: 20px;
         font-weight: 700;
         white-space: nowrap;
-
-        text-shadow:
-            0 2px 5px rgba(0,0,0,0.85);
+        text-shadow: 0 2px 5px rgba(0,0,0,0.9);
     }
 
-    .rating-instruction {
-        text-align: center;
+    .rating-help {
         color: #FFFFFF !important;
         font-size: 15px;
         font-weight: 600;
-        margin-bottom: 8px;
-    }
-
-    /* Hide the actual Streamlit rating buttons */
-    div[data-testid="stButton"] button.rating-hidden {
-        opacity: 0;
-        height: 1px;
-        min-height: 1px;
-        padding: 0;
-        margin: 0;
+        margin-top: 5px;
+        margin-bottom: 10px;
     }
 
     </style>
@@ -2168,7 +2148,7 @@ elif st.session_state.step == 8:
             st.image(LOGO_FILE_EXACT, width=120)
 
         with c_title:
-            st.markdown(f"""
+            st.markdown("""
                 <div style="
                     background: rgba(11, 61, 46, 0.90);
                     border-radius: 16px;
@@ -2177,18 +2157,18 @@ elif st.session_state.step == 8:
                     box-shadow: 0 8px 22px rgba(0,0,0,0.6);
                 ">
                     <h2 style="
-                        color: #39FF88;
-                        margin: 0 0 6px 0;
-                        font-size: 22px;
+                        color:#39FF88;
+                        margin:0 0 6px 0;
+                        font-size:22px;
                     ">
                         SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
                     </h2>
 
                     <p style="
-                        color: #FFFFFF;
-                        margin: 0;
-                        font-size: 14px;
-                        font-weight: 600;
+                        color:#FFFFFF;
+                        margin:0;
+                        font-size:14px;
+                        font-weight:600;
                     ">
                         Farmer Feedback & Star Rating
                     </p>
@@ -2200,17 +2180,16 @@ elif st.session_state.step == 8:
     # ---------------------------------------------------------
     st.subheader(T["feedback_title"])
 
-    st.markdown(
-        '<div class="rating-instruction">'
-        'Please rate your advisory experience:'
-        '</div>',
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+        <div class="rating-help">
+            Please rate your advisory experience before exiting:
+        </div>
+    """, unsafe_allow_html=True)
 
     # ---------------------------------------------------------
-    # RATING DATA
+    # RATING VALUES
     # ---------------------------------------------------------
-    rating_data = {
+    rating_names = {
         1: "Worst",
         2: "Bad",
         3: "Good",
@@ -2218,7 +2197,7 @@ elif st.session_state.step == 8:
         5: "Best"
     }
 
-    # Default rating = 4
+    # Default rating
     if "rating" not in st.session_state:
         st.session_state.rating = 4
 
@@ -2228,72 +2207,77 @@ elif st.session_state.step == 8:
     current_rating = st.session_state.rating
 
     # ---------------------------------------------------------
-    # INTERACTIVE STAR BUTTONS
+    # LARGE GREEN STAR DISPLAY
     # ---------------------------------------------------------
-    star_cols = st.columns([1, 1, 1, 1, 1, 2.2])
+    filled = "★" * current_rating
+    empty = "☆" * (5 - current_rating)
 
-    for i in range(1, 6):
+    st.markdown(f"""
+        <div class="rating-banner">
 
-        with star_cols[i - 1]:
-
-            if i <= current_rating:
-                star_symbol = "★"
-            else:
-                star_symbol = "☆"
-
-            if st.button(
-                star_symbol,
-                key=f"green_rating_star_{i}",
-                use_container_width=True
-            ):
-                st.session_state.rating = i
-                st.session_state.rating_text = rating_data[i]
-                st.rerun()
-
-    # ---------------------------------------------------------
-    # STAR DISPLAY + CURRENT RATING LABEL
-    # ---------------------------------------------------------
-    filled_stars = "★" * current_rating
-    empty_stars = "☆" * (5 - current_rating)
-
-    st.markdown(
-        f"""
-        <div class="rating-main-box">
-
-            <div class="rating-content">
+            <div class="rating-inner">
 
                 <div class="rating-stars">
-
-                    <span class="rating-star">
-                        {filled_stars}
-                    </span>
-
-                    <span class="rating-star empty">
-                        {empty_stars}
-                    </span>
-
+                    <span class="star-filled">{filled}</span>
+                    <span class="star-empty">{empty}</span>
                 </div>
 
-                <div class="rating-label">
-                    {rating_data[current_rating]} ({current_rating}/5)
+                <div class="rating-text">
+                    {rating_names[current_rating]} ({current_rating}/5)
                 </div>
 
             </div>
 
         </div>
-        """,
+    """, unsafe_allow_html=True)
+
+    # ---------------------------------------------------------
+    # CLICKABLE RATING BUTTONS
+    # ---------------------------------------------------------
+    st.markdown(
+        "<div style='text-align:center; color:#FFFFFF; font-weight:600;'>"
+        "Select your rating:"
+        "</div>",
         unsafe_allow_html=True
     )
 
-    num_rate = current_rating
-    text_rate = rating_data[current_rating]
+    r1, r2, r3, r4, r5 = st.columns(5)
+
+    if r1.button("★", key="rating_1", use_container_width=True):
+        st.session_state.rating = 1
+        st.session_state.rating_text = "Worst"
+        st.rerun()
+
+    if r2.button("★", key="rating_2", use_container_width=True):
+        st.session_state.rating = 2
+        st.session_state.rating_text = "Bad"
+        st.rerun()
+
+    if r3.button("★", key="rating_3", use_container_width=True):
+        st.session_state.rating = 3
+        st.session_state.rating_text = "Good"
+        st.rerun()
+
+    if r4.button("★", key="rating_4", use_container_width=True):
+        st.session_state.rating = 4
+        st.session_state.rating_text = "Better"
+        st.rerun()
+
+    if r5.button("★", key="rating_5", use_container_width=True):
+        st.session_state.rating = 5
+        st.session_state.rating_text = "Best"
+        st.rerun()
+
+    num_rate = st.session_state.rating
+    text_rate = st.session_state.rating_text
 
     # ---------------------------------------------------------
     # COMMENTS
     # ---------------------------------------------------------
     feedback_comments = st.text_area(
         "Your Comments / Suggestions:",
-        placeholder="Write your feedback here..."
+        placeholder="Write your feedback here...",
+        key="feedback_comments"
     )
 
     # ---------------------------------------------------------
