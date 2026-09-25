@@ -1885,7 +1885,7 @@ elif st.session_state.step == 6:
         text=alt.Text("Quantity (kg):Q", format=".1f")
     )
     st.altair_chart(fq_bars + fq_text, use_container_width=True)
-st.markdown("##### 📈 Timeline Chart: Application Stages")
+    st.markdown("##### 📈 Timeline Chart: Application Stages")
     timeline_df = pd.DataFrame({
         "Stage": ["Stage 1: Basal (Day 0)", "Stage 2: Vegetative (Day 20-25)", "Stage 3: Flowering (Day 45-55)"],
         "Nutrient Release Efficiency (%)": [90, 85, 95]
@@ -1914,6 +1914,7 @@ st.markdown("##### 📈 Timeline Chart: Application Stages")
         )
     )
     st.altair_chart(timeline_chart, use_container_width=True)
+    st.divider()
     st.divider()
             """, unsafe_allow_html=True)
     opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, "land_area": st.session_state.land_area})
