@@ -1108,10 +1108,9 @@ if st.session_state.step == 1:
                     st.warning("Enter a valid 10-digit mobile number.")
 
             # Password Reset Help Request Button on Login Screen
-            with st.expander("🔑 Forgot Password / Help Request"):
+            with st.expander("Forgot Password"):
                 st.caption("Submit your mobile number to request password reset from the administrative team:")
                 forgot_mob = st.text_input("Registered Mobile Number:", max_chars=10, key="forgot_mob_input")
-                forgot_note = st.text_input("Additional Info / Query:", placeholder="e.g. Please reset my account password", key="forgot_note_input")
                 if st.button("Submit Password Reset Request"):
                     if len(forgot_mob.strip()) == 10:
                         if engine:
