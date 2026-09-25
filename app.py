@@ -1719,7 +1719,7 @@ elif st.session_state.step == 4:
             y=alt.Y("Value:Q"),
             text=alt.Text("Value:Q", format=".1f")
         )
-        return (bars + text_labels).properties(height=320)
+        return (bars + text_labels).properties(height=420)
 
     with d1:
         st.markdown("##### Nitrogen (N) Ratio (kg/ha)")
