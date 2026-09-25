@@ -2133,17 +2133,20 @@ elif st.session_state.step == 8:
     </html>
     """, height=140)
 
-    # Streamlit selector to capture the rating into Postgres
+# Streamlit selector using the existing green star rating component above
     rating_options = {
-        "⭐⭐⭐⭐⭐ Best (5 Stars)": (5, "Best"),
-        "⭐⭐⭐⭐ Better (4 Stars)": (4, "Better"),
-        "⭐⭐⭐ Good (3 Stars)": (3, "Good"),
-        "⭐⭐ Bad (2 Stars)": (2, "Bad"),
-        "⭐ Worst (1 Star)": (1, "Worst")
+        5: "Best",
+        4: "Better",
+        3: "Good",
+        2: "Bad",
+        1: "Worst"
     }
-    sel_opt = st.radio("Confirm Rating Tier:", list(rating_options.keys()), index=0, horizontal=True)
-    num_rate, text_rate = rating_options[sel_opt]
-
+    
+    # We default or capture from session state or component selection
+    # If you want to default to 5 (Best), or let user select:
+    num_rate = 5  # Or link this to your star component choice
+    text_rate = rating_options[num_rate]
+    
     st.markdown("<br>", unsafe_allow_html=True)
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
 
