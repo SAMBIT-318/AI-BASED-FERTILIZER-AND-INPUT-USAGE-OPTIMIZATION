@@ -4,10 +4,8 @@ from scipy.optimize import linprog
 def optimize_fertilizer_blend(req_n, req_p, req_k, budget_cap, land_area, soil_texture="Loamy", rainfall_mm=100.0, soc=0.75):
     """
     Multi-Objective Linear Programming Solver for Precision Agronomy.
-    Ensures optimal chemical allocation strictly bounded by the farmer's budget.
+    Balances nutrient sufficiency, farmer budget, microbial C:N ratio, and environmental leaching risk.
     """
-    # Nutrient fractions [N, P2O5, K2O, Organic Carbon]
-    # Fertilizers: [Urea, DAP, MOP, Complex 14-35-14, Organic Compost]
     nutrient_matrix = np.array([
         [0.46, 0.00, 0.00, 0.00],  # Urea
         [0.18, 0.46, 0.00, 0.00],  # DAP
