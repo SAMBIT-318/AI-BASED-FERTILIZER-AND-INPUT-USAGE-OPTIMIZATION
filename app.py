@@ -4,6 +4,7 @@ import base64
 import urllib.parse
 import urllib.request
 import joblib
+import textwrap
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -2039,20 +2040,19 @@ elif st.session_state.step == 8:
     # ---------------------------------------------------------
     # STAR RATING CSS
     # ---------------------------------------------------------
-    st.markdown("""
+    st.markdown(textwrap.dedent("""
     <style>
 
     .rating-banner {
         width: 100%;
         height: 130px;
-        margin-top: 18px;
-        margin-bottom: 25px;
+        margin: 18px 0 25px 0;
         border-radius: 14px;
 
         background:
             linear-gradient(
                 90deg,
-                rgba(10, 55, 35, 0.88),
+                rgba(8, 55, 35, 0.90),
                 rgba(20, 85, 45, 0.72)
             ),
             url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80");
@@ -2066,7 +2066,7 @@ elif st.session_state.step == 8:
 
         box-shadow:
             0 8px 25px rgba(0,0,0,0.55),
-            inset 0 0 25px rgba(57,255,136,0.12);
+            inset 0 0 25px rgba(57,255,136,0.15);
     }
 
     .rating-inner {
@@ -2079,7 +2079,7 @@ elif st.session_state.step == 8:
     .rating-stars {
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
         white-space: nowrap;
     }
 
@@ -2087,37 +2087,39 @@ elif st.session_state.step == 8:
         font-size: 58px;
         line-height: 1;
         color: #39FF88;
+
         text-shadow:
-            0 0 6px rgba(57,255,136,0.75),
-            0 0 14px rgba(57,255,136,0.45);
+            0 0 5px rgba(57,255,136,0.8),
+            0 0 12px rgba(57,255,136,0.5);
     }
 
     .star-empty {
         font-size: 58px;
         line-height: 1;
         color: transparent;
+
         -webkit-text-stroke: 2px #39FF88;
-        text-shadow: none;
     }
 
     .rating-text {
-        color: #FFFFFF !important;
+        color: #FFFFFF;
         font-size: 20px;
         font-weight: 700;
         white-space: nowrap;
-        text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+
+        text-shadow:
+            0 2px 5px rgba(0,0,0,0.9);
     }
 
     .rating-help {
-        color: #FFFFFF !important;
+        color: #FFFFFF;
         font-size: 15px;
         font-weight: 600;
-        margin-top: 5px;
         margin-bottom: 10px;
     }
 
     </style>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
     # ---------------------------------------------------------
     # HEADER
@@ -2130,46 +2132,49 @@ elif st.session_state.step == 8:
             st.image(LOGO_FILE_EXACT, width=120)
 
         with c_title:
-            st.markdown("""
-                <div style="
-                    background: rgba(11, 61, 46, 0.90);
-                    border-radius: 16px;
-                    padding: 18px 24px;
-                    border: 1px solid rgba(57, 255, 136, 0.5);
-                    box-shadow: 0 8px 22px rgba(0,0,0,0.6);
-                ">
-                    <h2 style="
-                        color:#39FF88;
-                        margin:0 0 6px 0;
-                        font-size:22px;
-                    ">
-                        SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
-                    </h2>
+            st.markdown(textwrap.dedent("""
+            <div style="
+                background: rgba(11, 61, 46, 0.90);
+                border-radius: 16px;
+                padding: 18px 24px;
+                border: 1px solid rgba(57, 255, 136, 0.5);
+                box-shadow: 0 8px 22px rgba(0,0,0,0.6);
+            ">
 
-                    <p style="
-                        color:#FFFFFF;
-                        margin:0;
-                        font-size:14px;
-                        font-weight:600;
-                    ">
-                        Farmer Feedback & Star Rating
-                    </p>
-                </div>
-            """, unsafe_allow_html=True)
+                <h2 style="
+                    color:#FFFFFF;
+                    margin:0 0 6px 0;
+                    font-size:22px;
+                ">
+                    SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                </h2>
+
+                <p style="
+                    color:#FFFFFF;
+                    margin:0;
+                    font-size:14px;
+                    font-weight:600;
+                ">
+                    Farmer Feedback & Star Rating
+                </p>
+
+            </div>
+            """), unsafe_allow_html=True)
 
     # ---------------------------------------------------------
     # TITLE
     # ---------------------------------------------------------
     st.subheader(T["feedback_title"])
 
-    st.markdown("""
-        <div class="rating-help">
-            Please rate your advisory experience before exiting:
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="rating-help">'
+        'Please rate your advisory experience before exiting:'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
     # ---------------------------------------------------------
-    # RATING VALUES
+    # RATING DATA
     # ---------------------------------------------------------
     rating_names = {
         1: "Worst",
@@ -2179,7 +2184,9 @@ elif st.session_state.step == 8:
         5: "Best"
     }
 
-    # Default rating
+    # ---------------------------------------------------------
+    # INITIAL RATING
+    # ---------------------------------------------------------
     if "rating" not in st.session_state:
         st.session_state.rating = 4
 
@@ -2189,35 +2196,45 @@ elif st.session_state.step == 8:
     current_rating = st.session_state.rating
 
     # ---------------------------------------------------------
-    # LARGE GREEN STAR DISPLAY
+    # DISPLAY STARS
     # ---------------------------------------------------------
-    filled = "★" * current_rating
-    empty = "☆" * (5 - current_rating)
+    filled_stars = "★" * current_rating
+    empty_stars = "☆" * (5 - current_rating)
 
-    st.markdown(f"""
-        <div class="rating-banner">
+    st.markdown(textwrap.dedent(f"""
+    <div class="rating-banner">
 
-            <div class="rating-inner">
+        <div class="rating-inner">
 
-                <div class="rating-stars">
-                    <span class="star-filled">{filled}</span>
-                    <span class="star-empty">{empty}</span>
-                </div>
+            <div class="rating-stars">
 
-                <div class="rating-text">
-                    {rating_names[current_rating]} ({current_rating}/5)
-                </div>
+                <span class="star-filled">
+                    {filled_stars}
+                </span>
+
+                <span class="star-empty">
+                    {empty_stars}
+                </span>
 
             </div>
 
+            <div class="rating-text">
+                {rating_names[current_rating]} ({current_rating}/5)
+            </div>
+
         </div>
-    """, unsafe_allow_html=True)
+
+    </div>
+    """), unsafe_allow_html=True)
 
     # ---------------------------------------------------------
-    # CLICKABLE RATING BUTTONS
+    # CLICKABLE STAR SELECTION
     # ---------------------------------------------------------
     st.markdown(
-        "<div style='text-align:center; color:#FFFFFF; font-weight:600;'>"
+        "<div style='text-align:center; "
+        "color:#FFFFFF; "
+        "font-weight:600; "
+        "margin-bottom:8px;'>"
         "Select your rating:"
         "</div>",
         unsafe_allow_html=True
@@ -2250,6 +2267,9 @@ elif st.session_state.step == 8:
         st.session_state.rating_text = "Best"
         st.rerun()
 
+    # ---------------------------------------------------------
+    # FINAL RATING VALUES
+    # ---------------------------------------------------------
     num_rate = st.session_state.rating
     text_rate = st.session_state.rating_text
 
