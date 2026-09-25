@@ -1892,7 +1892,7 @@ elif st.session_state.step == 6:
     })
     timeline_chart = (
         alt.Chart(timeline_df)
-        .mark_line(point=True, color="#000000")
+        .mark_line(point=True, color="#39FF88")
         .encode(
             x=alt.X(
                 "Stage:N",
