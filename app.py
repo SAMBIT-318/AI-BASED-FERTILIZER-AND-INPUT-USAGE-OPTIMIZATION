@@ -1809,7 +1809,7 @@ elif st.session_state.step == 5:
         st.success(f"🌱 **Recommended Crop**: **{dynamic_pred_crop.capitalize()}**")
         st.markdown(f"""
         <div class="metric-card">
-            <h4 style="color:#39FF88; margin:0;">💰 Predicted Future Market Price:</h4>
+            <h4 style="color:#39FF88; margin:0;">💰 Predicted Future Market Priceof Product:</h4>
             <h2 style="margin:4px 0; color:#FFFFFF;">₹{pred_price:,.0f} / Quintal</h2>
             <p style="margin:0; font-size:13px; color:#A7F3D0;">Protects farmers against uncertain market price swings.</p>
         </div>
@@ -1836,7 +1836,7 @@ elif st.session_state.step == 6:
             st.markdown(f"""
             <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
                 <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
-                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Your Fertilizer Bags & Application Schedule</p>
+                <p style="color: #000000; margin: 0; font-size: 14px; font-weight: 600;">Your Fertilizer Bags & Application Schedule</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1872,13 +1872,13 @@ elif st.session_state.step == 6:
         "Quantity (kg)": [opt['urea_kg'], opt['dap_kg'], opt['mop_kg'], opt.get('complex_kg', 0.0), opt['compost_kg']]
     })
     fq_bars = alt.Chart(fert_qty_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
-        x=alt.X("Fertilizer Product:N", axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None)),
-        y=alt.Y("Quantity (kg):Q", axis=alt.Axis(labelColor="#FFFFFF", title="Kilograms")),
-        color=alt.Color("Fertilizer Product:N", scale=alt.Scale(range=["#39FF88", "#00E5FF", "#FFD700", "#81C784", "#B9F6CA"]), legend=None),
+        x=alt.X("Fertilizer Product:N", axis=alt.Axis(labelColor="#000000", labelFontSize=12, title=None)),
+        y=alt.Y("Quantity (kg):Q", axis=alt.Axis(labelColor="#000000", title="Kilograms")),
+        color=alt.Color("Fertilizer Product:N", scale=alt.Scale(range=["#39FF88", "#00E5FF", "#FFD700", "#90EE90", "#FF4D4D"]), legend=None),
         tooltip=[alt.Tooltip("Fertilizer Product:N"), alt.Tooltip("Quantity (kg):Q")]
     )
     fq_text = alt.Chart(fert_qty_df).mark_text(
-        align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#FFFFFF'
+        align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#000000'
     ).encode(
         x=alt.X("Fertilizer Product:N"),
         y=alt.Y("Quantity (kg):Q"),
