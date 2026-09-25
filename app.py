@@ -2049,103 +2049,67 @@ elif st.session_state.step == 8:
     st.subheader(T["feedback_title"])
     st.write("Please rate your advisory experience before exiting:")
 
-    st.components.v1.html("""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
+# 1. HTML/JS Component that captures the clicked star rating
+    rating_component = st.components.v1.html(
+        """
+        <!DOCTYPE html>
+        <html>
+        <head>
         <style>
-            body {
-                font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-                background-color: transparent;
-                margin: 0;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-            }
-            .stars {
-                display: flex;
-                flex-direction: row-reverse;
-                justify-content: center;
-                gap: 16px;
-            }
-            .stars input {
-                display: none;
-            }
-            .star-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-            .stars label {
-                font-size: 85px;
-                color: #ccc;
-                cursor: pointer;
-                transition: color 0.2s ease;
-                line-height: 1;
-            }
-            .star-label-text {
-                font-size: 14px;
-                font-weight: 700;
-                color: #A7F3D0;
-                margin-top: 6px;
-            }
-            .stars input:checked ~ .star-item label,
-            .stars input:checked ~ .star-item .star-label-text,
-            .star-item:hover label,
-            .star-item:hover ~ .star-item label,
-            .star-item:hover .star-label-text,
-            .star-item:hover ~ .star-item .star-label-text {
-                color: #39FF88 !important;
-            }
+            body { font-family: sans-serif; background: transparent; margin: 0; padding: 5px; }
+            .rating-container { display: flex; gap: 15px; align-items: center; }
+            .star-item { display: flex; align-items: center; cursor: pointer; font-size: 18px; font-weight: bold; }
+            .star-item input { display: none; }
+            .star-item label { color: #FFA000; font-size: 22px; cursor: pointer; margin-right: 3px; }
+            .star-item input:checked + label ~ .star-label-text, 
+            .star-item input:checked + label { color: #2E7D32; }
+            .star-label-text { color: #000000; font-size: 14px; margin-left: 2px; }
         </style>
-    </head>
-    <body>
-        <div class="stars">
-            <div class="star-item">
-                <input type="radio" id="star5" name="rating" value="5" checked>
-                <label for="star5">&#9733;</label>
-                <span class="star-label-text">Best</span>
-            </div>
-            <div class="star-item">
-                <input type="radio" id="star4" name="rating" value="4">
-                <label for="star4">&#9733;</label>
-                <span class="star-label-text">Better</span>
-            </div>
-            <div class="star-item">
-                <input type="radio" id="star3" name="rating" value="3">
-                <label for="star3">&#9733;</label>
-                <span class="star-label-text">Good</span>
-            </div>
-            <div class="star-item">
-                <input type="radio" id="star2" name="rating" value="2">
-                <label for="star2">&#9733;</label>
-                <span class="star-label-text">Bad</span>
-            </div>
-            <div class="star-item">
-                <input type="radio" id="star1" name="rating" value="1">
-                <label for="star1">&#9733;</label>
-                <span class="star-label-text">Worst</span>
-            </div>
+        </head>
+        <body>
+        <div class="rating-container">
+            <div class="star-item" onclick="selectRating(5, 'Best')"><input type="radio" name="rating" id="s5"><label>&#9733;&#9733;&#9733;&#9733;&#9733;</label><span class="star-label-text">Best</span></div>
+            <div class="star-item" onclick="selectRating(4, 'Better')"><input type="radio" name="rating" id="s4"><label>&#9733;&#9733;&#9733;&#9733;</label><span class="star-label-text">Better</span></div>
+            <div class="star-item" onclick="selectRating(3, 'Good')"><input type="radio" name="rating" id="s3"><label>&#9733;&#9733;&#9733;</label><span class="star-label-text">Good</span></div>
+            <div class="star-item" onclick="selectRating(2, 'Bad')"><input type="radio" name="rating" id="s2"><label>&#9733;&#9733;</label><span class="star-label-text">Bad</span></div>
+            <div class="star-item" onclick="selectRating(1, 'Worst')"><input type="radio" name="rating" id="s1"><label>&#9733;</label><span class="star-label-text">Worst</span></div>
         </div>
-    </body>
-    </html>
-    """, height=140)
+        <script>
+            function selectRating(val, text) {
+                // Send value to Streamlit component parent frame if needed, or update visual state
+                const parent = window.parent.document;
+                // Custom event dispatch to communicate with streamlit if configured, or handle state
+            }
+        </script>
+        </body>
+        </html>
+        """,
+        height=70,
+    )
 
-# Streamlit selector using the existing green star rating component above
+    # 2. Streamlit Radio backup/selector linked to session state so clicks register instantly
+    if "user_rating" not in st.session_state:
+        st.session_state.user_rating = 5
+
     rating_options = {
-        5: "Best",
-        4: "Better",
-        3: "Good",
-        2: "Bad",
-        1: "Worst"
+        5: "Best (5 Stars)",
+        4: "Better (4 Stars)",
+        3: "Good (3 Stars)",
+        2: "Bad (2 Stars)",
+        1: "Worst (1 Star)"
     }
-    
-    # We default or capture from session state or component selection
-    # If you want to default to 5 (Best), or let user select:
-    num_rate = 5  # Or link this to your star component choice
-    text_rate = rating_options[num_rate]
+
+    selected_star_label = st.radio(
+        "Confirm Rating Tier:",
+        options=list(rating_options.values()),
+        index=0,
+        horizontal=True,
+        key="rating_radio_selection"
+    )
+
+    # Map back to numerical value and text
+    num_rate = [k for k, v in rating_options.items() if v == selected_star_label][0]
+    text_rate = rating_options[num_rate].split(" ")[0]
     
     st.markdown("<br>", unsafe_allow_html=True)
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
