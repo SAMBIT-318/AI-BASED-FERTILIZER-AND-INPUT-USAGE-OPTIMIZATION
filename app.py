@@ -1790,7 +1790,7 @@ elif st.session_state.step == 5:
             "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"],
             "Shortage (kg/acre)": [round(def_n, 1), round(def_p, 1), round(def_k, 1)]
         })
-        short_bars = alt.Chart(def_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color="#2E7D32, #FFB300, #5D4037").encode(
+        short_bars = alt.Chart(def_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color="#2E7D32").encode(
             x=alt.X("Nutrient:N", axis=alt.Axis(labelColor="#000000", labelFontSize=12, title=None)),
             y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#000000", title="kg/acre")),
             tooltip=[alt.Tooltip("Nutrient:N"), alt.Tooltip("Shortage (kg/acre):Q")]
