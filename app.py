@@ -1188,64 +1188,64 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
     ])
 
     with admin_tab1:
-    # Check if a sub-view is active, otherwise show the main navigation options
-    if "admin_sub_view" not in st.session_state:
-        st.session_state.admin_sub_view = "home"
-
-    if st.session_state.admin_sub_view == "home":
-        st.markdown("### 👥 Admin Management Hub")
-        st.write("Select a section below to view detailed records full-screen:")
-        
-        c_nav1, c_nav2 = st.columns(2)
-        with c_nav1:
-            if st.button("👥 Open Registered Users Management", use_container_width=True):
-                st.session_state.admin_sub_view = "users"
-                st.rerun()
-        with c_nav2:
-            if st.button("📜 Open User Activity History", use_container_width=True):
-                st.session_state.admin_sub_view = "activity"
-                st.rerun()
-
-    elif st.session_state.admin_sub_view == "users":
-        if st.button("⬅️ Back to Admin Hub"):
+        # Check if a sub-view is active, otherwise show the main navigation options
+        if "admin_sub_view" not in st.session_state:
             st.session_state.admin_sub_view = "home"
-            st.rerun()
+
+        if st.session_state.admin_sub_view == "home":
+            st.markdown("### 👥 Admin Management Hub")
+            st.write("Select a section below to view detailed records full-screen:")
             
-        st.markdown("### 👥 Registered Users Management")
-        if engine:
+            c_nav1, c_nav2 = st.columns(2)
+            with c_nav1:
+                if st.button("👥 Open Registered Users Management", use_container_width=True):
+                    st.session_state.admin_sub_view = "users"
+                    st.rerun()
+            with c_nav2:
+                if st.button("📜 Open User Activity History", use_container_width=True):
+                    st.session_state.admin_sub_view = "activity"
+                    st.rerun()
+
+        elif st.session_state.admin_sub_view == "users":
+            if st.button("⬅️ Back to Admin Hub"):
+                st.session_state.admin_sub_view = "home"
+                st.rerun()
+                
+            st.markdown("### 👥 Registered Users Management")
+            if engine:
+                try:
+                    with engine.connect() as conn:
+                        users_df = pd.read_sql(text("SELECT mobile_number, role FROM users"), conn)
+                        if not users_df.empty:
+                            st.dataframe(users_df, use_container_width=True)
+                            del_mob = st.text_input("Enter Mobile Number to Delete User Account:", key="del_user_input")
+                            if st.button("🗑️ Delete User ID"):
+                                if del_mob.strip():
+                                    with engine.connect() as conn:
+                                        conn.execute(text("DELETE FROM users WHERE mobile_number = :m"), {"m": str(del_mob.strip())})
+                                        conn.commit()
+                                    st.success(f"Successfully deleted user account: {del_mob}")
+                                    st.rerun()
+                        else:
+                            st.info("No registered users found in database.")
+                except Exception as e:
+                    st.error(f"Error loading users: {e}")
+
+        elif st.session_state.admin_sub_view == "activity":
+            if st.button("⬅️ Back to Admin Hub"):
+                st.session_state.admin_sub_view = "home"
+                st.rerun()
+                
+            st.markdown("### 📜 User Activity History")
             try:
                 with engine.connect() as conn:
-                    users_df = pd.read_sql(text("SELECT mobile_number, role FROM users"), conn)
-                    if not users_df.empty:
-                        st.dataframe(users_df, use_container_width=True)
-                        del_mob = st.text_input("Enter Mobile Number to Delete User Account:", key="del_user_input")
-                        if st.button("🗑️ Delete User ID"):
-                            if del_mob.strip():
-                                with engine.connect() as conn:
-                                    conn.execute(text("DELETE FROM users WHERE mobile_number = :m"), {"m": str(del_mob.strip())})
-                                    conn.commit()
-                                st.success(f"Successfully deleted user account: {del_mob}")
-                                st.rerun()
+                    act_df = pd.read_sql(text("SELECT mobile, activity_type, details, created_at FROM user_activity WHERE is_deleted = 0 ORDER BY created_at DESC"), conn)
+                    if not act_df.empty:
+                        st.dataframe(act_df, use_container_width=True)
                     else:
-                        st.info("No registered users found in database.")
+                        st.info("No active logs recorded.")
             except Exception as e:
-                st.error(f"Error loading users: {e}")
-
-    elif st.session_state.admin_sub_view == "activity":
-        if st.button("⬅️ Back to Admin Hub"):
-            st.session_state.admin_sub_view = "home"
-            st.rerun()
-            
-        st.markdown("### 📜 User Activity History")
-        try:
-            with engine.connect() as conn:
-                act_df = pd.read_sql(text("SELECT mobile, activity_type, details, created_at FROM user_activity WHERE is_deleted = 0 ORDER BY created_at DESC"), conn)
-                if not act_df.empty:
-                    st.dataframe(act_df, use_container_width=True)
-                else:
-                    st.info("No active logs recorded.")
-        except Exception as e:
-            st.error(f"Error: {e}")
+                st.error(f"Error: {e}")
 
     with admin_tab2:
         st.markdown("### ⭐ Farmer Reviews, Ratings & Admin Feedback Reply")
