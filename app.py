@@ -1791,12 +1791,12 @@ elif st.session_state.step == 5:
             "Shortage (kg/acre)": [round(def_n, 1), round(def_p, 1), round(def_k, 1)]
         })
         short_bars = alt.Chart(def_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color="#39FF88").encode(
-            x=alt.X("Nutrient:N", axis=alt.Axis(labelColor="#000000", labelFontSize=12, title=None)),
-            y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#000000", title="kg/acre")),
+            x=alt.X("Nutrient:N", axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None)),
+            y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#FFFFFF", title="kg/acre")),
             tooltip=[alt.Tooltip("Nutrient:N"), alt.Tooltip("Shortage (kg/acre):Q")]
         )
         short_text = alt.Chart(def_df).mark_text(
-            align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#000000'
+            align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#FFFFFF'
         ).encode(
             x=alt.X("Nutrient:N"),
             y=alt.Y("Shortage (kg/acre):Q"),
