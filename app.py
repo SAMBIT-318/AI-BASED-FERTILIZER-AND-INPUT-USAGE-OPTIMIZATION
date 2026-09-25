@@ -1878,7 +1878,7 @@ elif st.session_state.step == 6:
         tooltip=[alt.Tooltip("Fertilizer Product:N"), alt.Tooltip("Quantity (kg):Q")]
     )
     fq_text = alt.Chart(fert_qty_df).mark_text(
-        align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#000000'
+        align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#FFFFFF'
     ).encode(
         x=alt.X("Fertilizer Product:N"),
         y=alt.Y("Quantity (kg):Q"),
