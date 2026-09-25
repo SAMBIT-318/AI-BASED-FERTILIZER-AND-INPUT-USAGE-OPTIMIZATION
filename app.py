@@ -2050,7 +2050,7 @@ elif st.session_state.step == 8:
     st.write("Please rate your advisory experience before exiting:")
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
+# SCREEN 8: INTERACTIVE GREEN STAR RATING & EXIT
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     if os.path.exists(LOGO_FILE_EXACT):
@@ -2064,11 +2064,12 @@ elif st.session_state.step == 8:
                     <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Farmer Feedback & Star Rating</p>
                 </div>
             """, unsafe_allow_html=True)
-            
-    st.subheader(T["feedback_title"])
-    st.markdown("Please rate your advisory experience by selecting the rating stars below:")
 
-    rating_tier_map = {
+    st.subheader(T["feedback_title"])
+    st.markdown("Please rate your advisory experience:")
+
+    # Interactive star rating selection using styled custom layout options
+    rating_choices = {
         "⭐⭐⭐⭐⭐ Best (5/5)": (5, "Best"),
         "⭐⭐⭐⭐ Better (4/5)": (4, "Better"),
         "⭐⭐⭐ Good (3/5)": (3, "Good"),
@@ -2076,16 +2077,15 @@ elif st.session_state.step == 8:
         "⭐ Worst (1/5)": (1, "Worst")
     }
 
-    with st.container():
-        selected_tier_label = st.radio(
-            "Rating Options",
-            options=list(rating_tier_map.keys()),
-            index=1,
-            label_visibility="collapsed",
-            key="green_star_rating_input"
-        )
+    selected_star_label = st.radio(
+        "Rating Tier",
+        options=list(rating_choices.keys()),
+        index=1,
+        label_visibility="collapsed",
+        key="interactive_green_star_radio"
+    )
 
-    num_rate, text_rate = rating_tier_map[selected_tier_label]
+    num_rate, text_rate = rating_choices[selected_star_label]
 
     st.markdown("<br>", unsafe_allow_html=True)
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
