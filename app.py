@@ -1790,13 +1790,13 @@ elif st.session_state.step == 5:
             "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"],
             "Shortage (kg/acre)": [round(def_n, 1), round(def_p, 1), round(def_k, 1)]
         })
-        short_bars = alt.Chart(def_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color="#39FF88").encode(
-            x=alt.X("Nutrient:N", axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None)),
-            y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#FFFFFF", title="kg/acre")),
+        short_bars = alt.Chart(def_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color="#2E7D32, #FFB300, #5D4037").encode(
+            x=alt.X("Nutrient:N", axis=alt.Axis(labelColor="#000000", labelFontSize=12, title=None)),
+            y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#000000", title="kg/acre")),
             tooltip=[alt.Tooltip("Nutrient:N"), alt.Tooltip("Shortage (kg/acre):Q")]
         )
         short_text = alt.Chart(def_df).mark_text(
-            align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#FFFFFF'
+            align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#000000'
         ).encode(
             x=alt.X("Nutrient:N"),
             y=alt.Y("Shortage (kg/acre):Q"),
@@ -1809,7 +1809,7 @@ elif st.session_state.step == 5:
         st.success(f"🌱 **Recommended Crop**: **{dynamic_pred_crop.capitalize()}**")
         st.markdown(f"""
         <div class="metric-card">
-            <h4 style="color:#39FF88; margin:0;">💰 Predicted Future Market Priceof Product:</h4>
+            <h4 style="color:#39FF88; margin:0;">💰 Predicted Future Market Price of Product:</h4>
             <h2 style="margin:4px 0; color:#FFFFFF;">₹{pred_price:,.0f} / Quintal</h2>
             <p style="margin:0; font-size:13px; color:#A7F3D0;">Protects farmers against uncertain market price swings.</p>
         </div>
