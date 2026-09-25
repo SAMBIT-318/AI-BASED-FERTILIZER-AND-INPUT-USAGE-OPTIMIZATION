@@ -1899,7 +1899,7 @@ elif st.session_state.step == 6:
                 axis=alt.Axis(
                     labelColor="#000000",
                     titleColor="#000000",
-                    labelAngle=180,
+                    labelAngle=90,
                     title="Stage",
                 ),
             ),
