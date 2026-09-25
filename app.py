@@ -1702,7 +1702,7 @@ elif st.session_state.step == 4:
             "Value": [round(soil_val, 1), round(target_val, 1)]
         })
         bars = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
-            x=alt.X("Nutrient Status:N", axis=alt.Axis(labelColor="#000000", labelFontSize=12, title=None)),
+            x=alt.X("Nutrient Status:N", axis=alt.Axis(labelColor="#000000", labelFontSize=14, title=None)),
             y=alt.Y("Value:Q", axis=alt.Axis(labelColor="#000000", titleColor="#000000", title="kg/ha")),
             color=alt.Color("Nutrient Status:N", scale=alt.Scale(range=[color_bar, "#1B5E20"]), legend=None),
             tooltip=[alt.Tooltip("Nutrient Status:N"), alt.Tooltip("Value:Q")]
@@ -1719,7 +1719,7 @@ elif st.session_state.step == 4:
             y=alt.Y("Value:Q"),
             text=alt.Text("Value:Q", format=".1f")
         )
-        return (bars + text_labels).properties(height=260)
+        return (bars + text_labels).properties(height=320)
 
     with d1:
         st.markdown("##### Nitrogen (N) Ratio (kg/ha)")
