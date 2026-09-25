@@ -2055,6 +2055,9 @@ elif st.session_state.step == 8:
     if "rating" not in st.session_state:
         st.session_state.rating = 0
 
+    if "rating_text" not in st.session_state:
+        st.session_state.rating_text = ""
+
     current_rating = st.session_state.rating
 
     if current_rating > 0:
@@ -2063,23 +2066,21 @@ elif st.session_state.step == 8:
         current_rating_text = "Not Rated"
 
     # ---------------------------------------------------------
-    # CUSTOM CSS
+    # COMPLETE SCREEN 8 CSS
     # ---------------------------------------------------------
     st.html("""
     <style>
 
     /* =====================================================
-       MAIN RATING BOX
+       MAIN RATING DISPLAY
        ===================================================== */
 
     .sk-rating-box {
         width: 100%;
         min-height: 125px;
 
-        margin-top: 18px;
-        margin-bottom: 25px;
-
-        padding: 20px 20px;
+        margin: 18px 0 20px 0;
+        padding: 18px 20px;
 
         box-sizing: border-box;
 
@@ -2107,34 +2108,27 @@ elif st.session_state.step == 8:
 
 
     /* =====================================================
-       STAR DISPLAY
+       DISPLAYED STARS
        ===================================================== */
 
     .sk-star-row {
         display: flex;
         align-items: center;
         justify-content: center;
-
-        gap: 5px;
-
+        gap: 4px;
         white-space: nowrap;
     }
 
-
     .sk-star {
         font-family: Arial, sans-serif;
-
         font-size: 58px;
-
         line-height: 1;
-
         display: inline-block;
     }
 
 
     /* =====================================================
-       UNSELECTED STAR
-       WHITE
+       UNSELECTED STAR = WHITE
        ===================================================== */
 
     .sk-star-empty {
@@ -2146,12 +2140,11 @@ elif st.session_state.step == 8:
 
 
     /* =====================================================
-       SELECTED STAR
-       LIGHT GREEN GLOW
+       SELECTED STAR = LIGHT GREEN GLOW
        ===================================================== */
 
     .sk-star-selected {
-        color: #8CFFB5;
+        color: #9AFFBD;
 
         text-shadow:
             0 0 4px #39FF88,
@@ -2199,10 +2192,10 @@ elif st.session_state.step == 8:
 
 
     /* =====================================================
-       CLICKABLE STAR BUTTONS
+       STAR SELECTION BUTTONS
        ===================================================== */
 
-    div[data-testid="stHorizontalBlock"] button {
+    .sk-star-button-area div[data-testid="stButton"] > button {
 
         background: transparent !important;
 
@@ -2214,17 +2207,19 @@ elif st.session_state.step == 8:
 
         padding: 0 !important;
 
-        min-height: 0 !important;
+        margin: 0 !important;
 
-        height: 62px !important;
+        min-height: 50px !important;
+
+        height: 58px !important;
+
+        color: #FFFFFF !important;
 
         font-family: Arial, sans-serif !important;
 
-        font-size: 52px !important;
+        font-size: 48px !important;
 
         line-height: 1 !important;
-
-        color: #FFFFFF !important;
 
         transition:
             transform 0.15s ease,
@@ -2233,19 +2228,15 @@ elif st.session_state.step == 8:
     }
 
 
-    /* =====================================================
-       HOVER EFFECT
-       ===================================================== */
-
-    div[data-testid="stHorizontalBlock"] button:hover {
+    .sk-star-button-area div[data-testid="stButton"] > button:hover {
 
         background: transparent !important;
 
         border: none !important;
 
-        color: #8CFFB5 !important;
+        color: #9AFFBD !important;
 
-        transform: scale(1.10);
+        transform: scale(1.10) !important;
 
         text-shadow:
             0 0 5px #39FF88,
@@ -2254,11 +2245,7 @@ elif st.session_state.step == 8:
     }
 
 
-    /* =====================================================
-       REMOVE STREAMLIT BUTTON BORDER EFFECT
-       ===================================================== */
-
-    div[data-testid="stHorizontalBlock"] button:focus {
+    .sk-star-button-area div[data-testid="stButton"] > button:focus {
 
         background: transparent !important;
 
@@ -2270,19 +2257,104 @@ elif st.session_state.step == 8:
     }
 
 
-    /* =====================================================
-       BUTTON TEXT
-       ===================================================== */
+    .sk-star-button-area div[data-testid="stButton"] > button p {
 
-    div[data-testid="stHorizontalBlock"] button p {
+        color: #FFFFFF !important;
+
+        font-size: 48px !important;
+
+        line-height: 1 !important;
 
         margin: 0 !important;
 
         padding: 0 !important;
+    }
 
-        font-size: 52px !important;
 
-        line-height: 1 !important;
+    /* =====================================================
+       NAVIGATION BUTTONS
+       ===================================================== */
+
+    .sk-navigation-buttons div[data-testid="stButton"] > button {
+
+        background: linear-gradient(
+            135deg,
+            #075B3A,
+            #0B6B43
+        ) !important;
+
+        color: #FFFFFF !important;
+
+        border: 1px solid #39FF88 !important;
+
+        border-radius: 10px !important;
+
+        min-height: 48px !important;
+
+        padding: 8px 18px !important;
+
+        font-size: 14px !important;
+
+        font-weight: 600 !important;
+
+        box-shadow:
+            0 0 8px rgba(57, 255, 136, 0.18),
+            inset 0 0 8px rgba(57, 255, 136, 0.05) !important;
+
+        transition:
+            all 0.2s ease !important;
+    }
+
+
+    .sk-navigation-buttons div[data-testid="stButton"] > button:hover {
+
+        background: linear-gradient(
+            135deg,
+            #08704A,
+            #0B8050
+        ) !important;
+
+        color: #FFFFFF !important;
+
+        border-color: #66FFAA !important;
+
+        box-shadow:
+            0 0 10px rgba(57, 255, 136, 0.45),
+            0 0 20px rgba(57, 255, 136, 0.18) !important;
+
+        transform: translateY(-1px) !important;
+    }
+
+
+    .sk-navigation-buttons div[data-testid="stButton"] > button:active {
+
+        transform: translateY(1px) !important;
+
+        box-shadow:
+            0 0 6px rgba(57, 255, 136, 0.30) !important;
+    }
+
+
+    .sk-navigation-buttons div[data-testid="stButton"] > button:focus {
+
+        color: #FFFFFF !important;
+
+        border-color: #39FF88 !important;
+
+        box-shadow:
+            0 0 8px rgba(57, 255, 136, 0.35) !important;
+    }
+
+
+    .sk-navigation-buttons div[data-testid="stButton"] > button p {
+
+        color: #FFFFFF !important;
+
+        font-size: 14px !important;
+
+        font-weight: 600 !important;
+
+        margin: 0 !important;
     }
 
 
@@ -2300,14 +2372,14 @@ elif st.session_state.step == 8:
             font-size: 16px;
         }
 
-        div[data-testid="stHorizontalBlock"] button {
+        .sk-star-button-area div[data-testid="stButton"] > button {
 
             font-size: 40px !important;
 
-            height: 50px !important;
+            height: 48px !important;
         }
 
-        div[data-testid="stHorizontalBlock"] button p {
+        .sk-star-button-area div[data-testid="stButton"] > button p {
 
             font-size: 40px !important;
         }
@@ -2377,42 +2449,49 @@ elif st.session_state.step == 8:
     """)
 
     # ---------------------------------------------------------
-    # CURRENT STAR DISPLAY
+    # CREATE DISPLAY STARS
     # ---------------------------------------------------------
-
     if current_rating == 0:
 
         star_html = """
-        <span class="sk-star sk-star-empty">☆</span>
-        <span class="sk-star sk-star-empty">☆</span>
-        <span class="sk-star sk-star-empty">☆</span>
-        <span class="sk-star sk-star-empty">☆</span>
-        <span class="sk-star sk-star-empty">☆</span>
+            <span class="sk-star sk-star-empty">☆</span>
+            <span class="sk-star sk-star-empty">☆</span>
+            <span class="sk-star sk-star-empty">☆</span>
+            <span class="sk-star sk-star-empty">☆</span>
+            <span class="sk-star sk-star-empty">☆</span>
         """
 
     else:
 
-        selected_stars = ""
+        star_html = ""
 
         for i in range(1, 6):
 
             if i <= current_rating:
 
-                selected_stars += """
-                <span class="sk-star sk-star-selected">★</span>
+                star_html += """
+                    <span class="sk-star sk-star-selected">★</span>
                 """
 
             else:
 
-                selected_stars += """
-                <span class="sk-star sk-star-empty">☆</span>
+                star_html += """
+                    <span class="sk-star sk-star-empty">☆</span>
                 """
 
-        star_html = selected_stars
+    # ---------------------------------------------------------
+    # RATING DISPLAY
+    # ---------------------------------------------------------
+    if current_rating > 0:
 
-    # ---------------------------------------------------------
-    # RATING BOX
-    # ---------------------------------------------------------
+        rating_result = (
+            f"{current_rating_text} ({current_rating}/5)"
+        )
+
+    else:
+
+        rating_result = "Please select a rating"
+
     st.html(f"""
     <div class="sk-rating-box">
 
@@ -2424,8 +2503,7 @@ elif st.session_state.step == 8:
 
         <div class="sk-rating-result">
 
-            {current_rating_text}
-            {f"({current_rating}/5)" if current_rating > 0 else "(Please select a rating)"}
+            {rating_result}
 
         </div>
 
@@ -2433,11 +2511,27 @@ elif st.session_state.step == 8:
     """)
 
     # ---------------------------------------------------------
-    # CLICKABLE STAR BUTTONS
-    #
-    # These buttons have NO visible rectangular design.
-    # Only the star itself is visible.
+    # CLICKABLE STARS
     # ---------------------------------------------------------
+    st.html("""
+    <div style="
+        text-align:center;
+        color:#FFFFFF;
+        font-size:14px;
+        font-weight:600;
+        margin-bottom:5px;
+    ">
+        Select your rating:
+    </div>
+    """)
+
+    # ---------------------------------------------------------
+    # STAR BUTTON AREA
+    # ---------------------------------------------------------
+    st.markdown(
+        '<div class="sk-star-button-area">',
+        unsafe_allow_html=True
+    )
 
     r1, r2, r3, r4, r5 = st.columns(
         [1, 1, 1, 1, 1],
@@ -2524,6 +2618,11 @@ elif st.session_state.step == 8:
 
             st.rerun()
 
+    st.markdown(
+        '</div>',
+        unsafe_allow_html=True
+    )
+
     # ---------------------------------------------------------
     # FINAL RATING VALUES
     # ---------------------------------------------------------
@@ -2549,81 +2648,58 @@ elif st.session_state.step == 8:
     # ---------------------------------------------------------
     # BACK / SUBMIT BUTTONS
     # ---------------------------------------------------------
-    b_fb_back, b_fb_sub = st.columns([1, 5])
+    st.markdown(
+        '<div class="sk-navigation-buttons">',
+        unsafe_allow_html=True
+    )
+
+    b_fb_back, b_fb_sub = st.columns(
+        [1, 5],
+        gap="small"
+    )
 
     # ---------------------------------------------------------
-    # BACK
-    # ---------------------------------------------------------
-    if b_fb_back.button(
-        T["btn_back"],
-        key="feedback_back_btn"
-    ):
-
-        st.session_state.step = (
-            7
-            if st.session_state.app_mode == "Full Optimization"
-            else 2
-        )
-
-        st.rerun()
-
-    # ---------------------------------------------------------
-    # BACK / SUBMIT BUTTONS
-    # ---------------------------------------------------------
-    
-    # Custom styling injection for green theme buttons
-    st.markdown("""
-        <style>
-        div.stButton > button:first-child {
-            background-color: #0b3d2e;
-            color: #39FF88;
-            border: 1px solid #39FF88;
-            border-radius: 8px;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
-        div.stButton > button:first-child:hover {
-            background-color: #39FF88;
-            color: #0b3d2e;
-            border-color: #39FF88;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-    b_fb_back, b_fb_sub = st.columns([1, 4])
-
-    # ---------------------------------------------------------
-    # BACK
+    # BACK BUTTON
     # ---------------------------------------------------------
     with b_fb_back:
-        if b_fb_back.button(
+
+        if st.button(
             T["btn_back"],
-            key="feedback_back_btn"
+            key="feedback_back_btn",
+            use_container_width=True
         ):
+
             st.session_state.step = (
-                7 if st.session_state.app_mode == "Full Optimization" else 2
+                7
+                if st.session_state.app_mode == "Full Optimization"
+                else 2
             )
+
             st.rerun()
 
     # ---------------------------------------------------------
-    # SUBMIT & EXIT
+    # SUBMIT FEEDBACK & EXIT
     # ---------------------------------------------------------
     with b_fb_sub:
-        if b_fb_sub.button(
+
+        if st.button(
             T["feedback_submit"],
-            key="feedback_submit_btn"
+            key="feedback_submit_btn",
+            use_container_width=True
         ):
 
-            # Rating is mandatory
+            # -------------------------------------------------
+            # RATING REQUIRED
+            # -------------------------------------------------
             if num_rate == 0:
 
                 st.error(
                     "⭐ Please select a star rating before exiting."
                 )
 
-            # Comments are mandatory
+            # -------------------------------------------------
+            # COMMENTS REQUIRED
+            # -------------------------------------------------
             elif not feedback_comments.strip():
 
                 st.error(
@@ -2631,6 +2707,9 @@ elif st.session_state.step == 8:
                     "Please enter your feedback comments before exiting."
                 )
 
+            # -------------------------------------------------
+            # SAVE FEEDBACK
+            # -------------------------------------------------
             else:
 
                 save_feedback(
@@ -2645,18 +2724,29 @@ elif st.session_state.step == 8:
                     "Exit session..."
                 )
 
+                # ---------------------------------------------
+                # LOGOUT
+                # ---------------------------------------------
                 st.session_state.logged_in = False
-
                 st.session_state.user_mobile = ""
-
                 st.session_state.feedback_given = True
 
+                # ---------------------------------------------
+                # RESET RATING
+                # ---------------------------------------------
                 st.session_state.rating = 0
-
                 st.session_state.rating_text = ""
 
+                # ---------------------------------------------
+                # RETURN TO START
+                # ---------------------------------------------
                 st.session_state.step = 1
 
                 st.cache_data.clear()
 
                 st.rerun()
+
+    st.markdown(
+        '</div>',
+        unsafe_allow_html=True
+    )
