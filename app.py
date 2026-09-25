@@ -1878,7 +1878,7 @@ elif st.session_state.step == 6:
         tooltip=[alt.Tooltip("Fertilizer Product:N"), alt.Tooltip("Quantity (kg):Q")]
     )
     fq_text = alt.Chart(fert_qty_df).mark_text(
-        align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#FFFFFF'
+        align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#000000'
     ).encode(
         x=alt.X("Fertilizer Product:N"),
         y=alt.Y("Quantity (kg):Q"),
@@ -1890,32 +1890,31 @@ elif st.session_state.step == 6:
         "Stage": ["Stage 1: Basal (Day 0)", "Stage 2: Vegetative (Day 20-25)", "Stage 3: Flowering (Day 45-55)"],
         "Nutrient Release Efficiency (%)": [90, 85, 95]
     })
-    timeline_chart = (
-        alt.Chart(timeline_df)
-        .mark_line(point=True, color="#39FF88")
-        .encode(
-            x=alt.X(
-                "Stage:N",
-                axis=alt.Axis(
-                    labelColor="#000000",
-                    titleColor="#000000",
-                    labelAngle=0,
-                    title="Stage",
-                ),
-            ),
-            y=alt.Y(
-                "Nutrient Release Efficiency (%):Q",
-                axis=alt.Axis(
-                    labelColor="#000000",
-                    titleColor="#000000",
-                    title="Nutrient Release Efficiency (%)",
-                ),
-            ),
-        )
-    )
-    st.altair_chart(timeline_chart, use_container_width=True)
+    st.line_chart(timeline_df.set_index("Stage"))
+
     st.divider()
-    st.divider()
+    b1, b2 = st.columns([1, 5])
+    if b1.button(T["btn_back"], key="step6_back"):
+        st.session_state.step = 5
+        st.rerun()
+    if b2.button(T["btn_next"], key="step7_next"):
+        st.session_state.step = 7
+        st.rerun()
+    
+# -------------------------------------------------------------
+# SCREEN 7: PRESCRIPTION DOSSIER & MULTILINGUAL PDF DOWNLOAD
+# -------------------------------------------------------------
+elif st.session_state.step == 7:
+    if os.path.exists(LOGO_FILE_EXACT):
+        c_logo, c_title = st.columns([0.15, 0.85], gap="small")
+        with c_logo:
+            st.image(LOGO_FILE_EXACT, width=120)
+        with c_title:
+            st.markdown(f"""
+            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Official Farmer Prescription Card (Smart Kishan Certified)</p>
+            </div>
             """, unsafe_allow_html=True)
     opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, "land_area": st.session_state.land_area})
     diag = st.session_state.get("scanned_diag", {
