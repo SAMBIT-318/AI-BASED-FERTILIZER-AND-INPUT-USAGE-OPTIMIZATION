@@ -2033,12 +2033,12 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY GREEN STAR RATING & EXIT
+# SCREEN 8: MANDATORY FARMER FEEDBACK & CLICKABLE STAR RATING
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
 
     # ---------------------------------------------------------
-    # RATING DATA
+    # RATING NAMES
     # ---------------------------------------------------------
     rating_names = {
         1: "Worst",
@@ -2050,114 +2050,267 @@ elif st.session_state.step == 8:
 
     # ---------------------------------------------------------
     # DEFAULT RATING
+    # 0 = NO RATING SELECTED
     # ---------------------------------------------------------
     if "rating" not in st.session_state:
-        st.session_state.rating = 4
-
-    if "rating_text" not in st.session_state:
-        st.session_state.rating_text = "Better"
+        st.session_state.rating = 0
 
     current_rating = st.session_state.rating
-    current_rating_text = rating_names[current_rating]
+
+    if current_rating > 0:
+        current_rating_text = rating_names[current_rating]
+    else:
+        current_rating_text = "Not Rated"
 
     # ---------------------------------------------------------
-    # GREEN STAR RATING CSS
+    # CUSTOM CSS
     # ---------------------------------------------------------
     st.html("""
     <style>
 
-    .sk-rating-banner {
+    /* =====================================================
+       MAIN RATING BOX
+       ===================================================== */
+
+    .sk-rating-box {
         width: 100%;
-        height: 130px;
-        margin: 18px 0 28px 0;
+        min-height: 125px;
+
+        margin-top: 18px;
+        margin-bottom: 25px;
+
+        padding: 20px 20px;
+
+        box-sizing: border-box;
+
         border-radius: 14px;
 
         background:
             linear-gradient(
                 90deg,
-                rgba(5, 45, 28, 0.96),
-                rgba(11, 61, 46, 0.90),
-                rgba(30, 100, 55, 0.72)
+                rgba(5, 45, 28, 0.97),
+                rgba(11, 61, 46, 0.94),
+                rgba(20, 85, 48, 0.78)
             );
 
-        border: 1px solid rgba(57, 255, 136, 0.45);
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        border: 1px solid rgba(57, 255, 136, 0.38);
 
         box-shadow:
             0 8px 25px rgba(0, 0, 0, 0.55),
             inset 0 0 35px rgba(57, 255, 136, 0.08);
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
-    .sk-rating-content {
-        width: 100%;
+
+    /* =====================================================
+       STAR DISPLAY
+       ===================================================== */
+
+    .sk-star-row {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 22px;
-    }
 
-    .sk-rating-stars {
-        display: flex;
-        align-items: center;
-        gap: 4px;
+        gap: 5px;
+
         white-space: nowrap;
     }
 
-    .sk-filled-star {
-        display: inline-block;
-        font-family: Arial, sans-serif;
-        font-size: 58px;
-        line-height: 1;
-        color: #39FF88;
 
-        text-shadow:
-            0 0 5px rgba(57, 255, 136, 0.85),
-            0 0 12px rgba(57, 255, 136, 0.55),
-            0 0 22px rgba(57, 255, 136, 0.30);
+    .sk-star {
+        font-family: Arial, sans-serif;
+
+        font-size: 58px;
+
+        line-height: 1;
+
+        display: inline-block;
     }
 
-    .sk-empty-star {
-        display: inline-block;
-        font-family: Arial, sans-serif;
-        font-size: 58px;
-        line-height: 1;
-        color: transparent;
 
-        -webkit-text-stroke: 2px #39FF88;
+    /* =====================================================
+       UNSELECTED STAR
+       WHITE
+       ===================================================== */
 
-        text-shadow:
-            0 0 5px rgba(57, 255, 136, 0.25);
-    }
-
-    .sk-rating-text {
+    .sk-star-empty {
         color: #FFFFFF;
-        font-family: Arial, sans-serif;
-        font-size: 20px;
-        font-weight: 700;
-        white-space: nowrap;
 
         text-shadow:
-            0 2px 5px rgba(0, 0, 0, 0.90);
+            0 1px 3px rgba(0, 0, 0, 0.75);
     }
+
+
+    /* =====================================================
+       SELECTED STAR
+       LIGHT GREEN GLOW
+       ===================================================== */
+
+    .sk-star-selected {
+        color: #8CFFB5;
+
+        text-shadow:
+            0 0 4px #39FF88,
+            0 0 9px #39FF88,
+            0 0 17px rgba(57, 255, 136, 0.85),
+            0 0 28px rgba(57, 255, 136, 0.55);
+    }
+
+
+    /* =====================================================
+       RATING TEXT
+       ===================================================== */
+
+    .sk-rating-result {
+        margin-top: 8px;
+
+        color: #FFFFFF;
+
+        font-family: Arial, sans-serif;
+
+        font-size: 19px;
+
+        font-weight: 700;
+
+        text-shadow:
+            0 2px 5px rgba(0, 0, 0, 0.85);
+    }
+
+
+    /* =====================================================
+       INSTRUCTION
+       ===================================================== */
 
     .sk-rating-instruction {
         color: #FFFFFF;
+
         font-size: 15px;
+
         font-weight: 600;
+
         margin-top: 5px;
-        margin-bottom: 12px;
+
+        margin-bottom: 8px;
     }
 
-    .sk-select-rating {
-        color: #FFFFFF;
-        font-size: 14px;
-        font-weight: 600;
-        text-align: center;
-        margin-top: 4px;
-        margin-bottom: 8px;
+
+    /* =====================================================
+       CLICKABLE STAR BUTTONS
+       ===================================================== */
+
+    div[data-testid="stHorizontalBlock"] button {
+
+        background: transparent !important;
+
+        border: none !important;
+
+        box-shadow: none !important;
+
+        outline: none !important;
+
+        padding: 0 !important;
+
+        min-height: 0 !important;
+
+        height: 62px !important;
+
+        font-family: Arial, sans-serif !important;
+
+        font-size: 52px !important;
+
+        line-height: 1 !important;
+
+        color: #FFFFFF !important;
+
+        transition:
+            transform 0.15s ease,
+            color 0.15s ease,
+            text-shadow 0.15s ease !important;
+    }
+
+
+    /* =====================================================
+       HOVER EFFECT
+       ===================================================== */
+
+    div[data-testid="stHorizontalBlock"] button:hover {
+
+        background: transparent !important;
+
+        border: none !important;
+
+        color: #8CFFB5 !important;
+
+        transform: scale(1.10);
+
+        text-shadow:
+            0 0 5px #39FF88,
+            0 0 12px #39FF88,
+            0 0 22px rgba(57, 255, 136, 0.75) !important;
+    }
+
+
+    /* =====================================================
+       REMOVE STREAMLIT BUTTON BORDER EFFECT
+       ===================================================== */
+
+    div[data-testid="stHorizontalBlock"] button:focus {
+
+        background: transparent !important;
+
+        border: none !important;
+
+        box-shadow: none !important;
+
+        outline: none !important;
+    }
+
+
+    /* =====================================================
+       BUTTON TEXT
+       ===================================================== */
+
+    div[data-testid="stHorizontalBlock"] button p {
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+        font-size: 52px !important;
+
+        line-height: 1 !important;
+    }
+
+
+    /* =====================================================
+       MOBILE
+       ===================================================== */
+
+    @media (max-width: 700px) {
+
+        .sk-star {
+            font-size: 42px;
+        }
+
+        .sk-rating-result {
+            font-size: 16px;
+        }
+
+        div[data-testid="stHorizontalBlock"] button {
+
+            font-size: 40px !important;
+
+            height: 50px !important;
+        }
+
+        div[data-testid="stHorizontalBlock"] button p {
+
+            font-size: 40px !important;
+        }
     }
 
     </style>
@@ -2192,19 +2345,19 @@ elif st.session_state.step == 8:
             ">
 
                 <h2 style="
-                    color: #FFFFFF;
-                    margin: 0 0 6px 0;
-                    font-size: 22px;
-                    font-weight: 700;
+                    color:#FFFFFF;
+                    margin:0 0 6px 0;
+                    font-size:22px;
+                    font-weight:700;
                 ">
                     SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
                 </h2>
 
                 <p style="
-                    color: #FFFFFF;
-                    margin: 0;
-                    font-size: 14px;
-                    font-weight: 600;
+                    color:#FFFFFF;
+                    margin:0;
+                    font-size:14px;
+                    font-weight:600;
                 ">
                     Farmer Feedback & Star Rating
                 </p>
@@ -2213,7 +2366,7 @@ elif st.session_state.step == 8:
             """)
 
     # ---------------------------------------------------------
-    # FEEDBACK TITLE
+    # PAGE TITLE
     # ---------------------------------------------------------
     st.subheader(T["feedback_title"])
 
@@ -2224,34 +2377,55 @@ elif st.session_state.step == 8:
     """)
 
     # ---------------------------------------------------------
-    # CREATE STAR DISPLAY
+    # CURRENT STAR DISPLAY
     # ---------------------------------------------------------
-    filled_stars = "★" * current_rating
-    empty_stars = "☆" * (5 - current_rating)
+
+    if current_rating == 0:
+
+        star_html = """
+        <span class="sk-star sk-star-empty">☆</span>
+        <span class="sk-star sk-star-empty">☆</span>
+        <span class="sk-star sk-star-empty">☆</span>
+        <span class="sk-star sk-star-empty">☆</span>
+        <span class="sk-star sk-star-empty">☆</span>
+        """
+
+    else:
+
+        selected_stars = ""
+
+        for i in range(1, 6):
+
+            if i <= current_rating:
+
+                selected_stars += """
+                <span class="sk-star sk-star-selected">★</span>
+                """
+
+            else:
+
+                selected_stars += """
+                <span class="sk-star sk-star-empty">☆</span>
+                """
+
+        star_html = selected_stars
 
     # ---------------------------------------------------------
-    # MAIN GREEN STAR RATING BANNER
+    # RATING BOX
     # ---------------------------------------------------------
     st.html(f"""
-    <div class="sk-rating-banner">
+    <div class="sk-rating-box">
 
-        <div class="sk-rating-content">
+        <div class="sk-star-row">
 
-            <div class="sk-rating-stars">
+            {star_html}
 
-                <span class="sk-filled-star">
-                    {filled_stars}
-                </span>
+        </div>
 
-                <span class="sk-empty-star">
-                    {empty_stars}
-                </span>
+        <div class="sk-rating-result">
 
-            </div>
-
-            <div class="sk-rating-text">
-                {current_rating_text} ({current_rating}/5)
-            </div>
+            {current_rating_text}
+            {f"({current_rating}/5)" if current_rating > 0 else "(Please select a rating)"}
 
         </div>
 
@@ -2259,90 +2433,112 @@ elif st.session_state.step == 8:
     """)
 
     # ---------------------------------------------------------
-    # RATING SELECTION LABEL
+    # CLICKABLE STAR BUTTONS
+    #
+    # These buttons have NO visible rectangular design.
+    # Only the star itself is visible.
     # ---------------------------------------------------------
-    st.html("""
-    <div class="sk-select-rating">
-        Select your rating:
-    </div>
-    """)
 
-    # ---------------------------------------------------------
-    # INTERACTIVE RATING BUTTONS
-    # ---------------------------------------------------------
     r1, r2, r3, r4, r5 = st.columns(
         [1, 1, 1, 1, 1],
         gap="small"
     )
 
+    # ---------------------------------------------------------
+    # STAR 1
+    # ---------------------------------------------------------
     with r1:
 
         if st.button(
             "★",
-            key="feedback_rating_1",
+            key="rating_star_1",
             use_container_width=True
         ):
 
             st.session_state.rating = 1
             st.session_state.rating_text = "Worst"
+
             st.rerun()
 
+    # ---------------------------------------------------------
+    # STAR 2
+    # ---------------------------------------------------------
     with r2:
 
         if st.button(
             "★",
-            key="feedback_rating_2",
+            key="rating_star_2",
             use_container_width=True
         ):
 
             st.session_state.rating = 2
             st.session_state.rating_text = "Bad"
+
             st.rerun()
 
+    # ---------------------------------------------------------
+    # STAR 3
+    # ---------------------------------------------------------
     with r3:
 
         if st.button(
             "★",
-            key="feedback_rating_3",
+            key="rating_star_3",
             use_container_width=True
         ):
 
             st.session_state.rating = 3
             st.session_state.rating_text = "Good"
+
             st.rerun()
 
+    # ---------------------------------------------------------
+    # STAR 4
+    # ---------------------------------------------------------
     with r4:
 
         if st.button(
             "★",
-            key="feedback_rating_4",
+            key="rating_star_4",
             use_container_width=True
         ):
 
             st.session_state.rating = 4
             st.session_state.rating_text = "Better"
+
             st.rerun()
 
+    # ---------------------------------------------------------
+    # STAR 5
+    # ---------------------------------------------------------
     with r5:
 
         if st.button(
             "★",
-            key="feedback_rating_5",
+            key="rating_star_5",
             use_container_width=True
         ):
 
             st.session_state.rating = 5
             st.session_state.rating_text = "Best"
+
             st.rerun()
 
     # ---------------------------------------------------------
     # FINAL RATING VALUES
     # ---------------------------------------------------------
     num_rate = st.session_state.rating
-    text_rate = rating_names[num_rate]
+
+    if num_rate > 0:
+
+        text_rate = rating_names[num_rate]
+
+    else:
+
+        text_rate = ""
 
     # ---------------------------------------------------------
-    # FEEDBACK COMMENTS
+    # COMMENTS
     # ---------------------------------------------------------
     feedback_comments = st.text_area(
         "Your Comments / Suggestions:",
@@ -2356,7 +2552,7 @@ elif st.session_state.step == 8:
     b_fb_back, b_fb_sub = st.columns([1, 5])
 
     # ---------------------------------------------------------
-    # BACK BUTTON
+    # BACK
     # ---------------------------------------------------------
     if b_fb_back.button(
         T["btn_back"],
@@ -2372,14 +2568,22 @@ elif st.session_state.step == 8:
         st.rerun()
 
     # ---------------------------------------------------------
-    # SUBMIT FEEDBACK & EXIT
+    # SUBMIT & EXIT
     # ---------------------------------------------------------
     if b_fb_sub.button(
         T["feedback_submit"],
         key="feedback_submit_btn"
     ):
 
-        if not feedback_comments.strip():
+        # Rating is mandatory
+        if num_rate == 0:
+
+            st.error(
+                "⭐ Please select a star rating before exiting."
+            )
+
+        # Comments are mandatory
+        elif not feedback_comments.strip():
 
             st.error(
                 "⚠️ Mandatory Feedback Required: "
@@ -2401,8 +2605,14 @@ elif st.session_state.step == 8:
             )
 
             st.session_state.logged_in = False
+
             st.session_state.user_mobile = ""
+
             st.session_state.feedback_given = True
+
+            st.session_state.rating = 0
+
+            st.session_state.rating_text = ""
 
             st.session_state.step = 1
 
