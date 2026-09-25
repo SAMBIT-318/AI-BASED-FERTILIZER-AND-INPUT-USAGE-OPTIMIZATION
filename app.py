@@ -1690,7 +1690,7 @@ elif st.session_state.step == 4:
             st.markdown(f"""
             <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
                 <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
-                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Current Soil Nutrients vs Ideal Farm Target (Bar Analysis)</p>
+                <p style="color: #39FF88; margin: 0; font-size: 14px; font-weight: 600;">Current Soil Nutrients vs Ideal Farm Target (Bar Analysis)</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1702,8 +1702,8 @@ elif st.session_state.step == 4:
             "Value": [round(soil_val, 1), round(target_val, 1)]
         })
         bars = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
-            x=alt.X("Nutrient Status:N", axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None)),
-            y=alt.Y("Value:Q", axis=alt.Axis(labelColor="#FFFFFF", titleColor="#39FF88", title="kg/ha")),
+            x=alt.X("Nutrient Status:N", axis=alt.Axis(labelColor="#000000", labelFontSize=12, title=None)),
+            y=alt.Y("Value:Q", axis=alt.Axis(labelColor="#000000", titleColor="#000000", title="kg/ha")),
             color=alt.Color("Nutrient Status:N", scale=alt.Scale(range=[color_bar, "#1B5E20"]), legend=None),
             tooltip=[alt.Tooltip("Nutrient Status:N"), alt.Tooltip("Value:Q")]
         )
@@ -1713,7 +1713,7 @@ elif st.session_state.step == 4:
             dy=-10,
             fontSize=13,
             fontWeight='bold',
-            color='#FFFFFF'
+            color='#000000'
         ).encode(
             x=alt.X("Nutrient Status:N"),
             y=alt.Y("Value:Q"),
@@ -1757,7 +1757,7 @@ elif st.session_state.step == 5:
             st.markdown(f"""
             <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
                 <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
-                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Deficit Analysis, Universal Crop AI & Future Market Price</p>
+                <p style="color: #000000; margin: 0; font-size: 14px; font-weight: 600;">Deficit Analysis, Universal Crop AI & Future Market Price</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1791,12 +1791,12 @@ elif st.session_state.step == 5:
             "Shortage (kg/acre)": [round(def_n, 1), round(def_p, 1), round(def_k, 1)]
         })
         short_bars = alt.Chart(def_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color="#39FF88").encode(
-            x=alt.X("Nutrient:N", axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None)),
-            y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#FFFFFF", title="kg/acre")),
+            x=alt.X("Nutrient:N", axis=alt.Axis(labelColor="#000000", labelFontSize=12, title=None)),
+            y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#000000", title="kg/acre")),
             tooltip=[alt.Tooltip("Nutrient:N"), alt.Tooltip("Shortage (kg/acre):Q")]
         )
         short_text = alt.Chart(def_df).mark_text(
-            align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#FFFFFF'
+            align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#000000'
         ).encode(
             x=alt.X("Nutrient:N"),
             y=alt.Y("Shortage (kg/acre):Q"),
