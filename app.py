@@ -2144,7 +2144,7 @@ elif st.session_state.step == 8:
        ===================================================== */
 
     .sk-star-selected {
-        color: #9AFFBD;
+        color: #39FF88;
 
         text-shadow:
             0 0 4px #39FF88,
@@ -2685,7 +2685,7 @@ elif st.session_state.step == 8:
         if st.button(
             T["feedback_submit"],
             key="feedback_submit_btn",
-            use_container_width=True
+            use_container_width=200
         ):
 
             # -------------------------------------------------
