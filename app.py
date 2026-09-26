@@ -2076,7 +2076,7 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY FARMER FEEDBACK & INTERACTIVE STAR RATING
+# SCREEN 8: MANDATORY FARMER FEEDBACK & PROFESSIONAL STAR RATING
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     rating_names = {
@@ -2117,7 +2117,7 @@ elif st.session_state.step == 8:
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
+        gap: 16px;
         white-space: nowrap;
     }
     .sk-star-container {
@@ -2127,7 +2127,7 @@ elif st.session_state.step == 8:
     }
     .sk-star {
         font-family: Arial, sans-serif;
-        font-size: 52px;
+        font-size: 58px;
         line-height: 1;
         display: inline-block;
     }
@@ -2140,7 +2140,7 @@ elif st.session_state.step == 8:
         text-shadow: 0 0 6px #39FF88, 0 0 14px #39FF88, 0 0 22px rgba(57, 255, 136, 0.85), 0 0 32px rgba(57, 255, 136, 0.6);
     }
     .sk-star-label-text {
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 700;
         color: #A7F3D0;
         margin-top: 6px;
@@ -2150,7 +2150,7 @@ elif st.session_state.step == 8:
         margin-top: 10px;
         color: #39FF88;
         font-family: Arial, sans-serif;
-        font-size: 18px;
+        font-size: 19px;
         font-weight: 700;
         text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85);
     }
@@ -2162,26 +2162,22 @@ elif st.session_state.step == 8:
         margin-bottom: 8px;
     }
     .sk-star-button-area div[data-testid="stButton"] > button {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        outline: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        min-height: 40px !important;
-        height: 45px !important;
+        background: linear-gradient(135deg, #0B3D2E, #145A32) !important;
+        border: 1px solid #39FF88 !important;
+        border-radius: 10px !important;
         color: #39FF88 !important;
-        font-family: Arial, sans-serif !important;
-        font-size: 28px !important;
         font-weight: 700 !important;
-        transition: transform 0.15s ease, color 0.15s ease, text-shadow 0.15s ease !important;
+        font-size: 14px !important;
+        padding: 10px 14px !important;
+        box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important;
+        transition: all 0.2s ease !important;
     }
     .sk-star-button-area div[data-testid="stButton"] > button:hover {
-        background: rgba(57, 255, 136, 0.15) !important;
-        border: 1px solid #39FF88 !important;
-        border-radius: 8px !important;
+        background: linear-gradient(135deg, #145A32, #1B5E20) !important;
         color: #FFFFFF !important;
-        transform: scale(1.05) !important;
+        border-color: #66FFAA !important;
+        box-shadow: 0 0 12px rgba(57, 255, 136, 0.6) !important;
+        transform: translateY(-2px) !important;
     }
     .sk-navigation-buttons div[data-testid="stButton"] > button {
         background: linear-gradient(135deg, #075B3A, #0B6B43) !important;
@@ -2228,7 +2224,7 @@ elif st.session_state.step == 8:
     </div>
     """)
 
-    # Render stars with labels underneath (Worst to Best layout matching your reference image)
+    # Render glowing stars with text labels underneath matching image_c2c1df.png
     star_items_html = ""
     ordered_stars = [
         (1, "Worst"),
@@ -2259,11 +2255,12 @@ elif st.session_state.step == 8:
 
     st.html("""
     <div style="text-align:center; color:#FFFFFF; font-size:14px; font-weight:600; margin-bottom:10px;">
-        Click a rating level below to update:
+        Click your rating level below:
     </div>
     """)
 
-    # Clickable buttons to select the rating tier cleanly
+    # Professional action buttons replacing radios
+    st.markdown('<div class="sk-star-button-area">', unsafe_allow_html=True)
     bc1, bc2, bc3, bc4, bc5 = st.columns(5, gap="small")
     with bc1:
         if st.button("1 - Worst", use_container_width=True):
@@ -2290,6 +2287,10 @@ elif st.session_state.step == 8:
             st.session_state.rating = 5
             st.session_state.rating_text = "Best"
             st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    num_rate = st.session_state.rating
+    text_rate = rating_names[num_rate] if num_rate > 0 else "Best"
 
     st.markdown("<br>", unsafe_allow_html=True)
     feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...", key="feedback_comments_box")
@@ -2304,15 +2305,15 @@ elif st.session_state.step == 8:
 
     with b_fb_sub:
         if st.button(T["feedback_submit"], key="feedback_submit_btn", use_container_width=True):
-            if current_rating == 0:
+            if num_rate == 0:
                 st.error("⭐ Please select a star rating level before exiting.")
             elif not feedback_comments.strip():
                 st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
             else:
                 save_feedback(
                     st.session_state.user_mobile,
-                    current_rating,
-                    current_rating_text,
+                    num_rate,
+                    text_rate,
                     feedback_comments.strip()
                 )
                 st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
