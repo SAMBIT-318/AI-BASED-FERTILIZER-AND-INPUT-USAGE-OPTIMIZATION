@@ -2076,135 +2076,254 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
+# SCREEN 8: MANDATORY FARMER FEEDBACK & INTERACTIVE STAR RATING
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
+    rating_names = {
+        1: "Worst",
+        2: "Bad",
+        3: "Good",
+        4: "Better",
+        5: "Best"
+    }
+
+    if "rating" not in st.session_state:
+        st.session_state.rating = 5  # Default to Best (5)
+
+    if "rating_text" not in st.session_state:
+        st.session_state.rating_text = "Best"
+
+    current_rating = st.session_state.rating
+    current_rating_text = rating_names.get(current_rating, "Best")
+
+    st.html("""
+    <style>
+    .sk-rating-box {
+        width: 100%;
+        min-height: 125px;
+        margin: 18px 0 20px 0;
+        padding: 18px 20px;
+        box-sizing: border-box;
+        border-radius: 14px;
+        background: linear-gradient(90deg, rgba(5, 45, 28, 0.97), rgba(11, 61, 46, 0.94), rgba(20, 85, 48, 0.78));
+        border: 1px solid rgba(57, 255, 136, 0.38);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.55), inset 0 0 35px rgba(57, 255, 136, 0.08);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .sk-star-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        white-space: nowrap;
+    }
+    .sk-star-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .sk-star {
+        font-family: Arial, sans-serif;
+        font-size: 52px;
+        line-height: 1;
+        display: inline-block;
+    }
+    .sk-star-empty {
+        color: #D3D3D3;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+    }
+    .sk-star-selected {
+        color: #39FF88;
+        text-shadow: 0 0 6px #39FF88, 0 0 14px #39FF88, 0 0 22px rgba(57, 255, 136, 0.85), 0 0 32px rgba(57, 255, 136, 0.6);
+    }
+    .sk-star-label-text {
+        font-size: 13px;
+        font-weight: 700;
+        color: #A7F3D0;
+        margin-top: 6px;
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    }
+    .sk-rating-result {
+        margin-top: 10px;
+        color: #39FF88;
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85);
+    }
+    .sk-rating-instruction {
+        color: #FFFFFF;
+        font-size: 15px;
+        font-weight: 600;
+        margin-top: 5px;
+        margin-bottom: 8px;
+    }
+    .sk-star-button-area div[data-testid="stButton"] > button {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        min-height: 40px !important;
+        height: 45px !important;
+        color: #39FF88 !important;
+        font-family: Arial, sans-serif !important;
+        font-size: 28px !important;
+        font-weight: 700 !important;
+        transition: transform 0.15s ease, color 0.15s ease, text-shadow 0.15s ease !important;
+    }
+    .sk-star-button-area div[data-testid="stButton"] > button:hover {
+        background: rgba(57, 255, 136, 0.15) !important;
+        border: 1px solid #39FF88 !important;
+        border-radius: 8px !important;
+        color: #FFFFFF !important;
+        transform: scale(1.05) !important;
+    }
+    .sk-navigation-buttons div[data-testid="stButton"] > button {
+        background: linear-gradient(135deg, #075B3A, #0B6B43) !important;
+        color: #FFFFFF !important;
+        border: 1px solid #39FF88 !important;
+        border-radius: 10px !important;
+        min-height: 48px !important;
+        padding: 8px 18px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 0 8px rgba(57, 255, 136, 0.18), inset 0 0 8px rgba(57, 255, 136, 0.05) !important;
+        transition: all 0.2s ease !important;
+    }
+    .sk-navigation-buttons div[data-testid="stButton"] > button:hover {
+        background: linear-gradient(135deg, #08704A, #0B8050) !important;
+        color: #FFFFFF !important;
+        border-color: #66FFAA !important;
+        box-shadow: 0 0 10px rgba(57, 255, 136, 0.45), 0 0 20px rgba(57, 255, 136, 0.18) !important;
+        transform: translateY(-1px) !important;
+    }
+    </style>
+    """)
+
     if os.path.exists(LOGO_FILE_EXACT):
         c_logo, c_title = st.columns([0.15, 0.85], gap="small")
         with c_logo:
             st.image(LOGO_FILE_EXACT, width=120)
         with c_title:
-            st.markdown(f"""
-            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
-                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
-                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Farmer Feedback & Star Rating</p>
+            st.html("""
+            <div style="background: rgba(11, 61, 46, 0.92); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                <h2 style="color:#FFFFFF; margin:0 0 6px 0; font-size:22px; font-weight:700;">
+                    SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
+                </h2>
+                <p style="color:#FFFFFF; margin:0; font-size:14px; font-weight:600;">
+                    Farmer Feedback & Star Rating
+                </p>
             </div>
-            """, unsafe_allow_html=True)
+            """)
+
     st.subheader(T["feedback_title"])
-    st.write("Please rate your advisory experience before exiting:")
+    st.html("""
+    <div class="sk-rating-instruction">
+        Please rate your advisory experience before exiting:
+    </div>
+    """)
 
-    st.components.v1.html("""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body {
-                font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-                background-color: transparent;
-                margin: 0;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-            }
-            .stars {
-                display: flex;
-                flex-direction: row-reverse;
-                justify-content: center;
-                gap: 16px;
-            }
-            .stars input {
-                display: none;
-            }
-            .star-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-            .stars label {
-                font-size: 85px;
-                color: #ccc;
-                cursor: pointer;
-                transition: color 0.2s ease;
-                line-height: 1;
-            }
-            .star-label-text {
-                font-size: 14px;
-                font-weight: 700;
-                color: #A7F3D0;
-                margin-top: 6px;
-            }
-            .stars input:checked ~ .star-item label,
-            .stars input:checked ~ .star-item .star-label-text,
-            .star-item:hover label,
-            .star-item:hover ~ .star-item label,
-            .star-item:hover .star-label-text,
-            .star-item:hover ~ .star-item .star-label-text {
-                color: #39FF88 !important;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="stars">
-            <div class="star-item">
-                <input type="radio" id="star5" name="rating" value="5" checked>
-                <label for="star5">&#9733;</label>
-                <span class="star-label-text">Best</span>
-            </div>
-            <div class="star-item">
-                <input type="radio" id="star4" name="rating" value="4">
-                <label for="star4">&#9733;</label>
-                <span class="star-label-text">Better</span>
-            </div>
-            <div class="star-item">
-                <input type="radio" id="star3" name="rating" value="3">
-                <label for="star3">&#9733;</label>
-                <span class="star-label-text">Good</span>
-            </div>
-            <div class="star-item">
-                <input type="radio" id="star2" name="rating" value="2">
-                <label for="star2">&#9733;</label>
-                <span class="star-label-text">Bad</span>
-            </div>
-            <div class="star-item">
-                <input type="radio" id="star1" name="rating" value="1">
-                <label for="star1">&#9733;</label>
-                <span class="star-label-text">Worst</span>
-            </div>
+    # Render stars with labels underneath (Worst to Best layout matching your reference image)
+    star_items_html = ""
+    ordered_stars = [
+        (1, "Worst"),
+        (2, "Bad"),
+        (3, "Good"),
+        (4, "Better"),
+        (5, "Best")
+    ]
+    for s_val, s_lbl in ordered_stars:
+        cls = "sk-star sk-star-selected" if s_val <= current_rating else "sk-star sk-star-empty"
+        star_items_html += f"""
+        <div class="sk-star-container">
+            <span class="{cls}">★</span>
+            <span class="sk-star-label-text">{s_lbl}</span>
         </div>
-    </body>
-    </html>
-    """, height=140)
+        """
 
-    rating_options = {
-        "⭐⭐⭐⭐⭐ Best (5 Stars)": (5, "Best"),
-        "⭐⭐⭐⭐ Better (4 Stars)": (4, "Better"),
-        "⭐⭐⭐ Good (3 Stars)": (3, "Good"),
-        "⭐⭐ Bad (2 Stars)": (2, "Bad"),
-        "⭐ Worst (1 Star)": (1, "Worst")
-    }
-    sel_opt = st.radio("Confirm Rating Tier:", list(rating_options.keys()), index=0, horizontal=True)
-    num_rate, text_rate = rating_options[sel_opt]
+    st.html(f"""
+    <div class="sk-rating-box">
+        <div class="sk-star-row">
+            {star_items_html}
+        </div>
+        <div class="sk-rating-result">
+            Selected Tier: {current_rating_text} ({current_rating}/5)
+        </div>
+    </div>
+    """)
+
+    st.html("""
+    <div style="text-align:center; color:#FFFFFF; font-size:14px; font-weight:600; margin-bottom:10px;">
+        Click a rating level below to update:
+    </div>
+    """)
+
+    # Clickable buttons to select the rating tier cleanly
+    bc1, bc2, bc3, bc4, bc5 = st.columns(5, gap="small")
+    with bc1:
+        if st.button("1 - Worst", use_container_width=True):
+            st.session_state.rating = 1
+            st.session_state.rating_text = "Worst"
+            st.rerun()
+    with bc2:
+        if st.button("2 - Bad", use_container_width=True):
+            st.session_state.rating = 2
+            st.session_state.rating_text = "Bad"
+            st.rerun()
+    with bc3:
+        if st.button("3 - Good", use_container_width=True):
+            st.session_state.rating = 3
+            st.session_state.rating_text = "Good"
+            st.rerun()
+    with bc4:
+        if st.button("4 - Better", use_container_width=True):
+            st.session_state.rating = 4
+            st.session_state.rating_text = "Better"
+            st.rerun()
+    with bc5:
+        if st.button("5 - Best", use_container_width=True):
+            st.session_state.rating = 5
+            st.session_state.rating_text = "Best"
+            st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
-    feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
+    feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...", key="feedback_comments_box")
 
-    b_fb_back, b_fb_sub = st.columns([1, 5])
-    if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
-        st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
-        st.rerun()
+    st.markdown('<div class="sk-navigation-buttons">', unsafe_allow_html=True)
+    b_fb_back, b_fb_sub = st.columns([1, 5], gap="small")
 
-    if b_fb_sub.button(T["feedback_submit"]):
-        if not feedback_comments.strip():
-            st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
-        else:
-            save_feedback(st.session_state.user_mobile, num_rate, text_rate, feedback_comments.strip())
-            st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
-
-            st.session_state.logged_in = False
-            st.session_state.user_mobile = ""
-            st.session_state.feedback_given = True
-            st.session_state.step = 1
-            st.cache_data.clear()
+    with b_fb_back:
+        if st.button(T["btn_back"], key="feedback_back_btn", use_container_width=True):
+            st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
             st.rerun()
+
+    with b_fb_sub:
+        if st.button(T["feedback_submit"], key="feedback_submit_btn", use_container_width=True):
+            if current_rating == 0:
+                st.error("⭐ Please select a star rating level before exiting.")
+            elif not feedback_comments.strip():
+                st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
+            else:
+                save_feedback(
+                    st.session_state.user_mobile,
+                    current_rating,
+                    current_rating_text,
+                    feedback_comments.strip()
+                )
+                st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
+
+                st.session_state.logged_in = False
+                st.session_state.user_mobile = ""
+                st.session_state.feedback_given = True
+                st.session_state.rating = 5
+                st.session_state.rating_text = "Best"
+                st.session_state.step = 1
+                st.cache_data.clear()
+                st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
