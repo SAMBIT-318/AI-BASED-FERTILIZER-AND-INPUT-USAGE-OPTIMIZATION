@@ -1921,7 +1921,7 @@ elif st.session_state.step == 7:
                 <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Official Farmer Prescription Card (Smart Kishan Certified)</p>
             </div>
             """, unsafe_allow_html=True)
-
+            
     opt = st.session_state.get("opt_results", {
         "urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, 
         "land_area": st.session_state.get("land_area", 0.6)
@@ -2283,9 +2283,7 @@ elif st.session_state.step == 8:
 
     with b_fb_back:
         if st.button(T["btn_back"], key="feedback_back_btn", use_container_width=True):
-            st.session_state.step = (
-                7 if st.session_state.app_mode == "Full Optimization" else 2
-            )
+            st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
             st.rerun()
 
     with b_fb_sub:
