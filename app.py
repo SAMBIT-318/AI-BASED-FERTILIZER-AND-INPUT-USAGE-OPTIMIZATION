@@ -208,18 +208,6 @@ st.markdown("""
         background-repeat: no-repeat !important;
     }
 
-    .glass-login-card {
-        position: relative;
-        z-index: 10;
-        background: rgba(11, 61, 46, 0.94) !important;
-        backdrop-filter: blur(18px) !important;
-        border: 1px solid rgba(57, 255, 136, 0.6) !important;
-        border-radius: 20px !important;
-        padding: 32px !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important;
-        width: 100% !important;
-    }
-
     .metric-card {
         background: rgba(11, 61, 46, 0.90) !important;
         border-radius: 14px !important;
@@ -315,30 +303,73 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# SAFE MODEL LOADER
+# SAFE SELF-HEALING MODEL LOADER
 # -------------------------------------------------------------
 MODELS_DIR = "saved_models"
 
+REQUIRED_MODELS = [
+    "crop_model.pkl",
+    "crop_encoder.pkl",
+    "fert_model.pkl",
+    "soil_encoder.pkl",
+    "crop_type_encoder.pkl",
+    "fert_encoder.pkl",
+    "yield_model.pkl",
+    "yield_features.pkl",
+    "yield_crop_encoder.pkl",
+    "irrigation_model.pkl",
+    "price_model.pkl"
+]
+
+def force_retrain():
+    """Forces retraining and overwriting of incompatible or missing pkl files."""
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    for fname in REQUIRED_MODELS:
+        fpath = os.path.join(MODELS_DIR, fname)
+        if os.path.exists(fpath):
+            try:
+                os.remove(fpath)
+            except Exception:
+                pass
+    train_all_models()
+
 def ensure_models_exist():
     os.makedirs(MODELS_DIR, exist_ok=True)
-    required = ["crop_model.pkl", "fert_model.pkl", "yield_model.pkl", "irrigation_model.pkl", "price_model.pkl"]
-    if not all(os.path.exists(os.path.join(MODELS_DIR, f)) for f in required):
+    if not all(os.path.exists(os.path.join(MODELS_DIR, f)) for f in REQUIRED_MODELS):
         train_all_models()
 
 @st.cache_resource(show_spinner=False)
 def load_all_models():
     ensure_models_exist()
-    crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
-    crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
-    fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
-    soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
-    crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
-    fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
-    yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
-    yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
-    irrig_m = joblib.load(os.path.join(MODELS_DIR, "irrigation_model.pkl"))
-    price_m = joblib.load(os.path.join(MODELS_DIR, "price_model.pkl"))
-    return crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, irrig_m, price_m
+    try:
+        crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
+        crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
+        fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
+        soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
+        crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
+        fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
+        yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
+        yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
+        yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
+        irrig_m = joblib.load(os.path.join(MODELS_DIR, "irrigation_model.pkl"))
+        price_m = joblib.load(os.path.join(MODELS_DIR, "price_model.pkl"))
+    except (ModuleNotFoundError, AttributeError, EOFError, ImportError, ValueError):
+        # Auto-heal: Clear broken models and retrain in current environment
+        force_retrain()
+        crop_m = joblib.load(os.path.join(MODELS_DIR, "crop_model.pkl"))
+        crop_enc = joblib.load(os.path.join(MODELS_DIR, "crop_encoder.pkl"))
+        fert_m = joblib.load(os.path.join(MODELS_DIR, "fert_model.pkl"))
+        soil_enc = joblib.load(os.path.join(MODELS_DIR, "soil_encoder.pkl"))
+        crop_type_enc = joblib.load(os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
+        fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
+        yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
+        yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
+        yield_crop_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
+        irrig_m = joblib.load(os.path.join(MODELS_DIR, "irrigation_model.pkl"))
+        price_m = joblib.load(os.path.join(MODELS_DIR, "price_model.pkl"))
+
+    return (crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, 
+            fert_enc, yield_m, yield_feat, irrig_m, price_m)
 
 (crop_model, crop_encoder, fert_model, soil_encoder, 
  crop_type_encoder, fert_enc, yield_model, 
