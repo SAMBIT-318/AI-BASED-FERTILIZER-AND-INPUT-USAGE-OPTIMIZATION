@@ -78,7 +78,7 @@ def train_all_models():
     joblib.dump(crop_clf, os.path.join(MODELS_DIR, "crop_model.pkl"))
     joblib.dump(crop_encoder, os.path.join(MODELS_DIR, "crop_encoder.pkl"))
 
-    # 2. FERTILIZER CLASSIFIER (TARGET: ~99% ACCURACY)
+    # 2. FERTILIZER CLASSIFIER
     fert_path = os.path.join(DATA_DIR, "Fertilizer Prediction.csv")
     if os.path.exists(fert_path):
         df_f = pd.read_csv(fert_path)
