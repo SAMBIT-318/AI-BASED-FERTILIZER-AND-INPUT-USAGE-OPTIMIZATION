@@ -7,7 +7,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, r2_score
-python train_pipeline.py
 MODELS_DIR = "saved_models"
 DATA_DIR = "data"
 os.makedirs(MODELS_DIR, exist_ok=True)
