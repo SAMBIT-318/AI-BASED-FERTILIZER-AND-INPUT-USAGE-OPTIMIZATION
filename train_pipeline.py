@@ -15,7 +15,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 def train_all_models():
     np.random.seed(42)
 
-    # 1. CROP RECOMMENDER (TARGET: ~99% ACCURACY)
+    # 1. CROP RECOMMENDER (HIGH-ACCURACY MULTI-CLASS CLASSIFIER)
     crop_path = os.path.join(DATA_DIR, "Crop_recommendation.csv")
     if os.path.exists(crop_path):
         df_crop = pd.read_csv(crop_path)
@@ -129,7 +129,7 @@ def train_all_models():
     joblib.dump(crop_type_enc, os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
     joblib.dump(fert_enc, os.path.join(MODELS_DIR, "fert_encoder.pkl"))
 
-    # 3. YIELD REGRESSOR (R^2 > 0.98)
+    # 3. YIELD REGRESSOR
     n_samples = 2000
     df_yield = pd.DataFrame({
         'N': np.random.uniform(20, 140, n_samples),
