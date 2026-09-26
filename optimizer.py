@@ -6,8 +6,6 @@ def optimize_fertilizer_blend(req_n, req_p, req_k, budget_cap, land_area, soil_t
     Multi-Objective Linear Programming Solver for Precision Agronomy.
     Ensures optimal nutrient coverage bounded strictly by farmer budget.
     """
-    # Nutrient fractions [N, P2O5, K2O, Organic Carbon]
-    # Fertilizers: [Urea, DAP, MOP, Complex 14-35-14, Organic Compost]
     nutrient_matrix = np.array([
         [0.46, 0.00, 0.00, 0.00],  # Urea
         [0.18, 0.46, 0.00, 0.00],  # DAP
