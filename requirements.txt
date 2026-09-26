@@ -1,10 +1,13 @@
 streamlit
-scikit-learn
-scipy
 numpy
 pandas
+scikit-learn
+scipy
 joblib
-sqlalchemy
-psycopg2-binary
 Pillow
+SQLAlchemy
+psycopg2-binary
+altair
+plotly
 reportlab
+requests
