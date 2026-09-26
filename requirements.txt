@@ -2,6 +2,7 @@ streamlit
 numpy
 pandas
 scikit-learn==1.6.1
+xgboost==3.4.1
 scipy
 joblib
 Pillow
