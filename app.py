@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import hashlib
-
 from datetime import datetime, timezone, timedelta
 from PIL import Image, ImageStat, ImageFilter
 from sqlalchemy import create_engine, text
@@ -649,9 +648,9 @@ if "user_role" not in st.session_state:
 if "user_mobile" not in st.session_state:
     st.session_state.user_mobile = ""
 if "rating" not in st.session_state:
-    st.session_state.rating = 0
+    st.session_state.rating = 5
 if "rating_text" not in st.session_state:
-    st.session_state.rating_text = ""
+    st.session_state.rating_text = "Best"
 if "plot_id" not in st.session_state:
     st.session_state.plot_id = "Plot No. 104/1"
 if "raw_land_val" not in st.session_state:
@@ -1200,60 +1199,36 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
     ])
 
     with admin_tab1:
-        if "admin_sub_view" not in st.session_state:
-            st.session_state.admin_sub_view = "home"
+        st.markdown("### 👥 Registered Users Management")
+        if engine:
+            try:
+                with engine.connect() as conn:
+                    users_df = pd.read_sql(text("SELECT mobile_number, role FROM users"), conn)
+                if not users_df.empty:
+                    st.dataframe(users_df, use_container_width=True)
+                    del_mob = st.text_input("Enter Mobile Number to Delete User Account:", key="del_user_input")
+                    if st.button("🗑️ Delete User ID"):
+                        if del_mob.strip():
+                            with engine.connect() as conn:
+                                conn.execute(text("DELETE FROM users WHERE mobile_number = :m"), {"m": str(del_mob.strip())})
+                                conn.commit()
+                            log_activity(st.session_state.user_mobile, "Admin Action", f"Deleted user {del_mob}")
+                            st.success(f"Successfully deleted user account: {del_mob}")
+                            st.rerun()
+                else:
+                    st.info("No registered users found in database.")
+            except Exception as e:
+                st.error(f"Error loading users: {e}")
 
-        if st.session_state.admin_sub_view == "home":
-            st.markdown("### 👥 Admin Management Hub")
-            st.write("Select a section below to view detailed records full-screen:")
-            c_nav1, c_nav2 = st.columns(2)
-            with c_nav1:
-                if st.button("👥 Open Registered Users Management", use_container_width=True):
-                    st.session_state.admin_sub_view = "users"
-                    st.rerun()
-            with c_nav2:
-                if st.button("📜 Open User Activity History", use_container_width=True):
-                    st.session_state.admin_sub_view = "activity"
-                    st.rerun()
-
-        elif st.session_state.admin_sub_view == "users":
-            if st.button("⬅️ Back to Admin Hub"):
-                st.session_state.admin_sub_view = "home"
-                st.rerun()
-
-            st.markdown("### 👥 Registered Users Management")
-            if engine:
-                try:
-                    with engine.connect() as conn:
-                        users_df = pd.read_sql(text("SELECT mobile_number, role FROM users"), conn)
-                        if not users_df.empty:
-                            st.dataframe(users_df, use_container_width=True)
-                            del_mob = st.text_input("Enter Mobile Number to Delete User Account:", key="del_user_input")
-                            if st.button("🗑️ Delete User ID"):
-                                if del_mob.strip():
-                                    with engine.connect() as conn:
-                                        conn.execute(text("DELETE FROM users WHERE mobile_number = :m"), {"m": str(del_mob.strip())})
-                                        conn.commit()
-                                    st.success(f"Successfully deleted user account: {del_mob}")
-                                    st.rerun()
-                        else:
-                            st.info("No registered users found in database.")
-                except Exception as e:
-                    st.error(f"Error loading users: {e}")
-
-        elif st.session_state.admin_sub_view == "activity":
-            if st.button("⬅️ Back to Admin Hub"):
-                st.session_state.admin_sub_view = "home"
-                st.rerun()
-
+            st.markdown("---")
             st.markdown("### 📜 User Activity History")
             try:
                 with engine.connect() as conn:
                     act_df = pd.read_sql(text("SELECT mobile, activity_type, details, created_at FROM user_activity WHERE is_deleted = 0 ORDER BY created_at DESC"), conn)
-                    if not act_df.empty:
-                        st.dataframe(act_df, use_container_width=True)
-                    else:
-                        st.info("No active logs recorded.")
+                if not act_df.empty:
+                    st.dataframe(act_df, use_container_width=True)
+                else:
+                    st.info("No active logs recorded.")
             except Exception as e:
                 st.error(f"Error: {e}")
 
@@ -1366,15 +1341,19 @@ elif st.session_state.step == 2:
         st.session_state.step = 1
         st.rerun()
 
-    # --- 2 Redirectable Admin Hub Buttons ---
-    nav_btn1, nav_btn2 = st.columns(2)
+    # --- 3 Navigation Action Buttons to separate pages ---
+    nav_btn1, nav_btn2, nav_btn3 = st.columns(3)
     with nav_btn1:
-        if st.button("👥 Registered Users Management", use_container_width=True):
-            st.session_state.step = 24
+        if st.button("🆘 Help & Account Requests", use_container_width=True):
+            st.session_state.step = 21
             st.rerun()
     with nav_btn2:
-        if st.button("📜 User Activity History", use_container_width=True):
-            st.session_state.step = 25
+        if st.button("🔔 Resolved Notifications & Reply", use_container_width=True):
+            st.session_state.step = 22
+            st.rerun()
+    with nav_btn3:
+        if st.button("📜 My Activity History", use_container_width=True):
+            st.session_state.step = 23
             st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -1560,51 +1539,102 @@ elif st.session_state.step == 2:
                 st.rerun()
 
 # -------------------------------------------------------------
-# STEP 24: REGISTERED USERS MANAGEMENT VIEW
+# SUB-PAGE 21: HELP & ACCOUNT REQUESTS
 # -------------------------------------------------------------
-elif st.session_state.step == 24:
-    if st.button("⬅️ Back to Control Center", key="back_to_control_users"):
+elif st.session_state.step == 21:
+    st.subheader("🆘 Official Farmer Help Desk & Support Requests")
+    st.caption("Submit your requests directly to the administration command team:")
+    h_type = st.selectbox("Select Request Category:", ["Delete My Account", "Recover My Deleted Activity", "General Inquiry"])
+    h_details = st.text_area("Provide details or query for the admin team:")
+
+    b_sub_col1, b_sub_col2 = st.columns([1, 4])
+    with b_sub_col1:
+        if st.button("⬅️ Back to Farm Dashboard", key="btn_back_p21"):
+            st.session_state.step = 2
+            st.rerun()
+    with b_sub_col2:
+        if st.button("Submit Request to Admin ➔", key="btn_sub_req_p21"):
+            if h_details.strip() or h_type:
+                if engine:
+                    with engine.connect() as conn:
+                        conn.execute(text("""
+                            INSERT INTO help_requests (mobile, request_type, query_text)
+                            VALUES (:m, :rt, :q)
+                        """), {"m": str(st.session_state.user_mobile), "rt": h_type, "q": h_details.strip()})
+                        conn.commit()
+                log_activity(st.session_state.user_mobile, "Help Request", f"Submitted request: {h_type}")
+                st.success("✅ Request sent to admin! Check 'Resolved Notifications' for resolutions.")
+
+# -------------------------------------------------------------
+# SUB-PAGE 22: RESOLVED NOTIFICATIONS & FEEDBACK
+# -------------------------------------------------------------
+elif st.session_state.step == 22:
+    st.subheader("🔔 Resolved Messages & Admin Responses")
+    if st.button("⬅️ Back to Farm Dashboard", key="btn_back_p22"):
         st.session_state.step = 2
         st.rerun()
 
-    st.markdown("### 👥 Registered Users Management")
+    st.markdown("<br>", unsafe_allow_html=True)
     if engine:
         try:
             with engine.connect() as conn:
-                users_df = pd.read_sql(text("SELECT mobile_number, role FROM users"), conn)
-                if not users_df.empty:
-                    st.dataframe(users_df, use_container_width=True)
-                    del_mob = st.text_input("Enter Mobile Number to Delete User Account:", key="del_user_input")
-                    if st.button("🗑️ Delete User ID", key="delete_user_btn"):
-                        if del_mob.strip():
+                notif_df = pd.read_sql(
+                    text("SELECT id, request_type, status, admin_reply, user_feedback FROM help_requests WHERE mobile = :m ORDER BY id DESC"),
+                    conn,
+                    params={"m": str(st.session_state.user_mobile)}
+                )
+            if not notif_df.empty:
+                for idx, row in notif_df.iterrows():
+                    nid = row["id"]
+                    ntype = row["request_type"]
+                    nstat = row["status"]
+                    nreply = row["admin_reply"] or "Awaiting admin resolution..."
+                    nufeed = row["user_feedback"] or ""
+
+                    st.markdown(f"""
+                    <div style="background: rgba(11, 61, 46, 0.95); padding: 14px; border-radius: 12px; border-left: 5px solid #39FF88; margin-bottom: 10px;">
+                        <h4 style="margin:0; color:#39FF88;">Request #{nid}: {ntype} &mdash; Status: {nstat}</h4>
+                        <p style="margin:6px 0 0 0; color:#FFFFFF;"><strong>Admin Resolution Message:</strong> {nreply}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    with st.expander(f"Reply or Give Feedback on Resolution #{nid}"):
+                        u_reply_msg = st.text_area("Your Reply / Feedback to this resolution:", value=nufeed, key=f"user_feedback_notif_{nid}")
+                        if st.button("Send Feedback to Admin", key=f"btn_send_ufeed_{nid}"):
                             with engine.connect() as conn:
-                                conn.execute(text("DELETE FROM users WHERE mobile_number = :m"), {"m": str(del_mob.strip())})
+                                conn.execute(text("UPDATE help_requests SET user_feedback = :uf WHERE id = :id"), {"uf": u_reply_msg, "id": nid})
                                 conn.commit()
-                            st.success(f"Successfully deleted user account: {del_mob}")
+                            st.success("✅ Reply sent to admin!")
                             st.rerun()
-                else:
-                    st.info("No registered users found in database.")
+            else:
+                st.info("No notifications recorded yet.")
         except Exception as e:
-            st.error(f"Error loading users: {e}")
+            st.error(f"Error loading notifications: {e}")
 
 # -------------------------------------------------------------
-# STEP 25: USER ACTIVITY HISTORY VIEW
+# SUB-PAGE 23: USER ACTIVITY HISTORY
 # -------------------------------------------------------------
-elif st.session_state.step == 25:
-    if st.button("⬅️ Back to Control Center", key="back_to_control_activity"):
+elif st.session_state.step == 23:
+    st.subheader("📜 My Agricultural Activity History")
+    if st.button("⬅️ Back to Farm Dashboard", key="btn_back_p23"):
         st.session_state.step = 2
         st.rerun()
 
-    st.markdown("### 📜 User Activity History")
-    try:
-        with engine.connect() as conn:
-            act_df = pd.read_sql(text("SELECT mobile, activity_type, details, created_at FROM user_activity WHERE is_deleted = 0 ORDER BY created_at DESC"), conn)
-            if not act_df.empty:
-                st.dataframe(act_df, use_container_width=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    if engine:
+        try:
+            with engine.connect() as conn:
+                my_act = pd.read_sql(
+                    text("SELECT activity_type, details, created_at FROM user_activity WHERE mobile = :m AND is_deleted = 0 ORDER BY created_at DESC"),
+                    conn,
+                    params={"m": str(st.session_state.user_mobile)}
+                )
+            if not my_act.empty:
+                st.dataframe(my_act, use_container_width=True)
             else:
-                st.info("No active logs recorded.")
-    except Exception as e:
-        st.error(f"Error: {e}")
+                st.info("No activity logged yet.")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
 # -------------------------------------------------------------
 # SCREEN 3: SOIL HEALTH, WATER & RISK EVALUATION
@@ -1672,7 +1702,7 @@ elif st.session_state.step == 4:
             st.markdown(f"""
             <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
                 <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
-                <p style="color: #39FF88; margin: 0; font-size: 14px; font-weight: 600;">Current Soil Nutrients vs Ideal Farm Target (Bar Analysis)</p>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Current Soil Nutrients vs Ideal Farm Target (Bar Analysis)</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1684,8 +1714,8 @@ elif st.session_state.step == 4:
             "Value": [round(soil_val, 1), round(target_val, 1)]
         })
         bars = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
-            x=alt.X("Nutrient Status:N", axis=alt.Axis(labelColor="#000000", labelFontSize=14, title=None)),
-            y=alt.Y("Value:Q", axis=alt.Axis(labelColor="#000000", titleColor="#000000", title="kg/ha")),
+            x=alt.X("Nutrient Status:N", axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None)),
+            y=alt.Y("Value:Q", axis=alt.Axis(labelColor="#FFFFFF", titleColor="#39FF88", title="kg/ha")),
             color=alt.Color("Nutrient Status:N", scale=alt.Scale(range=[color_bar, "#1B5E20"]), legend=None),
             tooltip=[alt.Tooltip("Nutrient Status:N"), alt.Tooltip("Value:Q")]
         )
@@ -1695,13 +1725,13 @@ elif st.session_state.step == 4:
             dy=-10,
             fontSize=13,
             fontWeight='bold',
-            color='#000000'
+            color='#FFFFFF'
         ).encode(
             x=alt.X("Nutrient Status:N"),
             y=alt.Y("Value:Q"),
             text=alt.Text("Value:Q", format=".1f")
         )
-        return (bars + text_labels).properties(height=420)
+        return (bars + text_labels).properties(height=260)
 
     with d1:
         st.markdown("##### Nitrogen (N) Ratio (kg/ha)")
@@ -1739,7 +1769,7 @@ elif st.session_state.step == 5:
             st.markdown(f"""
             <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
                 <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
-                <p style="color: #000000; margin: 0; font-size: 14px; font-weight: 600;">Deficit Analysis, Universal Crop AI & Future Market Price</p>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Deficit Analysis, Universal Crop AI & Future Market Price</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1772,13 +1802,13 @@ elif st.session_state.step == 5:
             "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"],
             "Shortage (kg/acre)": [round(def_n, 1), round(def_p, 1), round(def_k, 1)]
         })
-        short_bars = alt.Chart(def_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color="#2E7D32").encode(
-            x=alt.X("Nutrient:N", axis=alt.Axis(labelColor="#000000", labelFontSize=12, title=None)),
-            y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#000000", title="kg/acre")),
+        short_bars = alt.Chart(def_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color="#39FF88").encode(
+            x=alt.X("Nutrient:N", axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None)),
+            y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#FFFFFF", title="kg/acre")),
             tooltip=[alt.Tooltip("Nutrient:N"), alt.Tooltip("Shortage (kg/acre):Q")]
         )
         short_text = alt.Chart(def_df).mark_text(
-            align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#000000'
+            align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#FFFFFF'
         ).encode(
             x=alt.X("Nutrient:N"),
             y=alt.Y("Shortage (kg/acre):Q"),
@@ -1791,7 +1821,7 @@ elif st.session_state.step == 5:
         st.success(f"🌱 **Recommended Crop**: **{dynamic_pred_crop.capitalize()}**")
         st.markdown(f"""
         <div class="metric-card">
-            <h4 style="color:#39FF88; margin:0;">💰 Predicted Future Market Price of Product:</h4>
+            <h4 style="color:#39FF88; margin:0;">💰 Predicted Future Market Price:</h4>
             <h2 style="margin:4px 0; color:#FFFFFF;">₹{pred_price:,.0f} / Quintal</h2>
             <p style="margin:0; font-size:13px; color:#A7F3D0;">Protects farmers against uncertain market price swings.</p>
         </div>
@@ -1818,7 +1848,7 @@ elif st.session_state.step == 6:
             st.markdown(f"""
             <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
                 <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
-                <p style="color: #000000; margin: 0; font-size: 14px; font-weight: 600;">Your Fertilizer Bags & Application Schedule</p>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Your Fertilizer Bags & Application Schedule</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1854,13 +1884,13 @@ elif st.session_state.step == 6:
         "Quantity (kg)": [opt['urea_kg'], opt['dap_kg'], opt['mop_kg'], opt.get('complex_kg', 0.0), opt['compost_kg']]
     })
     fq_bars = alt.Chart(fert_qty_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
-        x=alt.X("Fertilizer Product:N", axis=alt.Axis(labelColor="#000000", labelFontSize=12, title=None)),
-        y=alt.Y("Quantity (kg):Q", axis=alt.Axis(labelColor="#000000", title="Kilograms")),
-        color=alt.Color("Fertilizer Product:N", scale=alt.Scale(range=["#39FF88", "#00E5FF", "#FFD700", "#90EE90", "#FF4D4D"]), legend=None),
+        x=alt.X("Fertilizer Product:N", axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None)),
+        y=alt.Y("Quantity (kg):Q", axis=alt.Axis(labelColor="#FFFFFF", title="Kilograms")),
+        color=alt.Color("Fertilizer Product:N", scale=alt.Scale(range=["#39FF88", "#00E5FF", "#FFD700", "#81C784", "#B9F6CA"]), legend=None),
         tooltip=[alt.Tooltip("Fertilizer Product:N"), alt.Tooltip("Quantity (kg):Q")]
     )
     fq_text = alt.Chart(fert_qty_df).mark_text(
-        align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#000000'
+        align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#FFFFFF'
     ).encode(
         x=alt.X("Fertilizer Product:N"),
         y=alt.Y("Quantity (kg):Q"),
@@ -1873,30 +1903,7 @@ elif st.session_state.step == 6:
         "Stage": ["Stage 1: Basal (Day 0)", "Stage 2: Vegetative (Day 20-25)", "Stage 3: Flowering (Day 45-55)"],
         "Nutrient Release Efficiency (%)": [90, 85, 95]
     })
-    timeline_chart = (
-        alt.Chart(timeline_df, width=400)
-        .mark_line(point=True, color="#1E88E5")
-        .encode(
-            x=alt.X(
-                "Stage:N",
-                axis=alt.Axis(
-                    labelColor="#000000",
-                    titleColor="#000000",
-                    labelAngle=0,
-                    title="Stage",
-                ),
-            ),
-            y=alt.Y(
-                "Nutrient Release Efficiency (%):Q",
-                axis=alt.Axis(
-                    labelColor="#000000",
-                    titleColor="#000000",
-                    title="Nutrient Release Efficiency (%)",
-                ),
-            ),
-        )
-    )
-    st.altair_chart(timeline_chart, use_container_width=True)
+    st.line_chart(timeline_df.set_index("Stage"))
 
     st.divider()
     b1, b2 = st.columns([1, 5])
@@ -1922,11 +1929,7 @@ elif st.session_state.step == 7:
                 <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Official Farmer Prescription Card (Smart Kishan Certified)</p>
             </div>
             """, unsafe_allow_html=True)
-
-    opt = st.session_state.get("opt_results", {
-        "urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, 
-        "land_area": st.session_state.get("land_area", 0.6)
-    })
+    opt = st.session_state.get("opt_results", {"urea_kg": 0, "dap_kg": 0, "mop_kg": 0, "compost_kg": 0, "total_cost": 0, "land_area": st.session_state.land_area})
     diag = st.session_state.get("scanned_diag", {
         "health": "Optimal Vigor", "disease": "None detected", "pest": "None",
         "symptoms": "Healthy foliage", "medicine": "Prophylactic Neem Spray",
@@ -2019,296 +2022,136 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY FARMER FEEDBACK & CLICKABLE STAR RATING
+# SCREEN 8: MANDATORY BORDERLESS STAR RATING & EXIT
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
-    rating_names = {
-        1: "Worst",
-        2: "Bad",
-        3: "Good",
-        4: "Better",
-        5: "Best"
-    }
-
-    if "rating" not in st.session_state:
-        st.session_state.rating = 0
-
-    if "rating_text" not in st.session_state:
-        st.session_state.rating_text = ""
-
-    current_rating = st.session_state.rating
-
-    if current_rating > 0:
-        current_rating_text = rating_names[current_rating]
-    else:
-        current_rating_text = "Not Rated"
-
-    st.html("""
-    <style>
-    .sk-rating-box {
-        width: 100%;
-        min-height: 125px;
-        margin: 18px 0 20px 0;
-        padding: 18px 20px;
-        box-sizing: border-box;
-        border-radius: 14px;
-        background: linear-gradient(90deg, rgba(5, 45, 28, 0.97), rgba(11, 61, 46, 0.94), rgba(20, 85, 48, 0.78));
-        border: 1px solid rgba(57, 255, 136, 0.38);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.55), inset 0 0 35px rgba(57, 255, 136, 0.08);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-    .sk-star-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        white-space: nowrap;
-    }
-    .sk-star {
-        font-family: Arial, sans-serif;
-        font-size: 58px;
-        line-height: 1;
-        display: inline-block;
-    }
-    .sk-star-empty {
-        color: #FFFFFF;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
-    }
-    .sk-star-selected {
-        color: #39FF88;
-        text-shadow: 0 0 4px #39FF88, 0 0 9px #39FF88, 0 0 17px rgba(57, 255, 136, 0.85), 0 0 28px rgba(57, 255, 136, 0.55);
-    }
-    .sk-rating-result {
-        margin-top: 8px;
-        color: #FFFFFF;
-        font-family: Arial, sans-serif;
-        font-size: 19px;
-        font-weight: 700;
-        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85);
-    }
-    .sk-rating-instruction {
-        color: #FFFFFF;
-        font-size: 15px;
-        font-weight: 600;
-        margin-top: 5px;
-        margin-bottom: 8px;
-    }
-    .sk-star-button-area div[data-testid="stButton"] > button {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        outline: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        min-height: 50px !important;
-        height: 58px !important;
-        color: #FFFFFF !important;
-        font-family: Arial, sans-serif !important;
-        font-size: 48px !important;
-        line-height: 1 !important;
-        transition: transform 0.15s ease, color 0.15s ease, text-shadow 0.15s ease !important;
-    }
-    .sk-star-button-area div[data-testid="stButton"] > button:hover {
-        background: transparent !important;
-        border: none !important;
-        color: #9AFFBD !important;
-        transform: scale(1.10) !important;
-        text-shadow: 0 0 5px #39FF88, 0 0 12px #39FF88, 0 0 22px rgba(57, 255, 136, 0.75) !important;
-    }
-    .sk-star-button-area div[data-testid="stButton"] > button:focus {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        outline: none !important;
-    }
-    .sk-star-button-area div[data-testid="stButton"] > button p {
-        color: #FFFFFF !important;
-        font-size: 48px !important;
-        line-height: 1 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    .sk-navigation-buttons div[data-testid="stButton"] > button {
-        background: linear-gradient(135deg, #075B3A, #0B6B43) !important;
-        color: #FFFFFF !important;
-        border: 1px solid #39FF88 !important;
-        border-radius: 10px !important;
-        min-height: 48px !important;
-        padding: 8px 18px !important;
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        box-shadow: 0 0 8px rgba(57, 255, 136, 0.18), inset 0 0 8px rgba(57, 255, 136, 0.05) !important;
-        transition: all 0.2s ease !important;
-    }
-    .sk-navigation-buttons div[data-testid="stButton"] > button:hover {
-        background: linear-gradient(135deg, #08704A, #0B8050) !important;
-        color: #FFFFFF !important;
-        border-color: #66FFAA !important;
-        box-shadow: 0 0 10px rgba(57, 255, 136, 0.45), 0 0 20px rgba(57, 255, 136, 0.18) !important;
-        transform: translateY(-1px) !important;
-    }
-    .sk-navigation-buttons div[data-testid="stButton"] > button:active {
-        transform: translateY(1px) !important;
-        box-shadow: 0 0 6px rgba(57, 255, 136, 0.30) !important;
-    }
-    .sk-navigation-buttons div[data-testid="stButton"] > button:focus {
-        color: #FFFFFF !important;
-        border-color: #39FF88 !important;
-        box-shadow: 0 0 8px rgba(57, 255, 136, 0.35) !important;
-    }
-    .sk-navigation-buttons div[data-testid="stButton"] > button p {
-        color: #FFFFFF !important;
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        margin: 0 !important;
-    }
-    @media (max-width: 700px) {
-        .sk-star { font-size: 42px; }
-        .sk-rating-result { font-size: 16px; }
-        .sk-star-button-area div[data-testid="stButton"] > button { font-size: 40px !important; height: 48px !important; }
-        .sk-star-button-area div[data-testid="stButton"] > button p { font-size: 40px !important; }
-    }
-    </style>
-    """)
-
     if os.path.exists(LOGO_FILE_EXACT):
         c_logo, c_title = st.columns([0.15, 0.85], gap="small")
         with c_logo:
             st.image(LOGO_FILE_EXACT, width=120)
         with c_title:
-            st.html("""
-            <div style="background: rgba(11, 61, 46, 0.92); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
-                <h2 style="color:#FFFFFF; margin:0 0 6px 0; font-size:22px; font-weight:700;">
-                    SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION
-                </h2>
-                <p style="color:#FFFFFF; margin:0; font-size:14px; font-weight:600;">
-                    Farmer Feedback & Star Rating
-                </p>
+            st.markdown(f"""
+            <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
+                <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
+                <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Farmer Feedback & Star Rating</p>
             </div>
-            """)
-
+            """, unsafe_allow_html=True)
     st.subheader(T["feedback_title"])
-    st.html("""
-    <div class="sk-rating-instruction">
-        Please rate your advisory experience before exiting:
-    </div>
-    """)
+    st.write("Please rate your advisory experience before exiting:")
 
-    if current_rating == 0:
-        star_html = """
-            <span class="sk-star sk-star-empty">☆</span>
-            <span class="sk-star sk-star-empty">☆</span>
-            <span class="sk-star sk-star-empty">☆</span>
-            <span class="sk-star sk-star-empty">☆</span>
-            <span class="sk-star sk-star-empty">☆</span>
-        """
-    else:
-        star_html = ""
-        for i in range(1, 6):
-            if i <= current_rating:
-                star_html += '<span class="sk-star sk-star-selected">★</span>'
-            else:
-                star_html += '<span class="sk-star sk-star-empty">☆</span>'
-
-    if current_rating > 0:
-        rating_result = f"{current_rating_text} ({current_rating}/5)"
-    else:
-        rating_result = "Please select a rating"
-
-    st.html(f"""
-    <div class="sk-rating-box">
-        <div class="sk-star-row">
-            {star_html}
+    st.components.v1.html("""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {
+                font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+                background-color: transparent;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            .stars {
+                display: flex;
+                flex-direction: row-reverse;
+                justify-content: center;
+                gap: 16px;
+            }
+            .stars input {
+                display: none;
+            }
+            .star-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .stars label {
+                font-size: 85px;
+                color: #ccc;
+                cursor: pointer;
+                transition: color 0.2s ease;
+                line-height: 1;
+            }
+            .star-label-text {
+                font-size: 14px;
+                font-weight: 700;
+                color: #A7F3D0;
+                margin-top: 6px;
+            }
+            .stars input:checked ~ .star-item label,
+            .stars input:checked ~ .star-item .star-label-text,
+            .star-item:hover label,
+            .star-item:hover ~ .star-item label,
+            .star-item:hover .star-label-text,
+            .star-item:hover ~ .star-item .star-label-text {
+                color: #39FF88 !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="stars">
+            <div class="star-item">
+                <input type="radio" id="star5" name="rating" value="5" checked>
+                <label for="star5">&#9733;</label>
+                <span class="star-label-text">Best</span>
+            </div>
+            <div class="star-item">
+                <input type="radio" id="star4" name="rating" value="4">
+                <label for="star4">&#9733;</label>
+                <span class="star-label-text">Better</span>
+            </div>
+            <div class="star-item">
+                <input type="radio" id="star3" name="rating" value="3">
+                <label for="star3">&#9733;</label>
+                <span class="star-label-text">Good</span>
+            </div>
+            <div class="star-item">
+                <input type="radio" id="star2" name="rating" value="2">
+                <label for="star2">&#9733;</label>
+                <span class="star-label-text">Bad</span>
+            </div>
+            <div class="star-item">
+                <input type="radio" id="star1" name="rating" value="1">
+                <label for="star1">&#9733;</label>
+                <span class="star-label-text">Worst</span>
+            </div>
         </div>
-        <div class="sk-rating-result">
-            {rating_result}
-        </div>
-    </div>
-    """)
+    </body>
+    </html>
+    """, height=140)
 
-    st.html("""
-    <div style="text-align:center; color:#FFFFFF; font-size:14px; font-weight:600; margin-bottom:5px;">
-        Select your rating:
-    </div>
-    """)
+    # Streamlit selector to capture the rating into Postgres
+    rating_options = {
+        "⭐⭐⭐⭐⭐ Best (5 Stars)": (5, "Best"),
+        "⭐⭐⭐⭐ Better (4 Stars)": (4, "Better"),
+        "⭐⭐⭐ Good (3 Stars)": (3, "Good"),
+        "⭐⭐ Bad (2 Stars)": (2, "Bad"),
+        "⭐ Worst (1 Star)": (1, "Worst")
+    }
+    sel_opt = st.radio("Confirm Rating Tier:", list(rating_options.keys()), index=0, horizontal=True)
+    num_rate, text_rate = rating_options[sel_opt]
 
-    st.markdown('<div class="sk-star-button-area">', unsafe_allow_html=True)
-    r1, r2, r3, r4, r5 = st.columns([1, 1, 1, 1, 1], gap="small")
+    st.markdown("<br>", unsafe_allow_html=True)
+    feedback_comments = st.text_area("Your Comments / Suggestions:", placeholder="Write your feedback here...")
 
-    with r1:
-        if st.button("★", key="rating_star_1", use_container_width=True):
-            st.session_state.rating = 1
-            st.session_state.rating_text = "Worst"
+    b_fb_back, b_fb_sub = st.columns([1, 5])
+    if b_fb_back.button(T["btn_back"], key="feedback_back_btn"):
+        st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
+        st.rerun()
+
+    if b_fb_sub.button(T["feedback_submit"]):
+        if not feedback_comments.strip():
+            st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
+        else:
+            save_feedback(st.session_state.user_mobile, num_rate, text_rate, feedback_comments.strip())
+            st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
+
+            st.session_state.logged_in = False
+            st.session_state.user_mobile = ""
+            st.session_state.feedback_given = True
+            st.session_state.step = 1
+            st.cache_data.clear()
             st.rerun()
-
-    with r2:
-        if st.button("★", key="rating_star_2", use_container_width=True):
-            st.session_state.rating = 2
-            st.session_state.rating_text = "Bad"
-            st.rerun()
-
-    with r3:
-        if st.button("★", key="rating_star_3", use_container_width=True):
-            st.session_state.rating = 3
-            st.session_state.rating_text = "Good"
-            st.rerun()
-
-    with r4:
-        if st.button("★", key="rating_star_4", use_container_width=True):
-            st.session_state.rating = 4
-            st.session_state.rating_text = "Better"
-            st.rerun()
-
-    with r5:
-        if st.button("★", key="rating_star_5", use_container_width=True):
-            st.session_state.rating = 5
-            st.session_state.rating_text = "Best"
-            st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    num_rate = st.session_state.rating
-    text_rate = rating_names[num_rate] if num_rate > 0 else ""
-
-    feedback_comments = st.text_area(
-        "Your Comments / Suggestions:",
-        placeholder="Write your feedback here...",
-        key="feedback_comments_box"
-    )
-
-    st.markdown('<div class="sk-navigation-buttons">', unsafe_allow_html=True)
-    b_fb_back, b_fb_sub = st.columns([1, 5], gap="small")
-
-    with b_fb_back:
-        if st.button(T["btn_back"], key="feedback_back_btn", use_container_width=True):
-            st.session_state.step = 7 if st.session_state.app_mode == "Full Optimization" else 2
-            st.rerun()
-
-    with b_fb_sub:
-        if st.button(T["feedback_submit"], key="feedback_submit_btn", use_container_width=True):
-            if num_rate == 0:
-                st.error("⭐ Please select a star rating before exiting.")
-            elif not feedback_comments.strip():
-                st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
-            else:
-                save_feedback(
-                    st.session_state.user_mobile,
-                    num_rate,
-                    text_rate,
-                    feedback_comments.strip()
-                )
-                st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
-
-                st.session_state.logged_in = False
-                st.session_state.user_mobile = ""
-                st.session_state.feedback_given = True
-                st.session_state.rating = 0
-                st.session_state.rating_text = ""
-                st.session_state.step = 1
-                st.cache_data.clear()
-                st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
