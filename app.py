@@ -291,7 +291,7 @@ st.markdown("""
     div[data-baseweb="menu"] *, ul[data-baseweb="menu"] *, [role="listbox"] *, 
     div[data-baseweb="select"] *, [data-baseweb="popover"] *,
     [data-testid="stFileUploader"] *, [data-testid="stCameraInput"] *, .stLegend *, .vega-bind * {
-        color: #000000 !important;
+        color: #FFFFFF !important;
         text-shadow: none !important;
     }
 
