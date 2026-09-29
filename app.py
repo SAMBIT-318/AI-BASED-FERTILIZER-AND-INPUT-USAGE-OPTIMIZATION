@@ -285,7 +285,7 @@ st.markdown("""
         font-weight: 700 !important;
     }
     #vg-tooltip-element * {
-        color: #000000 !important;
+        color: #FFFFFF !important;
     }
 
     div[data-baseweb="menu"] *, ul[data-baseweb="menu"] *, [role="listbox"] *, 
