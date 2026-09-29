@@ -285,13 +285,13 @@ st.markdown("""
         font-weight: 700 !important;
     }
     #vg-tooltip-element * {
-        color: #FFFFFF !important;
+        color: #000000 !important;
     }
 
     div[data-baseweb="menu"] *, ul[data-baseweb="menu"] *, [role="listbox"] *, 
     div[data-baseweb="select"] *, [data-baseweb="popover"] *,
     [data-testid="stFileUploader"] *, [data-testid="stCameraInput"] *, .stLegend *, .vega-bind * {
-        color: #FFFFFF !important;
+        color: #000000 !important;
         text-shadow: none !important;
     }
 
