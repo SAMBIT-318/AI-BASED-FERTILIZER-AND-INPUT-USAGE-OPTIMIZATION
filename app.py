@@ -633,7 +633,7 @@ if st.session_state.step == 1:
         <div class="login-brand-side">
             <div class="cert-badge">🌱 4R CERTIFIED AGRICULTURE AI</div>
             <h1>SMART <span>KISHAN</span></h1>
-            <p>Next-Generation AgriTech Control Center powered by Artificial Intelligence & Google Gemini.</p>
+            <p>Next-Generation AgriTech Control Center powered by Artificial Intelligence.</p>
         </div>
         """, unsafe_allow_html=True)
 
