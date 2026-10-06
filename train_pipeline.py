@@ -16,7 +16,7 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
 
 def train_all_models():
-    print("🚀 Initializing Smart Kishan Machine Learning Pipeline...")
+    print("🚀 Initializing Smart Kishan Machine Learning Pipeline [System Architecture]...")
     np.random.seed(42)
 
     # ---------------------------------------------------------
