@@ -1,18 +1,19 @@
+import base64
+from datetime import datetime, timedelta, timezone
+import hashlib
 import io
 import os
-import base64
 import urllib.parse
 import urllib.request
+
+import altair as alt
+import google.generativeai as genai
 import joblib
 import numpy as np
 import pandas as pd
-import streamlit as st
-import hashlib
-import google.generativeai as genai
-from datetime import datetime, timezone, timedelta
-from PIL import Image, ImageStat, ImageFilter
+from PIL import Image, ImageFilter, ImageStat
 from sqlalchemy import create_engine, text
-import altair as alt
+import streamlit as st
 
 from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_all_models
@@ -25,30 +26,43 @@ UNIT_TO_HECTARE = {
     "Hectare (हेक्टेयर / ହେକ୍ଟର)": 1.0,
     "Guntha (गुंठा / ଗୁଣ୍ଠ)": 0.010117,
     "Decimal / Cent (डिसमिल / ଡେସିମିଲ)": 0.004047,
-    "Square Feet (वर्ग फुट / ବର୍ଗ ଫୁଟ)": 0.0000092903
+    "Square Feet (वर्ग फुट / ବର୍ଗ ଫୁଟ)": 0.0000092903,
 }
 
-def calculate_advanced_nutrients(target_yield_per_acre, soil_n, soil_p, soil_k, soc, ph, soil_moist, soil_texture):
+
+def calculate_advanced_nutrients(
+    target_yield_per_acre,
+    soil_n,
+    soil_p,
+    soil_k,
+    soc,
+    ph,
+    soil_moist,
+    soil_texture,
+):
     target_yield_ha = target_yield_per_acre * 2.47105
     demand_n = 22.0 * target_yield_ha
     demand_p = 4.5 * target_yield_ha
     demand_k = 19.0 * target_yield_ha
 
     nue_n = 0.50
-    if "sandy" in str(soil_texture).lower(): nue_n -= 0.10
-    if soil_moist < 30.0 or soil_moist > 75.0: nue_n -= 0.08
+    if "sandy" in str(soil_texture).lower():
+        nue_n -= 0.10
+    if soil_moist < 30.0 or soil_moist > 75.0:
+        nue_n -= 0.08
 
     ph_p_factor = 1.0 if 6.0 <= ph <= 7.2 else (0.60 if ph < 5.5 or ph > 8.0 else 0.80)
     soc_n_factor = 1.0 + (soc * 0.15)
 
     avail_n = (soil_n * 0.45) * soc_n_factor
     avail_p = (soil_p * 0.35) * ph_p_factor
-    avail_k = (soil_k * 0.50)
+    avail_k = soil_k * 0.50
 
     def_n = max(0.0, (demand_n - avail_n) / max(0.3, nue_n))
     def_p = max(0.0, (demand_p - avail_p) / 0.35)
     def_k = max(0.0, (demand_k - avail_k) / 0.55)
     return def_n, def_p, def_k
+
 
 def verify_genuine_agricultural_soil(image_obj):
     img_rgb = image_obj.convert("RGB").resize((160, 160))
@@ -86,12 +100,17 @@ def verify_genuine_agricultural_soil(image_obj):
             "detected": True,
             "soil_type": soil_type,
             "metrics": {
-                "n": est_n, "p": est_p, "k": est_k,
-                "ph": est_ph, "soc": est_soc, "moist": est_moist,
-                "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})"
-            }
+                "n": est_n,
+                "p": est_p,
+                "k": est_k,
+                "ph": est_ph,
+                "soc": est_soc,
+                "moist": est_moist,
+                "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})",
+            },
         }
     return {"detected": False, "reason": "Surface lacks genuine agricultural soil texture."}
+
 
 def analyze_plant_disease_image(image_obj):
     img_rgb = image_obj.convert("RGB").resize((120, 120))
@@ -99,11 +118,36 @@ def analyze_plant_disease_image(image_obj):
     r_mean, g_mean, b_mean = np.mean(arr[:, :, 0]), np.mean(arr[:, :, 1]), np.mean(arr[:, :, 2])
 
     if g_mean > r_mean + 10 and g_mean > b_mean:
-        return {"health": "Healthy Plant Canopy", "disease": "None detected", "pest": "None / Low Risk", "symptoms": "Optimal vegetative growth", "medicine": "Preventative Neem Oil Spray", "recovery_chance": 100, "will_grow": "Yes, optimal"}
+        return {
+            "health": "Healthy Plant Canopy",
+            "disease": "None detected",
+            "pest": "None / Low Risk",
+            "symptoms": "Optimal vegetative growth",
+            "medicine": "Preventative Neem Oil Spray",
+            "recovery_chance": 100,
+            "will_grow": "Yes, optimal",
+        }
     elif r_mean > g_mean and r_mean > 100:
-        return {"health": "Leaf Rust / Early Blight", "disease": "Alternaria solani / Fungal", "pest": "Foliar Aphids", "symptoms": "Yellow-brown necrotic halos", "medicine": "Hexaconazole 5% EC @ 2 ml/L", "recovery_chance": 85, "will_grow": "Yes, with timely spray"}
+        return {
+            "health": "Leaf Rust / Early Blight",
+            "disease": "Alternaria solani / Fungal",
+            "pest": "Foliar Aphids",
+            "symptoms": "Yellow-brown necrotic halos",
+            "medicine": "Hexaconazole 5% EC @ 2 ml/L",
+            "recovery_chance": 85,
+            "will_grow": "Yes, with timely spray",
+        }
     else:
-        return {"health": "Severe Chlorosis", "disease": "Fusarium Wilt", "pest": "Stem Borer", "symptoms": "Loss of vascular pressure", "medicine": "Streptocycline 0.5 g/10L + Copper Oxychloride", "recovery_chance": 68, "will_grow": "Moderate"}
+        return {
+            "health": "Severe Chlorosis",
+            "disease": "Fusarium Wilt",
+            "pest": "Stem Borer",
+            "symptoms": "Loss of vascular pressure",
+            "medicine": "Streptocycline 0.5 g/10L + Copper Oxychloride",
+            "recovery_chance": 68,
+            "will_grow": "Moderate",
+        }
+
 
 # -------------------------------------------------------------
 # PAGE CONFIGURATION & THEME STYLING
@@ -112,24 +156,37 @@ st.set_page_config(
     page_title="Smart Kishan | AgriTech Control Center",
     page_icon="🌱",
     layout="wide",
-    initial_sidebar_state="expanded"  # Force Sidebar to be open for Gemini AI
+    initial_sidebar_state="expanded",
 )
 
 HERO_BG_FILE = "agritech_hero_bg.jpg"
 HERO_BG_DATA = ""
 if os.path.exists(HERO_BG_FILE):
-    with open(HERO_BG_FILE, "rb") as f: HERO_BG_DATA = base64.b64encode(f.read()).decode("utf-8")
+    with open(HERO_BG_FILE, "rb") as f:
+        HERO_BG_DATA = base64.b64encode(f.read()).decode("utf-8")
 
 LOGO_FILE_EXACT = "smart_kishan_logo.jpg"
-if not os.path.exists(LOGO_FILE_EXACT): LOGO_FILE_EXACT = "smart kishan logo.png"
+if not os.path.exists(LOGO_FILE_EXACT):
+    LOGO_FILE_EXACT = "smart kishan logo.png"
 LOGO_DATA = ""
 if os.path.exists(LOGO_FILE_EXACT):
-    with open(LOGO_FILE_EXACT, "rb") as l_f: LOGO_DATA = base64.b64encode(l_f.read()).decode("utf-8")
+    with open(LOGO_FILE_EXACT, "rb") as l_f:
+        LOGO_DATA = base64.b64encode(l_f.read()).decode("utf-8")
 
 if HERO_BG_DATA:
-    st.markdown(f'<style>.stApp {{ background-image: linear-gradient(135deg, rgba(6, 30, 22, 0.90) 0%, rgba(14, 75, 48, 0.82) 50%, rgba(110, 235, 175, 0.35) 100%), url("data:image/jpeg;base64,{HERO_BG_DATA}") !important; background-size: cover !important; background-attachment: fixed !important;}}</style>', unsafe_allow_html=True)
+    st.markdown(
+        f"""<style>
+        .stApp {{
+            background-image: linear-gradient(135deg, rgba(6, 30, 22, 0.90) 0%, rgba(14, 75, 48, 0.82) 50%, rgba(110, 235, 175, 0.35) 100%), url("data:image/jpeg;base64,{HERO_BG_DATA}") !important;
+            background-size: cover !important;
+            background-attachment: fixed !important;
+        }}
+        </style>""",
+        unsafe_allow_html=True,
+    )
 
-st.markdown("""
+st.markdown(
+    """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif; color: #FFFFFF !important; }
@@ -147,7 +204,6 @@ st.markdown("""
     div[data-baseweb="menu"] *, ul[data-baseweb="menu"] *, [role="listbox"] * { color: #000000 !important; }
     label, p, span, h1, h2, h3, h4, h5, h6 { color: #FFFFFF !important; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
 
-    /* Prescription HTML CSS */
     .prescription-container { background: #FFFFFF; color: #1E293B; border-radius: 8px; padding: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.8); font-family: 'Arial', sans-serif; max-width: 900px; margin: 0 auto; }
     .prescription-container * { color: #1E293B !important; text-shadow: none !important; }
     .pres-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2E7D32; padding-bottom: 15px; }
@@ -161,31 +217,46 @@ st.markdown("""
     .pres-table td { background-color: #FAFAFA; }
     .pres-footer { display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #2E7D32; margin-top: 30px; padding-top: 10px; font-size: 11px; color: #64748B !important; }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # -------------------------------------------------------------
 # SAFE SELF-HEALING MODEL LOADER
 # -------------------------------------------------------------
 MODELS_DIR = "saved_models"
 REQUIRED_MODELS = [
-    "crop_model.pkl", "crop_encoder.pkl", "fert_model.pkl", "soil_encoder.pkl",
-    "crop_type_encoder.pkl", "fert_encoder.pkl", "yield_model.pkl", 
-    "yield_features.pkl", "yield_crop_encoder.pkl", "irrigation_model.pkl", "price_model.pkl"
+    "crop_model.pkl",
+    "crop_encoder.pkl",
+    "fert_model.pkl",
+    "soil_encoder.pkl",
+    "crop_type_encoder.pkl",
+    "fert_encoder.pkl",
+    "yield_model.pkl",
+    "yield_features.pkl",
+    "yield_crop_encoder.pkl",
+    "irrigation_model.pkl",
+    "price_model.pkl",
 ]
+
 
 def force_retrain():
     os.makedirs(MODELS_DIR, exist_ok=True)
     for fname in REQUIRED_MODELS:
         fpath = os.path.join(MODELS_DIR, fname)
         if os.path.exists(fpath):
-            try: os.remove(fpath)
-            except Exception: pass
+            try:
+                os.remove(fpath)
+            except Exception:
+                pass
     train_all_models()
+
 
 def ensure_models_exist():
     os.makedirs(MODELS_DIR, exist_ok=True)
     if not all(os.path.exists(os.path.join(MODELS_DIR, f)) for f in REQUIRED_MODELS):
         train_all_models()
+
 
 @st.cache_resource(show_spinner=False)
 def load_all_models():
@@ -215,9 +286,35 @@ def load_all_models():
         yield_c_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
         irrig_m = joblib.load(os.path.join(MODELS_DIR, "irrigation_model.pkl"))
         price_m = joblib.load(os.path.join(MODELS_DIR, "price_model.pkl"))
-    return (crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_c_enc, irrig_m, price_m)
 
-(crop_model, crop_encoder, fert_model, soil_encoder, crop_type_encoder, fert_enc, yield_model, yield_features, yield_crop_encoder, irrig_model, price_model) = load_all_models()
+    return (
+        crop_m,
+        crop_enc,
+        fert_m,
+        soil_enc,
+        crop_type_enc,
+        fert_enc,
+        yield_m,
+        yield_feat,
+        yield_c_enc,
+        irrig_m,
+        price_m,
+    )
+
+
+(
+    crop_model,
+    crop_encoder,
+    fert_model,
+    soil_encoder,
+    crop_type_encoder,
+    fert_enc,
+    yield_model,
+    yield_features,
+    yield_crop_encoder,
+    irrig_model,
+    price_model,
+) = load_all_models()
 
 # -------------------------------------------------------------
 # DATABASE CONNECTION & AUTHENTICATION
@@ -225,62 +322,149 @@ def load_all_models():
 @st.cache_resource
 def get_db_engine():
     try:
-        db_user = "postgres.ivshypgnhsprrkhkzkkx"
-        db_password = "SambitSwain2005"
-        db_host = "aws-0-ap-northeast-1.pooler.supabase.com"
-        db_port = 6543
-        db_name = "postgres"
+        db_user = os.getenv("DB_USER", "postgres.ivshypgnhsprrkhkzkkx")
+        db_password = os.getenv("DB_PASSWORD", "SambitSwain2005")
+        db_host = os.getenv("DB_HOST", "aws-0-ap-northeast-1.pooler.supabase.com")
+        db_port = int(os.getenv("DB_PORT", 6543))
+        db_name = os.getenv("DB_NAME", "postgres")
+
         cfg_user = urllib.parse.quote_plus(db_user)
         cfg_password = urllib.parse.quote_plus(db_password)
         db_uri = f"postgresql+psycopg2://{cfg_user}:{cfg_password}@{db_host}:{db_port}/{db_name}?sslmode=require"
-        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 10})
-        
+
+        engine = create_engine(
+            db_uri,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            connect_args={"connect_timeout": 10},
+        )
+
         with engine.connect() as conn:
-            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT NOT NULL, role TEXT DEFAULT 'farmer')"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS feedback (id SERIAL PRIMARY KEY, mobile TEXT, rating INT, rating_text TEXT, comments TEXT, admin_reply TEXT)"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS help_requests (id SERIAL PRIMARY KEY, mobile TEXT, request_type TEXT, query_text TEXT, status TEXT DEFAULT 'Pending', admin_reply TEXT, attended_by TEXT, user_feedback TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS user_activity (id SERIAL PRIMARY KEY, mobile TEXT, activity_type TEXT, details TEXT, is_deleted INT DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"))
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS users (
+                        mobile_number TEXT PRIMARY KEY,
+                        password TEXT NOT NULL,
+                        role TEXT DEFAULT 'farmer'
+                    )
+                    """
+                )
+            )
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS feedback (
+                        id SERIAL PRIMARY KEY,
+                        mobile TEXT,
+                        rating INT,
+                        rating_text TEXT,
+                        comments TEXT,
+                        admin_reply TEXT
+                    )
+                    """
+                )
+            )
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS help_requests (
+                        id SERIAL PRIMARY KEY,
+                        mobile TEXT,
+                        request_type TEXT,
+                        query_text TEXT,
+                        status TEXT DEFAULT 'Pending',
+                        admin_reply TEXT,
+                        attended_by TEXT,
+                        user_feedback TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """
+                )
+            )
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS user_activity (
+                        id SERIAL PRIMARY KEY,
+                        mobile TEXT,
+                        activity_type TEXT,
+                        details TEXT,
+                        is_deleted INT DEFAULT 0,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """
+                )
+            )
             conn.commit()
         return engine
     except Exception:
         return None
 
+
 engine = get_db_engine()
+
 
 def log_activity(mobile, activity_type, details):
     if engine and mobile:
         try:
             with engine.connect() as conn:
-                conn.execute(text("INSERT INTO user_activity (mobile, activity_type, details, is_deleted) VALUES (:m, :a, :d, 0)"), {"m": str(mobile), "a": activity_type, "d": details})
+                conn.execute(
+                    text(
+                        "INSERT INTO user_activity (mobile, activity_type, details, is_deleted) VALUES (:m, :a, :d, 0)"
+                    ),
+                    {"m": str(mobile), "a": activity_type, "d": details},
+                )
                 conn.commit()
-        except: pass
+        except Exception:
+            pass
+
 
 def register_user(mobile, password, role="farmer"):
-    if not engine: return False, "Database connection unavailable."
+    if not engine:
+        return False, "Database connection unavailable."
     hashed_pw = hashlib.sha256(password.encode()).hexdigest()
     try:
         with engine.connect() as conn:
-            if conn.execute(text("SELECT mobile_number FROM users WHERE mobile_number = :m"), {"m": str(mobile)}).fetchone():
+            existing = conn.execute(
+                text("SELECT mobile_number FROM users WHERE mobile_number = :m"),
+                {"m": str(mobile)},
+            ).fetchone()
+            if existing:
                 return False, "This mobile number is already registered."
-            conn.execute(text("INSERT INTO users (mobile_number, password, role) VALUES (:m, :p, :r)"), {"m": str(mobile), "p": hashed_pw, "r": role})
+            conn.execute(
+                text("INSERT INTO users (mobile_number, password, role) VALUES (:m, :p, :r)"),
+                {"m": str(mobile), "p": hashed_pw, "r": role},
+            )
             conn.commit()
         log_activity(mobile, "Account Created", f"Registered as {role}.")
         return True, "Registration successful!"
     except Exception as e:
         return False, f"Registration error: {e}"
 
+
 def reset_user_password_direct(mobile, new_password):
-    if not engine: return False, "Database connection unavailable."
+    if not engine:
+        return False, "Database connection unavailable."
     hashed_pw = hashlib.sha256(new_password.encode()).hexdigest()
     try:
         with engine.connect() as conn:
-            if not conn.execute(text("SELECT mobile_number FROM users WHERE mobile_number = :m"), {"m": str(mobile)}).fetchone():
+            user = conn.execute(
+                text("SELECT mobile_number FROM users WHERE mobile_number = :m"),
+                {"m": str(mobile)},
+            ).fetchone()
+            if not user:
                 return False, "Mobile number not registered."
-            conn.execute(text("UPDATE users SET password = :p WHERE mobile_number = :m"), {"p": hashed_pw, "m": str(mobile)})
+            conn.execute(
+                text("UPDATE users SET password = :p WHERE mobile_number = :m"),
+                {"p": hashed_pw, "m": str(mobile)},
+            )
             conn.commit()
         log_activity(mobile, "Password Reset", "User password changed successfully.")
         return True, "Password updated successfully!"
-    except Exception as e: return False, f"Reset error: {e}"
+    except Exception as e:
+        return False, f"Reset error: {e}"
+
 
 def verify_user(mobile, password, selected_role="farmer"):
     fixed_admins = {
@@ -289,58 +473,87 @@ def verify_user(mobile, password, selected_role="farmer"):
         "9692904951": hashlib.sha256("Prabhu@123".encode()).hexdigest(),
     }
     hashed_pw = hashlib.sha256(password.encode()).hexdigest()
-    
+
     if selected_role == "admin":
-        return (True, "admin") if mobile in fixed_admins and fixed_admins[mobile] == hashed_pw else (False, "admin")
+        if mobile in fixed_admins and fixed_admins[mobile] == hashed_pw:
+            return True, "admin"
+        return False, "admin"
+
     if mobile in fixed_admins and fixed_admins[mobile] == hashed_pw:
         return True, "farmer"
-    if not engine: return False, "farmer"
+
+    if not engine:
+        return False, "farmer"
+
     try:
         with engine.connect() as conn:
-            res = conn.execute(text("SELECT password, role FROM users WHERE mobile_number = :m"), {"m": str(mobile)}).fetchone()
+            res = conn.execute(
+                text("SELECT password, role FROM users WHERE mobile_number = :m"),
+                {"m": str(mobile)},
+            ).fetchone()
             if res and res[0] == hashed_pw:
                 log_activity(mobile, "Sign In", "User signed in successfully.")
                 return True, (res[1] or "farmer")
-    except: pass
+    except Exception:
+        pass
     return False, "farmer"
+
 
 def save_feedback(mobile, rating, rating_text, comments):
     if engine:
         try:
             with engine.connect() as conn:
-                conn.execute(text("INSERT INTO feedback (mobile, rating, rating_text, comments) VALUES (:m, :r, :rt, :c)"), {"m": str(mobile), "r": rating, "rt": rating_text, "c": comments})
+                conn.execute(
+                    text(
+                        "INSERT INTO feedback (mobile, rating, rating_text, comments) VALUES (:m, :r, :rt, :c)"
+                    ),
+                    {"m": str(mobile), "r": rating, "rt": rating_text, "c": comments},
+                )
                 conn.commit()
             log_activity(mobile, "Feedback Given", f"Rated {rating_text} ({rating}/5)")
-        except: pass
+        except Exception:
+            pass
+
 
 # -------------------------------------------------------------
 # SESSION STATE INITIALIZATION
 # -------------------------------------------------------------
-if "step" not in st.session_state: st.session_state.step = 1
-if "app_mode" not in st.session_state: st.session_state.app_mode = "Full Optimization"
-if "logged_in" not in st.session_state: st.session_state.logged_in = False
-if "user_role" not in st.session_state: st.session_state.user_role = "farmer"
-if "user_mobile" not in st.session_state: st.session_state.user_mobile = ""
-if "rating" not in st.session_state: st.session_state.rating = 5
-if "rating_text" not in st.session_state: st.session_state.rating_text = "Best"
-if "plot_id" not in st.session_state: st.session_state.plot_id = "Plot No. 104/1"
-if "raw_land_val" not in st.session_state: st.session_state.raw_land_val = 1.5
-if "land_unit" not in st.session_state: st.session_state.land_unit = "Acre (एकड़ / ଏକର)"
-if "budget_cap" not in st.session_state: st.session_state.budget_cap = 25000.0
-if "target_yield" not in st.session_state: st.session_state.target_yield = 2.0
-if "soil_n" not in st.session_state: st.session_state.soil_n = 50.0
-if "soil_p" not in st.session_state: st.session_state.soil_p = 30.0
-if "soil_k" not in st.session_state: st.session_state.soil_k = 35.0
-if "soil_ph" not in st.session_state: st.session_state.soil_ph = 6.5
-if "soc" not in st.session_state: st.session_state.soc = 0.70
-if "soil_moist" not in st.session_state: st.session_state.soil_moist = 45.0
-if "temp" not in st.session_state: st.session_state.temp = 26.5
-if "humidity" not in st.session_state: st.session_state.humidity = 68.0
-if "rainfall" not in st.session_state: st.session_state.rainfall = 150.0
-if "soil_source" not in st.session_state: st.session_state.soil_source = None
-if "sel_soil" not in st.session_state: st.session_state.sel_soil = list(soil_encoder.classes_)[0]
-if "sel_crop" not in st.session_state: st.session_state.sel_crop = list(crop_type_encoder.classes_)[0]
-if "chat_messages" not in st.session_state: st.session_state.chat_messages = [{"role": "assistant", "content": "Hello Farmer! I am your Smart Kishan AI Assistant powered by Gemini. Ask me anything!"}]
+DEFAULTS = {
+    "step": 1,
+    "app_mode": "Full Optimization",
+    "logged_in": False,
+    "user_role": "farmer",
+    "user_mobile": "",
+    "rating": 5,
+    "rating_text": "Best",
+    "plot_id": "Plot No. 104/1",
+    "raw_land_val": 1.5,
+    "land_unit": "Acre (एकड़ / ଏକର)",
+    "budget_cap": 25000.0,
+    "target_yield": 2.0,
+    "soil_n": 50.0,
+    "soil_p": 30.0,
+    "soil_k": 35.0,
+    "soil_ph": 6.5,
+    "soc": 0.70,
+    "soil_moist": 45.0,
+    "temp": 26.5,
+    "humidity": 68.0,
+    "rainfall": 150.0,
+    "soil_source": None,
+    "sel_soil": list(soil_encoder.classes_)[0],
+    "sel_crop": list(crop_type_encoder.classes_)[0],
+    "chat_messages": [
+        {
+            "role": "assistant",
+            "content": "Hello Farmer! I am your Smart Kishan AI Assistant powered by Gemini. Ask me anything!",
+        }
+    ],
+}
+
+for key, val in DEFAULTS.items():
+    if key not in st.session_state:
+        st.session_state[key] = val
 
 # -------------------------------------------------------------
 # GOOGLE GEMINI AI INTEGRATION SIDEBAR (ALWAYS ACTIVE)
@@ -349,18 +562,28 @@ def render_ai_chatbot_sidebar():
     with st.sidebar:
         if os.path.exists(LOGO_FILE_EXACT):
             st.image(LOGO_FILE_EXACT, width=120)
-        st.markdown("""
+        st.markdown(
+            """
         <div style="background: rgba(11, 61, 46, 0.95); padding: 16px; border-radius: 12px; border: 1px solid #39FF88; margin-bottom: 15px;">
             <h3 style="color: #39FF88; margin: 0 0 6px 0;">🤖 Gemini AI Agronomist</h3>
             <p style="color: #FFFFFF; font-size: 13px; margin: 0;">Live chat support for farming, NPK calculations, and disease management.</p>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
-        gemini_api_key = st.text_input("Enter Gemini API Key (Optional):", type="password", help="Get a free key from Google AI Studio")
+        gemini_api_key = st.text_input(
+            "Enter Gemini API Key (Optional):",
+            type="password",
+            help="Get a free key from Google AI Studio",
+        )
 
         chat_container = st.container()
         with chat_container:
-            st.markdown('<div style="background-color: #062319; padding: 14px; border-radius: 12px; border: 1px solid rgba(57,255,136,0.3); max-height: 400px; overflow-y: auto; margin-bottom: 12px;">', unsafe_allow_html=True)
+            st.markdown(
+                '<div style="background-color: #062319; padding: 14px; border-radius: 12px; border: 1px solid rgba(57,255,136,0.3); max-height: 400px; overflow-y: auto; margin-bottom: 12px;">',
+                unsafe_allow_html=True,
+            )
             for msg in st.session_state.chat_messages:
                 if msg["role"] == "user":
                     st.markdown(f"💬 **You:** {msg['content']}")
@@ -372,22 +595,22 @@ def render_ai_chatbot_sidebar():
         if st.button("Send to AI", key="sidebar_chat_btn"):
             if user_q.strip():
                 st.session_state.chat_messages.append({"role": "user", "content": user_q})
-                
-                # Attempt to use real Gemini API if key is provided
+
                 if gemini_api_key:
                     try:
                         genai.configure(api_key=gemini_api_key)
-                        model = genai.GenerativeModel('gemini-pro')
-                        response = model.generate_content(f"You are an expert Indian Agronomist AI named Smart Kishan. Answer this farming question concisely and helpfully: {user_q}")
+                        model = genai.GenerativeModel("gemini-1.5-flash")
+                        response = model.generate_content(
+                            f"You are an expert Indian Agronomist AI named Smart Kishan. Answer this farming question concisely and helpfully: {user_q}"
+                        )
                         reply = response.text
                     except Exception as e:
                         reply = f"⚠️ Gemini API Error: {str(e)}. (Falling back to local logic)."
                 else:
-                    # Smart Mock Fallback Logic
                     q_lower = user_q.lower()
-                    if "disease" in q_lower or "pest" in q_lower or "rust" in q_lower or "blight" in q_lower:
+                    if any(w in q_lower for w in ["disease", "pest", "rust", "blight"]):
                         reply = "🔬 **Plant Pathology AI**: For fungal infections (like Early Blight or Rust), apply Mancozeb 75% WP @ 2.5g/L or Hexaconazole 5% EC. Ensure spray is done during cool morning hours."
-                    elif "urea" in q_lower or "nitrogen" in q_lower or "npk" in q_lower or "fertilizer" in q_lower:
+                    elif any(w in q_lower for w in ["urea", "nitrogen", "npk", "fertilizer"]):
                         reply = "🧪 **Nutrient Advisory**: Split your nitrogen doses across basal, tillering, and flowering stages. Avoid applying urea on dry soils to prevent ammonia volatilization."
                     else:
                         reply = f"🌱 **Agronomy AI**: I analyzed your query about '{user_q}'. Make sure your soil pH is maintained between 6.0 and 7.2 for optimal nutrient uptake!"
@@ -395,10 +618,11 @@ def render_ai_chatbot_sidebar():
                 st.session_state.chat_messages.append({"role": "assistant", "content": reply})
                 st.rerun()
 
-render_ai_chatbot_sidebar() # Sidebar rendered globally
+
+render_ai_chatbot_sidebar()
 
 # -------------------------------------------------------------
-# SCREEN 1: SMART KISHAN CINEMATIC LOGIN & REGISTRATION
+# SCREEN 1: LOGIN & REGISTRATION
 # -------------------------------------------------------------
 if st.session_state.step == 1:
     col_brand, col_login = st.columns([1.02, 0.98], gap="large")
@@ -406,19 +630,24 @@ if st.session_state.step == 1:
     with col_brand:
         if os.path.exists(LOGO_FILE_EXACT):
             st.image(LOGO_FILE_EXACT, width=230)
-        st.markdown("""
+        st.markdown(
+            """
         <div class="login-brand-side">
             <div class="cert-badge">🌱 4R CERTIFIED AGRICULTURE AI</div>
             <h1>SMART <span>KISHAN</span></h1>
             <p>Next-Generation AgriTech Control Center powered by Artificial Intelligence & Google Gemini.</p>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
     with col_login:
         st.markdown('<div class="glass-login-card">', unsafe_allow_html=True)
         st.markdown("<div class='login-title'>🔐 Welcome Back</div>", unsafe_allow_html=True)
 
-        t_login, t_admin, t_reg, t_forgot = st.tabs(["Farmer Sign In", "Admin Sign In", "Registration", "🔑 Forgot Password"])
+        t_login, t_admin, t_reg, t_forgot = st.tabs(
+            ["Farmer Sign In", "Admin Sign In", "Registration", "🔑 Forgot Password"]
+        )
 
         with t_login:
             m = st.text_input("Mobile Number", max_chars=10, key="log_m")
@@ -432,8 +661,10 @@ if st.session_state.step == 1:
                         st.session_state.user_role = "farmer"
                         st.session_state.step = 2
                         st.rerun()
-                    else: st.error("Invalid credentials.")
-                else: st.warning("Enter valid 10-digit mobile.")
+                    else:
+                        st.error("Invalid credentials.")
+                else:
+                    st.warning("Enter valid 10-digit mobile.")
 
         with t_admin:
             am = st.text_input("Admin Mobile Number", max_chars=10, key="admin_log_m")
@@ -447,7 +678,8 @@ if st.session_state.step == 1:
                         st.session_state.user_role = "admin"
                         st.session_state.step = 90
                         st.rerun()
-                    else: st.error("Access Denied.")
+                    else:
+                        st.error("Access Denied.")
 
         with t_reg:
             rm = st.text_input("Mobile Number", max_chars=10, key="reg_m")
@@ -456,9 +688,12 @@ if st.session_state.step == 1:
             if st.button("Create Account →", key="register_button"):
                 if len(rm.strip()) == 10 and rp == rpc and len(rp) > 0:
                     ok, msg = register_user(rm.strip(), rp.strip(), role="farmer")
-                    if ok: st.success(msg)
-                    else: st.error(msg)
-                else: st.warning("Check inputs.")
+                    if ok:
+                        st.success(msg)
+                    else:
+                        st.error(msg)
+                else:
+                    st.warning("Check inputs.")
 
         with t_forgot:
             f_mob = st.text_input("Registered Mobile", max_chars=10, key="reset_mob_inp")
@@ -467,10 +702,12 @@ if st.session_state.step == 1:
             if st.button("Change Password Now ➔", key="btn_direct_pwd_reset"):
                 if len(f_mob.strip()) == 10 and f_np == f_npc and len(f_np) > 0:
                     ok, msg = reset_user_password_direct(f_mob.strip(), f_np.strip())
-                    if ok: st.success(msg)
-                    else: st.error(msg)
+                    if ok:
+                        st.success(msg)
+                    else:
+                        st.error(msg)
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------
 # SUB-PAGES: ADMIN & NOTIFICATION ROUTES
@@ -482,78 +719,116 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
         st.session_state.step = 1
         st.rerun()
     st.info(f"Logged in Admin: +91 {st.session_state.user_mobile}")
-    
+
     admin_t1, admin_t2 = st.tabs(["Users", "Feedback"])
     with admin_t1:
         if engine:
             try:
                 with engine.connect() as conn:
                     st.dataframe(pd.read_sql(text("SELECT * FROM users"), conn))
-            except: pass
+            except Exception:
+                pass
     with admin_t2:
         if engine:
             try:
                 with engine.connect() as conn:
                     st.dataframe(pd.read_sql(text("SELECT * FROM feedback"), conn))
-            except: pass
+            except Exception:
+                pass
 
 elif st.session_state.step == 21:
     st.subheader("🆘 Help & Account Requests")
     h_type = st.selectbox("Category:", ["Delete My Account", "General Inquiry"])
     h_details = st.text_area("Details:")
-    if st.button("⬅️ Back"): st.session_state.step = 2; st.rerun()
+    if st.button("⬅️ Back"):
+        st.session_state.step = 2
+        st.rerun()
     if st.button("Submit ➔"):
         if engine:
             with engine.connect() as conn:
-                conn.execute(text("INSERT INTO help_requests (mobile, request_type, query_text) VALUES (:m, :rt, :q)"), {"m": str(st.session_state.user_mobile), "rt": h_type, "q": h_details.strip()})
+                conn.execute(
+                    text(
+                        "INSERT INTO help_requests (mobile, request_type, query_text) VALUES (:m, :rt, :q)"
+                    ),
+                    {
+                        "m": str(st.session_state.user_mobile),
+                        "rt": h_type,
+                        "q": h_details.strip(),
+                    },
+                )
                 conn.commit()
         st.success("Sent to admin!")
 
 elif st.session_state.step == 22:
     st.subheader("🔔 Notifications")
-    if st.button("⬅️ Back"): st.session_state.step = 2; st.rerun()
+    if st.button("⬅️ Back"):
+        st.session_state.step = 2
+        st.rerun()
     if engine:
         with engine.connect() as conn:
-            notifs = pd.read_sql(text("SELECT * FROM help_requests WHERE mobile = :m ORDER BY id DESC"), conn, params={"m": str(st.session_state.user_mobile)})
+            notifs = pd.read_sql(
+                text("SELECT * FROM help_requests WHERE mobile = :m ORDER BY id DESC"),
+                conn,
+                params={"m": str(st.session_state.user_mobile)},
+            )
             st.dataframe(notifs, use_container_width=True)
 
 elif st.session_state.step == 23:
     st.subheader("📜 Activity History")
-    if st.button("⬅️ Back"): st.session_state.step = 2; st.rerun()
+    if st.button("⬅️ Back"):
+        st.session_state.step = 2
+        st.rerun()
     if engine:
         with engine.connect() as conn:
-            act = pd.read_sql(text("SELECT * FROM user_activity WHERE mobile = :m ORDER BY created_at DESC"), conn, params={"m": str(st.session_state.user_mobile)})
+            act = pd.read_sql(
+                text("SELECT * FROM user_activity WHERE mobile = :m ORDER BY created_at DESC"),
+                conn,
+                params={"m": str(st.session_state.user_mobile)},
+            )
             st.dataframe(act, use_container_width=True)
 
 # -------------------------------------------------------------
 # SCREEN 2: FARMER DASHBOARD WITH REAL-TIME TABS
 # -------------------------------------------------------------
 elif st.session_state.step == 2:
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div style="background: rgba(11, 61, 46, 0.90); border-radius: 16px; padding: 18px 24px; border: 1px solid rgba(57, 255, 136, 0.5); box-shadow: 0 8px 22px rgba(0,0,0,0.6);">
         <h2 style="color: #39FF88; margin: 0 0 6px 0; font-size: 22px;">SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION</h2>
         <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Control Center &mdash; Role: <strong>{st.session_state.user_role.upper()}</strong> (+91 {st.session_state.user_mobile})</p>
     </div><br>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     c_b1, c_b2, c_b3, c_b4 = st.columns(4)
-    if c_b1.button("🆘 Help Desk", use_container_width=True): st.session_state.step = 21; st.rerun()
-    if c_b2.button("🔔 Notifications", use_container_width=True): st.session_state.step = 22; st.rerun()
-    if c_b3.button("📜 Activity", use_container_width=True): st.session_state.step = 23; st.rerun()
-    if c_b4.button("🚪 Sign Out", use_container_width=True): st.session_state.logged_in = False; st.session_state.step = 1; st.rerun()
+    if c_b1.button("🆘 Help Desk", use_container_width=True):
+        st.session_state.step = 21
+        st.rerun()
+    if c_b2.button("🔔 Notifications", use_container_width=True):
+        st.session_state.step = 22
+        st.rerun()
+    if c_b3.button("📜 Activity", use_container_width=True):
+        st.session_state.step = 23
+        st.rerun()
+    if c_b4.button("🚪 Sign Out", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.step = 1
+        st.rerun()
 
-    # REAL TIME DASHBOARD TABS
-    tab_calc, tab_diag, tab_live_weather, tab_market_risk = st.tabs([
-        "📍 1. Farm Details & Soil Input (Optimizer)", 
-        "🔬 2. Crop Disease Diagnosis",
-        "🌍 3. Live Weather & Global Seed DB", 
-        "📈 4. Market Forecast & Risk Dashboard"
-    ])
+    tab_calc, tab_diag, tab_live_weather, tab_market_risk = st.tabs(
+        [
+            "📍 1. Farm Details & Soil Input (Optimizer)",
+            "🔬 2. Crop Disease Diagnosis",
+            "🌍 3. Live Weather & Global Seed DB",
+            "📈 4. Market Forecast & Risk Dashboard",
+        ]
+    )
 
     with tab_calc:
         st.subheader("Land Size, Budget & Soil Telemetry")
         tab_cam, tab_man = st.tabs(["📷 Soil Scanner", "🧪 Manual Soil Entry"])
-        
+
         with tab_cam:
             c_s1, c_s2 = st.columns(2)
             soil_cam = c_s1.camera_input("Scan Soil Live")
@@ -571,26 +846,47 @@ elif st.session_state.step == 2:
                     st.session_state.soc = eval_res["metrics"]["soc"]
                     st.session_state.soil_moist = eval_res["metrics"]["moist"]
                     st.session_state.soil_source = "scanner"
-                else: st.error(eval_res["reason"])
+                else:
+                    st.error(eval_res["reason"])
 
         with tab_man:
             c1, c2, c3 = st.columns(3)
-            st.session_state.raw_land_val = c1.number_input("Land Size", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
-            st.session_state.land_unit = c2.selectbox("Unit", list(UNIT_TO_HECTARE.keys()), index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit))
-            st.session_state.budget_cap = c3.number_input("Max Budget (₹)", 1000.0, 1000000.0, float(st.session_state.budget_cap), 500.0)
+            st.session_state.raw_land_val = c1.number_input(
+                "Land Size", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5
+            )
+            st.session_state.land_unit = c2.selectbox(
+                "Unit",
+                list(UNIT_TO_HECTARE.keys()),
+                index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit),
+            )
+            st.session_state.budget_cap = c3.number_input(
+                "Max Budget (₹)", 1000.0, 1000000.0, float(st.session_state.budget_cap), 500.0
+            )
 
             ha_base = st.session_state.raw_land_val * UNIT_TO_HECTARE[st.session_state.land_unit]
             st.session_state.land_area = ha_base
 
             s1, s2, s3 = st.columns(3)
-            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n))
-            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
-            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k))
+            st.session_state.soil_n = s1.number_input(
+                "Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n)
+            )
+            st.session_state.soil_p = s2.number_input(
+                "Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p)
+            )
+            st.session_state.soil_k = s3.number_input(
+                "Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k)
+            )
 
             s4, s5, s6 = st.columns(3)
-            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1)
-            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05)
-            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0)
+            st.session_state.soil_ph = s4.slider(
+                "Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1
+            )
+            st.session_state.soc = s5.slider(
+                "Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05
+            )
+            st.session_state.soil_moist = s6.slider(
+                "Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0
+            )
             st.session_state.soil_source = "manual"
 
         if st.button("Save Variables & Proceed to ML Assessment ➔"):
@@ -618,27 +914,42 @@ elif st.session_state.step == 2:
         lw1.metric("Current Farm Temp", "28.5 °C", "1.2 °C")
         lw2.metric("Relative Humidity", "65 %", "-2 %")
         lw3.metric("Rainfall Probability", "12 mm Forecast", "Low")
-        
+
         st.markdown("#### 🌾 Global Seed Recommendation Matrix")
-        seed_df = pd.DataFrame({
-            "Crop Type": ["Rice (Basmati)", "Maize (Hybrid)", "Wheat (Durum)", "Cotton (Bt)"],
-            "Recommended Seed Variant": ["Pusa-1121", "Pioneer 30V92", "HI-8713", "Bollgard II"],
-            "Global Origin": ["India/Pakistan", "USA/Global", "Mediterranean", "India/USA"],
-            "Suitability Match": ["98%", "85%", "92%", "78%"]
-        })
+        seed_df = pd.DataFrame(
+            {
+                "Crop Type": ["Rice (Basmati)", "Maize (Hybrid)", "Wheat (Durum)", "Cotton (Bt)"],
+                "Recommended Seed Variant": [
+                    "Pusa-1121",
+                    "Pioneer 30V92",
+                    "HI-8713",
+                    "Bollgard II",
+                ],
+                "Global Origin": ["India/Pakistan", "USA/Global", "Mediterranean", "India/USA"],
+                "Suitability Match": ["98%", "85%", "92%", "78%"],
+            }
+        )
         st.dataframe(seed_df, use_container_width=True)
 
     with tab_market_risk:
         st.markdown("### 📈 Market Forecast & Live Farm Risk Engine")
-        st.warning("Current Alerts: High probability of late-blight fungus due to incoming humidity front.")
-        
+        st.warning(
+            "Current Alerts: High probability of late-blight fungus due to incoming humidity front."
+        )
+
         dates = pd.date_range(end=pd.Timestamp.now(), periods=10)
         prices = np.random.uniform(2200, 2600, 10)
         trend_df = pd.DataFrame({"Date": dates, "Price Per Quintal (₹)": prices})
-        
-        chart = alt.Chart(trend_df).mark_line(color="#39FF88", point=True).encode(
-            x='Date:T', y=alt.Y('Price Per Quintal (₹):Q', scale=alt.Scale(domain=[2000, 3000]))
-        ).properties(height=250)
+
+        chart = (
+            alt.Chart(trend_df)
+            .mark_line(color="#39FF88", point=True)
+            .encode(
+                x="Date:T",
+                y=alt.Y("Price Per Quintal (₹):Q", scale=alt.Scale(domain=[2000, 3000])),
+            )
+            .properties(height=250)
+        )
         st.altair_chart(chart, use_container_width=True)
 
 # -------------------------------------------------------------
@@ -648,20 +959,55 @@ elif st.session_state.step == 3:
     st.markdown("## Soil Condition & Agronomic Risk Assessment")
 
     k1, k2, k3 = st.columns(3)
-    ph_stat = "Acidic (Apply Lime)" if st.session_state.soil_ph < 6.0 else ("Alkaline (Apply Gypsum)" if st.session_state.soil_ph > 7.5 else "Sweet & Balanced")
+    ph_stat = (
+        "Acidic (Apply Lime)"
+        if st.session_state.soil_ph < 6.0
+        else ("Alkaline (Apply Gypsum)" if st.session_state.soil_ph > 7.5 else "Sweet & Balanced")
+    )
     k1.metric("Soil Sweetness (pH)", f"{st.session_state.soil_ph}", ph_stat)
-    k2.metric("Organic Matter (SOC)", f"{st.session_state.soc}%", "Rich" if st.session_state.soc >= 0.75 else "Low")
+    k2.metric(
+        "Organic Matter (SOC)",
+        f"{st.session_state.soc}%",
+        "Rich" if st.session_state.soc >= 0.75 else "Low",
+    )
     k3.metric("Rain Leaching Risk", f"{st.session_state.rainfall:.0f} mm", "Optimal")
 
-    soil_idx = list(soil_encoder.classes_).index(st.session_state.sel_soil) if st.session_state.sel_soil in soil_encoder.classes_ else 0
-    irrig_pred = irrig_model.predict([[st.session_state.temp, st.session_state.humidity, st.session_state.rainfall, soil_idx]])[0]
-    pest_risk = min(98.0, max(5.0, (st.session_state.humidity * 0.45) + (st.session_state.temp * 0.3) + (st.session_state.soil_n * 0.15)))
+    soil_idx = (
+        list(soil_encoder.classes_).index(st.session_state.sel_soil)
+        if st.session_state.sel_soil in soil_encoder.classes_
+        else 0
+    )
+    irrig_pred = irrig_model.predict(
+        [
+            [
+                st.session_state.temp,
+                st.session_state.humidity,
+                st.session_state.rainfall,
+                soil_idx,
+            ]
+        ]
+    )[0]
+    pest_risk = min(
+        98.0,
+        max(
+            5.0,
+            (st.session_state.humidity * 0.45)
+            + (st.session_state.temp * 0.3)
+            + (st.session_state.soil_n * 0.15),
+        ),
+    )
 
     c_irrig, c_pest = st.columns(2)
     with c_irrig:
-        st.markdown(f"<div class='metric-card'><h4>💧 ML Water Requirement:</h4><h2>{irrig_pred:.1f} mm/ha</h2></div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div class='metric-card'><h4>💧 ML Water Requirement:</h4><h2>{irrig_pred:.1f} mm/ha</h2></div>",
+            unsafe_allow_html=True,
+        )
     with c_pest:
-        st.markdown(f"<div class='metric-card'><h4>🦗 Forecasted Pest Risk:</h4><h2>{pest_risk:.1f}% Risk</h2></div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div class='metric-card'><h4>🦗 Forecasted Pest Risk:</h4><h2>{pest_risk:.1f}% Risk</h2></div>",
+            unsafe_allow_html=True,
+        )
 
     b1, b2 = st.columns([1, 5])
     if b1.button("⬅️ Back"):
@@ -672,30 +1018,67 @@ elif st.session_state.step == 3:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 4: SOIL COMPARISON BAR CHARTS WITH CENTERED LABELS
+# SCREEN 4: SOIL COMPARISON BAR CHARTS
 # -------------------------------------------------------------
 elif st.session_state.step == 4:
     st.markdown("## Current Soil Nutrients vs Ideal Farm Target (Bar Analysis)")
     d1, d2, d3 = st.columns(3)
 
     def build_labeled_bar_chart(nutrient_name, soil_val, target_val, color_bar):
-        chart_data = pd.DataFrame({"Nutrient Status": ["Current Soil", "Target Ideal"], "Value": [round(soil_val, 1), round(target_val, 1)]})
-        bars = alt.Chart(chart_data).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
-            x=alt.X("Nutrient Status:N", axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None)),
-            y=alt.Y("Value:Q", axis=alt.Axis(labelColor="#FFFFFF", titleColor="#39FF88", title="kg/ha")),
-            color=alt.Color("Nutrient Status:N", scale=alt.Scale(range=[color_bar, "#1B5E20"]), legend=None)
+        chart_data = pd.DataFrame(
+            {
+                "Nutrient Status": ["Current Soil", "Target Ideal"],
+                "Value": [round(soil_val, 1), round(target_val, 1)],
+            }
         )
-        text_labels = alt.Chart(chart_data).mark_text(align='center', baseline='middle', dy=-10, fontSize=13, fontWeight='bold', color='#FFFFFF').encode(
-            x=alt.X("Nutrient Status:N"), y=alt.Y("Value:Q"), text=alt.Text("Value:Q", format=".1f")
+        bars = (
+            alt.Chart(chart_data)
+            .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+            .encode(
+                x=alt.X(
+                    "Nutrient Status:N",
+                    axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None),
+                ),
+                y=alt.Y(
+                    "Value:Q",
+                    axis=alt.Axis(labelColor="#FFFFFF", titleColor="#39FF88", title="kg/ha"),
+                ),
+                color=alt.Color(
+                    "Nutrient Status:N",
+                    scale=alt.Scale(range=[color_bar, "#1B5E20"]),
+                    legend=None,
+                ),
+            )
+        )
+        text_labels = (
+            alt.Chart(chart_data)
+            .mark_text(
+                align="center",
+                baseline="middle",
+                dy=-10,
+                fontSize=13,
+                fontWeight="bold",
+                color="#FFFFFF",
+            )
+            .encode(x=alt.X("Nutrient Status:N"), y=alt.Y("Value:Q"), text=alt.Text("Value:Q", format=".1f"))
         )
         return (bars + text_labels).properties(height=260)
 
     with d1:
-        st.altair_chart(build_labeled_bar_chart("Nitrogen", st.session_state.soil_n * 2.24, 280.0, "#39FF88"), use_container_width=True)
+        st.altair_chart(
+            build_labeled_bar_chart("Nitrogen", st.session_state.soil_n * 2.24, 280.0, "#39FF88"),
+            use_container_width=True,
+        )
     with d2:
-        st.altair_chart(build_labeled_bar_chart("Phosphorus", st.session_state.soil_p * 2.24, 60.0, "#00E5FF"), use_container_width=True)
+        st.altair_chart(
+            build_labeled_bar_chart("Phosphorus", st.session_state.soil_p * 2.24, 60.0, "#00E5FF"),
+            use_container_width=True,
+        )
     with d3:
-        st.altair_chart(build_labeled_bar_chart("Potash", st.session_state.soil_k * 2.24, 150.0, "#FFD700"), use_container_width=True)
+        st.altair_chart(
+            build_labeled_bar_chart("Potash", st.session_state.soil_k * 2.24, 150.0, "#FFD700"),
+            use_container_width=True,
+        )
 
     b1, b2 = st.columns([1, 5])
     if b1.button("⬅ Back"):
@@ -706,29 +1089,81 @@ elif st.session_state.step == 4:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 5: NUTRIENT GAP, DYNAMIC CROP & MARKET PRICE PREDICTION
+# SCREEN 5: DEFICIT ANALYSIS & PRICE PREDICTION
 # -------------------------------------------------------------
 elif st.session_state.step == 5:
     st.markdown("## Deficit Analysis, Universal Crop AI & Future Market Price")
 
-    def_n, def_p, def_k = calculate_advanced_nutrients(st.session_state.target_yield, st.session_state.soil_n, st.session_state.soil_p, st.session_state.soil_k, st.session_state.soc, st.session_state.soil_ph, st.session_state.soil_moist, st.session_state.sel_soil)
+    def_n, def_p, def_k = calculate_advanced_nutrients(
+        st.session_state.target_yield,
+        st.session_state.soil_n,
+        st.session_state.soil_p,
+        st.session_state.soil_k,
+        st.session_state.soc,
+        st.session_state.soil_ph,
+        st.session_state.soil_moist,
+        st.session_state.sel_soil,
+    )
 
-    crop_in = pd.DataFrame([{'N': st.session_state.soil_n, 'P': st.session_state.soil_p, 'K': st.session_state.soil_k, 'temperature': st.session_state.temp, 'humidity': st.session_state.humidity, 'ph': st.session_state.soil_ph, 'rainfall': st.session_state.rainfall}])
+    crop_in = pd.DataFrame(
+        [
+            {
+                "N": st.session_state.soil_n,
+                "P": st.session_state.soil_p,
+                "K": st.session_state.soil_k,
+                "temperature": st.session_state.temp,
+                "humidity": st.session_state.humidity,
+                "ph": st.session_state.soil_ph,
+                "rainfall": st.session_state.rainfall,
+            }
+        ]
+    )
     dynamic_pred_crop = crop_encoder.inverse_transform([crop_model.predict(crop_in)[0]])[0]
     st.session_state.sel_crop = dynamic_pred_crop
 
-    crop_encoded_val = list(crop_encoder.classes_).index(dynamic_pred_crop) if dynamic_pred_crop in crop_encoder.classes_ else 0
-    pred_price = price_model.predict([[st.session_state.target_yield, st.session_state.temp, st.session_state.rainfall, crop_encoded_val]])[0]
+    crop_encoded_val = (
+        list(crop_encoder.classes_).index(dynamic_pred_crop)
+        if dynamic_pred_crop in crop_encoder.classes_
+        else 0
+    )
+    pred_price = price_model.predict(
+        [
+            [
+                st.session_state.target_yield,
+                st.session_state.temp,
+                st.session_state.rainfall,
+                crop_encoded_val,
+            ]
+        ]
+    )[0]
 
     g1, g2 = st.columns(2)
     with g1:
         st.markdown(f"##### Bar Chart: Nutrient Shortages for {st.session_state.target_yield} t/acre")
-        def_df = pd.DataFrame({"Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"], "Shortage (kg/acre)": [round(def_n, 1), round(def_p, 1), round(def_k, 1)]})
-        short_bars = alt.Chart(def_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color="#39FF88").encode(x=alt.X("Nutrient:N", axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None)), y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#FFFFFF")))
+        def_df = pd.DataFrame(
+            {
+                "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potash (K)"],
+                "Shortage (kg/acre)": [round(def_n, 1), round(def_p, 1), round(def_k, 1)],
+            }
+        )
+        short_bars = (
+            alt.Chart(def_df)
+            .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6, color="#39FF88")
+            .encode(
+                x=alt.X(
+                    "Nutrient:N",
+                    axis=alt.Axis(labelColor="#FFFFFF", labelFontSize=12, title=None),
+                ),
+                y=alt.Y("Shortage (kg/acre):Q", axis=alt.Axis(labelColor="#FFFFFF")),
+            )
+        )
         st.altair_chart(short_bars, use_container_width=True)
     with g2:
         st.success(f"🌱 **Recommended Crop**: **{dynamic_pred_crop.capitalize()}**")
-        st.markdown(f"<div class='metric-card'><h4>💰 Predicted Future Market Price:</h4><h2>₹{pred_price:,.0f} / Quintal</h2></div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div class='metric-card'><h4>💰 Predicted Future Market Price:</h4><h2>₹{pred_price:,.0f} / Quintal</h2></div>",
+            unsafe_allow_html=True,
+        )
 
     b1, b2 = st.columns([1, 5])
     if b1.button("⬅️ Back"):
@@ -739,28 +1174,69 @@ elif st.session_state.step == 5:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 6: OPTIMIZED FERTILIZER BAGS & APPLICATION RULES
+# SCREEN 6: OPTIMIZED FERTILIZER BLEND
 # -------------------------------------------------------------
 elif st.session_state.step == 6:
     st.markdown("## Your Fertilizer Bags & Application Schedule")
 
-    def_n, def_p, def_k = calculate_advanced_nutrients(st.session_state.target_yield, st.session_state.soil_n, st.session_state.soil_p, st.session_state.soil_k, st.session_state.soc, st.session_state.soil_ph, st.session_state.soil_moist, st.session_state.sel_soil)
-    opt = optimize_fertilizer_blend(def_n, def_p, def_k, st.session_state.budget_cap, st.session_state.land_area, str(st.session_state.sel_soil), st.session_state.rainfall, st.session_state.soc)
+    def_n, def_p, def_k = calculate_advanced_nutrients(
+        st.session_state.target_yield,
+        st.session_state.soil_n,
+        st.session_state.soil_p,
+        st.session_state.soil_k,
+        st.session_state.soc,
+        st.session_state.soil_ph,
+        st.session_state.soil_moist,
+        st.session_state.sel_soil,
+    )
+    opt = optimize_fertilizer_blend(
+        def_n,
+        def_p,
+        def_k,
+        st.session_state.budget_cap,
+        st.session_state.land_area,
+        str(st.session_state.sel_soil),
+        st.session_state.rainfall,
+        st.session_state.soc,
+    )
     st.session_state.opt_results = opt
 
     r1, r2, r3, r4 = st.columns(4)
     r1.metric("Optimized Total Cost", f"₹{opt['total_cost']:,.0f}")
     r2.metric("Input Budget Cap", f"₹{st.session_state.budget_cap:,.0f}")
-    r3.metric("Land Covered", f"{st.session_state.raw_land_val:.2f} {st.session_state.land_unit.split(' ')[0]}")
+    r3.metric(
+        "Land Covered",
+        f"{st.session_state.raw_land_val:.2f} {st.session_state.land_unit.split(' ')[0]}",
+    )
     r4.metric("Budget Utilized", f"{opt['budget_utilized_pct']}%")
 
     st.markdown("##### 🛒 Fertilizer Quantity Comparison")
-    fert_qty_df = pd.DataFrame({
-        "Fertilizer Product": ["Urea", "DAP", "MOP", "Complex", "Compost"],
-        "Quantity (kg)": [opt['urea_kg'], opt['dap_kg'], opt['mop_kg'], opt.get('complex_kg', 0.0), opt['compost_kg']]
-    })
-    fq_bars = alt.Chart(fert_qty_df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
-        x=alt.X("Fertilizer Product:N"), y=alt.Y("Quantity (kg):Q"), color=alt.Color("Fertilizer Product:N", scale=alt.Scale(range=["#39FF88", "#00E5FF", "#FFD700", "#81C784", "#B9F6CA"]), legend=None)
+    fert_qty_df = pd.DataFrame(
+        {
+            "Fertilizer Product": ["Urea", "DAP", "MOP", "Complex", "Compost"],
+            "Quantity (kg)": [
+                opt["urea_kg"],
+                opt["dap_kg"],
+                opt["mop_kg"],
+                opt.get("complex_kg", 0.0),
+                opt["compost_kg"],
+            ],
+        }
+    )
+    fq_bars = (
+        alt.Chart(fert_qty_df)
+        .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+        .encode(
+            x=alt.X("Fertilizer Product:N"),
+            y=alt.Y("Quantity (kg):Q"),
+            color=alt.Color(
+                "Fertilizer Product:N",
+                scale=alt.Scale(
+                    range=["#39FF88", "#00E5FF", "#FFD700", "#81C784", "#B9F6CA"]
+                ),
+                legend=None,
+            ),
+        )
     )
     st.altair_chart(fq_bars, use_container_width=True)
 
@@ -773,16 +1249,17 @@ elif st.session_state.step == 6:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 7: OFFICIAL PRESCRIPTION DOSSIER (HTML MATCHING IMAGE)
+# SCREEN 7: OFFICIAL PRESCRIPTION DOSSIER
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
     opt = st.session_state.get("opt_results", {})
-    
-    # Render Exact Prescription UI matching the provided layout image
     logo_base64 = f"data:image/jpeg;base64,{LOGO_DATA}" if LOGO_DATA else ""
-    local_time = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime('%d-%b-%Y %I:%M %p')
-    
-    st.markdown(f"""
+    local_time = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime(
+        "%d-%b-%Y %I:%M %p"
+    )
+
+    st.markdown(
+        f"""
     <div class="prescription-container">
         <div class="pres-header">
             {"<img src='" + logo_base64 + "' alt='Smart Kishan Logo'>" if logo_base64 else ""}
@@ -880,7 +1357,9 @@ elif st.session_state.step == 7:
         </div>
     </div>
     <br>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     b1, b2 = st.columns([1, 5])
     if b1.button("⬅️ Back"):
@@ -891,15 +1370,17 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: GLOWING STAR RATING (NO RADIO BUTTONS)
+# SCREEN 8: FEEDBACK & STAR RATING
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     st.markdown("## Farmer Feedback & Star Rating")
-    if "rating" not in st.session_state: st.session_state.rating = 5
+    if "rating" not in st.session_state:
+        st.session_state.rating = 5
 
     rating_names = {1: "Worst", 2: "Bad", 3: "Good", 4: "Better", 5: "Best"}
-    
-    st.html("""
+
+    st.html(
+        """
     <style>
     .sk-star-selected { color: #39FF88; text-shadow: 0 0 10px #39FF88; font-size: 58px; }
     .sk-star-empty { color: #D3D3D3; font-size: 58px; }
@@ -913,25 +1394,43 @@ elif st.session_state.step == 8:
         background: rgba(57, 255, 136, 0.15) !important; color: #FFFFFF !important;
     }
     </style>
-    """)
+    """
+    )
 
-    # Render Visual Stars
     star_items_html = ""
-    for s_val, s_lbl in [(1,"Worst"), (2,"Bad"), (3,"Good"), (4,"Better"), (5,"Best")]:
+    for s_val, s_lbl in [
+        (1, "Worst"),
+        (2, "Bad"),
+        (3, "Good"),
+        (4, "Better"),
+        (5, "Best"),
+    ]:
         cls = "sk-star-selected" if s_val <= st.session_state.rating else "sk-star-empty"
         star_items_html += f"<div style='text-align:center;'><span class='{cls}'>★</span><br><span style='color:#A7F3D0; font-weight:bold;'>{s_lbl}</span></div>"
-    
-    st.html(f"<div style='display:flex; justify-content:center; gap:20px; padding:20px; background:rgba(11, 61, 46, 0.94); border:1px solid rgba(57, 255, 136, 0.38); border-radius:14px; margin-bottom:20px;'>{star_items_html}</div>")
+
+    st.html(
+        f"<div style='display:flex; justify-content:center; gap:20px; padding:20px; background:rgba(11, 61, 46, 0.94); border:1px solid rgba(57, 255, 136, 0.38); border-radius:14px; margin-bottom:20px;'>{star_items_html}</div>"
+    )
 
     st.write("Click your rating level below:")
     st.markdown('<div class="sk-star-button-area">', unsafe_allow_html=True)
     bc1, bc2, bc3, bc4, bc5 = st.columns(5, gap="small")
-    if bc1.button("1 - Worst", use_container_width=True): st.session_state.rating = 1; st.rerun()
-    if bc2.button("2 - Bad", use_container_width=True): st.session_state.rating = 2; st.rerun()
-    if bc3.button("3 - Good", use_container_width=True): st.session_state.rating = 3; st.rerun()
-    if bc4.button("4 - Better", use_container_width=True): st.session_state.rating = 4; st.rerun()
-    if bc5.button("5 - Best", use_container_width=True): st.session_state.rating = 5; st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    if bc1.button("1 - Worst", use_container_width=True):
+        st.session_state.rating = 1
+        st.rerun()
+    if bc2.button("2 - Bad", use_container_width=True):
+        st.session_state.rating = 2
+        st.rerun()
+    if bc3.button("3 - Good", use_container_width=True):
+        st.session_state.rating = 3
+        st.rerun()
+    if bc4.button("4 - Better", use_container_width=True):
+        st.session_state.rating = 4
+        st.rerun()
+    if bc5.button("5 - Best", use_container_width=True):
+        st.session_state.rating = 5
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
     feedback_comments = st.text_area("Your Comments / Suggestions:")
 
@@ -939,7 +1438,12 @@ elif st.session_state.step == 8:
         if not feedback_comments.strip():
             st.error("⚠️ Mandatory Feedback Required.")
         else:
-            save_feedback(st.session_state.user_mobile, st.session_state.rating, rating_names[st.session_state.rating], feedback_comments.strip())
+            save_feedback(
+                st.session_state.user_mobile,
+                st.session_state.rating,
+                rating_names[st.session_state.rating],
+                feedback_comments.strip(),
+            )
             st.success("✅ Thank you! Exit session...")
             st.session_state.logged_in = False
             st.session_state.step = 1
