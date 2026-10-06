@@ -19,15 +19,11 @@ def train_all_models():
     print("🚀 Initializing Smart Kishan Machine Learning Pipeline...")
     np.random.seed(42)
 
-    # ---------------------------------------------------------
     # 1. CROP RECOMMENDER (ExtraTreesClassifier)
-    # ---------------------------------------------------------
     crop_path = os.path.join(DATA_DIR, "Crop_recommendation.csv")
     if os.path.exists(crop_path):
-        print("Training Crop Recommender on real dataset...")
         df_crop = pd.read_csv(crop_path)
     else:
-        print("Dataset missing. Generating synthetic Crop data...")
         crops = ['rice', 'maize', 'chickpea', 'kidneybeans', 'pigeonpeas', 'mothbeans', 'mungbean', 'blackgram', 'lentil', 'pomegranate', 'banana', 'mango', 'grapes', 'watermelon', 'muskmelon', 'apple', 'orange', 'papaya', 'coconut', 'cotton', 'jute', 'coffee']
         records = []
         for crop in crops:
@@ -37,27 +33,19 @@ def train_all_models():
 
     X_c = df_crop[['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']]
     y_c = df_crop['label']
-    
     crop_encoder = LabelEncoder()
     y_c_enc = crop_encoder.fit_transform(y_c)
-    
     crop_clf = ExtraTreesClassifier(n_estimators=150, random_state=42)
     crop_clf.fit(X_c, y_c_enc)
-    
     joblib.dump(crop_clf, os.path.join(MODELS_DIR, "crop_model.pkl"))
     joblib.dump(crop_encoder, os.path.join(MODELS_DIR, "crop_encoder.pkl"))
-    print("✅ Crop Model Trained.")
 
-    # ---------------------------------------------------------
     # 2. FERTILIZER CLASSIFIER (RandomForestClassifier)
-    # ---------------------------------------------------------
     fert_path = os.path.join(DATA_DIR, "Fertilizer Prediction.csv")
     if os.path.exists(fert_path):
-        print("Training Fertilizer Model on real dataset...")
         df_f = pd.read_csv(fert_path)
         df_f.columns = [c.strip() for c in df_f.columns]
     else:
-        print("Dataset missing. Generating synthetic Fertilizer data...")
         f_records = []
         for fname in ['Urea', 'DAP', '14-35-14', '28-28', '17-17-17', '20-20', '10-26-26']:
             for _ in range(150):
@@ -67,7 +55,6 @@ def train_all_models():
     soil_enc = LabelEncoder().fit(df_f['Soil Type'])
     crop_type_enc = LabelEncoder().fit(df_f['Crop Type'])
     fert_enc = LabelEncoder().fit(df_f['Fertilizer Name'])
-    
     df_f['Soil Type'] = soil_enc.transform(df_f['Soil Type'])
     df_f['Crop Type'] = crop_type_enc.transform(df_f['Crop Type'])
     y_f_enc = fert_enc.transform(df_f['Fertilizer Name'])
@@ -75,17 +62,12 @@ def train_all_models():
     X_f = df_f[['Temparature', 'Humidity', 'Moisture', 'Soil Type', 'Crop Type', 'Nitrogen', 'Potassium', 'Phosphorous']]
     fert_clf = RandomForestClassifier(n_estimators=100, random_state=42)
     fert_clf.fit(X_f, y_f_enc)
-    
     joblib.dump(fert_clf, os.path.join(MODELS_DIR, "fert_model.pkl"))
     joblib.dump(soil_enc, os.path.join(MODELS_DIR, "soil_encoder.pkl"))
     joblib.dump(crop_type_enc, os.path.join(MODELS_DIR, "crop_type_encoder.pkl"))
     joblib.dump(fert_enc, os.path.join(MODELS_DIR, "fert_encoder.pkl"))
-    print("✅ Fertilizer Model Trained.")
 
-    # ---------------------------------------------------------
     # 3. YIELD PREDICTION REGRESSOR
-    # ---------------------------------------------------------
-    print("Training Yield Regressor...")
     n_samples = 2000
     df_yield = pd.DataFrame({
         'N': np.random.uniform(20, 140, n_samples),
@@ -96,21 +78,15 @@ def train_all_models():
         'crop_type': np.random.choice([0, 1], n_samples)
     })
     df_yield['yield'] = ((df_yield['N'] * 0.015) + (df_yield['P'] * 0.012) + (df_yield['K'] * 0.009) + (df_yield['rainfall'] * 0.004) - abs(df_yield['ph'] - 6.5) * 0.22).clip(1.2, 8.5)
-
     X_y = df_yield[['N', 'P', 'K', 'ph', 'rainfall', 'crop_type']]
     yield_reg = RandomForestRegressor(n_estimators=80, max_depth=10, random_state=42)
     yield_reg.fit(X_y, df_yield['yield'])
     yield_crop_encoder = LabelEncoder().fit(['Default Crop', 'Alternative Crop'])
-
     joblib.dump(yield_reg, os.path.join(MODELS_DIR, "yield_model.pkl"))
     joblib.dump(list(X_y.columns), os.path.join(MODELS_DIR, "yield_features.pkl"))
     joblib.dump(yield_crop_encoder, os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
-    print("✅ Yield Model Trained.")
 
-    # ---------------------------------------------------------
     # 4. SMART IRRIGATION RISK ENGINE
-    # ---------------------------------------------------------
-    print("Training Smart Irrigation Model...")
     df_irrig = pd.DataFrame({
         'temperature': np.random.uniform(18, 42, n_samples),
         'humidity': np.random.uniform(25, 95, n_samples),
@@ -118,17 +94,12 @@ def train_all_models():
         'soil_encoded': np.random.choice(range(len(soil_enc.classes_)), n_samples)
     })
     df_irrig['irrigation_mm'] = ((df_irrig['temperature'] * 1.8) + ((100 - df_irrig['humidity']) * 0.85) - (df_irrig['rainfall'] * 0.32) + 12.0).clip(15, 180)
-
     X_ir = df_irrig[['temperature', 'humidity', 'rainfall', 'soil_encoded']]
     irrig_reg = RandomForestRegressor(n_estimators=80, random_state=42)
     irrig_reg.fit(X_ir, df_irrig['irrigation_mm'])
     joblib.dump(irrig_reg, os.path.join(MODELS_DIR, "irrigation_model.pkl"))
-    print("✅ Irrigation Model Trained.")
 
-    # ---------------------------------------------------------
     # 5. FUTURE MARKET PRICE PREDICTOR
-    # ---------------------------------------------------------
-    print("Training Market Price Forecaster...")
     df_price = pd.DataFrame({
         'yield_t_acre': np.random.uniform(1.2, 7.5, n_samples),
         'temperature': np.random.uniform(18, 40, n_samples),
@@ -136,11 +107,9 @@ def train_all_models():
         'crop_encoded': np.random.choice(range(len(crop_encoder.classes_)), n_samples)
     })
     df_price['market_price_per_quintal'] = (2500 + (df_price['yield_t_acre'] * -85) + (df_price['temperature'] * 22) + (df_price['crop_encoded'] * 18)).clip(1500, 6200)
-
     X_p = df_price[['yield_t_acre', 'temperature', 'rainfall', 'crop_encoded']]
     price_reg = LinearRegression().fit(X_p, df_price['market_price_per_quintal'])
     joblib.dump(price_reg, os.path.join(MODELS_DIR, "price_model.pkl"))
-    print("✅ Market Price Model Trained.")
 
     print("🎉 ALL MODELS CACHED SUCCESSFULLY!")
 
