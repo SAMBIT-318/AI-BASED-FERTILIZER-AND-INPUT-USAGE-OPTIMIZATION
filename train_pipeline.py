@@ -16,7 +16,7 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
 
 def train_all_models():
-    print("🚀 Initializing Smart Kishan Machine Learning Pipeline [System Architecture]...")
+    print("🚀 Initializing Smart Kishan Machine Learning Pipeline...")
     np.random.seed(42)
 
     # ---------------------------------------------------------
@@ -35,13 +35,11 @@ def train_all_models():
                 records.append({'N': np.random.uniform(0, 140), 'P': np.random.uniform(5, 145), 'K': np.random.uniform(5, 205), 'temperature': np.random.uniform(8, 45), 'humidity': np.random.uniform(14, 100), 'ph': np.random.uniform(3.5, 9.9), 'rainfall': np.random.uniform(20, 298), 'label': crop})
         df_crop = pd.DataFrame(records)
 
-    # Data Splitting & Feature Engineering
     X_c = df_crop[['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']]
     y_c = df_crop['label']
     crop_encoder = LabelEncoder()
     y_c_enc = crop_encoder.fit_transform(y_c)
     
-    # Model Selection & Training
     crop_clf = ExtraTreesClassifier(n_estimators=150, random_state=42)
     crop_clf.fit(X_c, y_c_enc)
     
