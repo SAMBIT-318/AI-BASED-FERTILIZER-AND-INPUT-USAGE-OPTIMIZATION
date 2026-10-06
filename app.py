@@ -96,11 +96,7 @@ def verify_genuine_agricultural_soil(image_obj):
         return {
             "detected": True,
             "soil_type": soil_type,
-            "metrics": {
-                "n": est_n, "p": est_p, "k": est_k,
-                "ph": est_ph, "soc": est_soc, "moist": est_moist,
-                "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})"
-            }
+            "metrics": {"n": est_n, "p": est_p, "k": est_k, "ph": est_ph, "soc": est_soc, "moist": est_moist, "rgb_signature": f"RGB({r_m:.0f}, {g_m:.0f}, {b_m:.0f})"}
         }
     return {"detected": False, "reason": "Surface lacks genuine agricultural soil texture."}
 
@@ -119,12 +115,7 @@ def analyze_plant_disease_image(image_obj):
 # -------------------------------------------------------------
 # PAGE CONFIGURATION & THEME STYLING
 # -------------------------------------------------------------
-st.set_page_config(
-    page_title="Smart Kishan | AgriTech Control Center",
-    page_icon="🌱",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="Smart Kishan | AgriTech Control Center", page_icon="🌱", layout="wide", initial_sidebar_state="expanded")
 
 HERO_BG_FILE = "agritech_hero_bg.jpg"
 HERO_BG_DATA = ""
@@ -145,46 +136,19 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif; color: #FFFFFF !important; }
     
-    div.stButton >
-    button {
-    background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
-    color: #39FF88 !important;
-    font-weight: 700 !important;
-    border-radius: 10px !important;
-    border: 1px solid #39FF88 !important;
-    box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important; 
-    }
-    div.stDownloadButton >
-    button {
-    background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important;
-    color: #39FF88 !important;
-    font-weight: 700 !important;
-    border-radius: 10px !important;
-    border: 1px solid #39FF88 !important;
-    }
+    .glass-login-card { background: rgba(11, 61, 46, 0.94) !important; backdrop-filter: blur(18px) !important; border: 1px solid rgba(57, 255, 136, 0.6) !important; border-radius: 20px !important; padding: 32px !important; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important; }
+    .metric-card { background: rgba(11, 61, 46, 0.90) !important; border-radius: 14px !important; padding: 16px 18px !important; border-left: 6px solid #39FF88 !important; border: 1px solid rgba(57, 255, 136, 0.3); border-right: 1px solid rgba(57, 255, 136, 0.3); border-bottom: 1px solid rgba(57, 255, 136, 0.3); box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important; margin-bottom: 12px; }
     
-    .badge-pass {
-    background-color: rgba(57, 255, 136, 0.25);
-    color: #39FF88; padding: 5px 14px; border-radius: 8px; 
-    font-weight: 700; border: 1px solid #39FF88; 
-    }
-    .badge-warn {
-    background-color: rgba(239, 68, 68, 0.25);
-    color: #F87171;
-    padding: 5px 14px;
-    border-radius: 8px; font-weight: 700; border: 1px solid #EF4444;
-    }
+    div.stButton > button { background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important; color: #39FF88 !important; font-weight: 700 !important; border-radius: 10px !important; border: 1px solid #39FF88 !important; box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important; }
+    div.stDownloadButton > button { background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important; color: #39FF88 !important; font-weight: 700 !important; border-radius: 10px !important; border: 1px solid #39FF88 !important; }
     
-    #vg-tooltip-element * {
-    color: #000000 !important;
-    }
+    .badge-pass { background-color: rgba(57, 255, 136, 0.25); color: #39FF88; padding: 5px 14px; border-radius: 8px; font-weight: 700; border: 1px solid #39FF88; }
+    .badge-warn { background-color: rgba(239, 68, 68, 0.25); color: #F87171; padding: 5px 14px; border-radius: 8px; font-weight: 700; border: 1px solid #EF4444; }
+    
+    #vg-tooltip-element * { color: #000000 !important; }
     div[data-baseweb="menu"] *, ul[data-baseweb="menu"] *, [role="listbox"] * { color: #000000 !important; }
-    label, p, span, h1, h2, h3, h4, h5, h6 { 
-    color: #FFFFFF !important;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-    }
+    label, p, span, h1, h2, h3, h4, h5, h6 { color: #FFFFFF !important; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
 
-    /* Prescription HTML CSS */
     .prescription-container { background: #FFFFFF; color: #1E293B; border-radius: 8px; padding: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.8); font-family: 'Arial', sans-serif; max-width: 900px; margin: 0 auto; }
     .prescription-container * { color: #1E293B !important; text-shadow: none !important; }
     .pres-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2E7D32; padding-bottom: 15px; }
@@ -351,48 +315,10 @@ def save_feedback(mobile, rating, rating_text, comments):
         except: pass
 
 # -------------------------------------------------------------
-# TRANSLATIONS
-# -------------------------------------------------------------
-TRANSLATIONS = {
-    "English": {
-        "title": "SMART KISHAN : AI BASED FERTILIZER AND INPUT USAGE OPTIMIZATION",
-        "subtitle": "Certified 4R Nutrient Allocation, Real-Soil Triage & Official Prescription",
-        "login_tab": "Farmer Sign In",
-        "admin_login_tab": "Admin Sign In",
-        "reg_tab": "Registration (Farmers & Admins)",
-        "mobile_lbl": "Mobile Number",
-        "pass_lbl": "Password",
-        "conf_pass_lbl": "Confirm Password",
-        "lang_select": "Global Language Selection",
-        "mode_select": "Select Farm Service",
-        "mode_opt": "🌾 Full Soil & Fertilizer Optimization Pipeline",
-        "mode_diag": "🔬 Plant Disease, Pest & Medicine Diagnosis Only",
-        "btn_login": "Access Control Center ➔",
-        "btn_reg": "Create Account",
-        "btn_back": "⬅️ Back",
-        "btn_next": "Continue ➔",
-        "budget_lbl": "Your Maximum Fertilizer Budget (₹)",
-        "budget_help": "Optimization engine ensures total purchase cost stays strictly within this limit.",
-        "feedback_title": "🌟 Mandatory Farmer Feedback & Star Rating",
-        "feedback_submit": "Submit Feedback & Exit Dashboard ➔",
-        "land_calc_title": "📐 Land Unit Selection & Farm Budget Matrix",
-        "stage_1_period": "Stage 1: Basal Dressing (At Sowing / Transplanting - Day 0)",
-        "stage_1_method": "Incorporate compost and broadcast full DAP and 1/3 MOP. Place 5-7 cm below seed furrow; do not leave on dry surface.",
-        "stage_2_period": "Stage 2: Vegetative Growth (20 - 25 Days Post Sowing)",
-        "stage_2_method": "Side-dress 1/2 urea dose + 1/3 MOP along plant rows. Ensure adequate soil moisture or irrigate within 24 hours.",
-        "stage_3_period": "Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)",
-        "stage_3_method": "Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.",
-        "soil_detected": "Soil is detected",
-        "soil_not_detected": "Not detected"
-    }
-}
-
-# -------------------------------------------------------------
 # SESSION STATE INITIALIZATION
 # -------------------------------------------------------------
 if "step" not in st.session_state: st.session_state.step = 1
 if "app_mode" not in st.session_state: st.session_state.app_mode = "Full Optimization"
-if "app_lang" not in st.session_state: st.session_state.app_lang = "English"
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "user_role" not in st.session_state: st.session_state.user_role = "farmer"
 if "user_mobile" not in st.session_state: st.session_state.user_mobile = ""
@@ -416,8 +342,6 @@ if "soil_source" not in st.session_state: st.session_state.soil_source = None
 if "sel_soil" not in st.session_state: st.session_state.sel_soil = list(soil_encoder.classes_)[0]
 if "sel_crop" not in st.session_state: st.session_state.sel_crop = list(crop_type_encoder.classes_)[0]
 if "chat_messages" not in st.session_state: st.session_state.chat_messages = [{"role": "assistant", "content": "Hello Farmer! I am your Smart Kishan AI Assistant powered by Gemini. Ask me anything!"}]
-
-T = TRANSLATIONS.get(st.session_state.app_lang, TRANSLATIONS["English"])
 
 # -------------------------------------------------------------
 # PDF GENERATION (ReportLab) EXACTLY MATCHING YOUR IMAGE
@@ -633,7 +557,7 @@ if st.session_state.step == 1:
         <div class="login-brand-side">
             <div class="cert-badge">🌱 4R CERTIFIED AGRICULTURE AI</div>
             <h1>SMART <span>KISHAN</span></h1>
-            <p>Next-Generation AgriTech Control Center powered by Artificial Intelligence.</p>
+            <p>Next-Generation AgriTech Control Center powered by Artificial Intelligence & Google Gemini.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -765,7 +689,6 @@ elif st.session_state.step == 2:
     if c_b3.button("📜 Activity", use_container_width=True): st.session_state.step = 23; st.rerun()
     if c_b4.button("🚪 Sign Out", use_container_width=True): st.session_state.logged_in = False; st.session_state.step = 1; st.rerun()
 
-    # REAL TIME DASHBOARD TABS
     tab_calc, tab_diag, tab_live_weather, tab_market_risk = st.tabs([
         "📍 1. Farm Details & Soil Input (Optimizer)", 
         "🔬 2. Crop Disease Diagnosis",
@@ -895,7 +818,7 @@ elif st.session_state.step == 3:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 4: SOIL COMPARISON BAR CHARTS WITH CENTERED LABELS
+# SCREEN 4: SOIL COMPARISON BAR CHARTS
 # -------------------------------------------------------------
 elif st.session_state.step == 4:
     st.markdown("## Current Soil Nutrients vs Ideal Farm Target (Bar Analysis)")
@@ -996,141 +919,75 @@ elif st.session_state.step == 6:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 7: OFFICIAL PRESCRIPTION DOSSIER (HTML MATCHING IMAGE)
+# SCREEN 7: OFFICIAL PRESCRIPTION DOSSIER
 # -------------------------------------------------------------
 elif st.session_state.step == 7:
     opt = st.session_state.get("opt_results", {})
     logo_base64 = f"data:image/jpeg;base64,{LOGO_DATA}" if LOGO_DATA else ""
     local_time = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime('%d-%b-%Y %I:%M %p')
     
-    st.markdown(f"""
-    <div class="prescription-container">
-        <div class="pres-header">
-            {"<img src='" + logo_base64 + "' alt='Smart Kishan Logo'>" if logo_base64 else ""}
-            <h2>SMART KISHAN • OFFICIAL CROP PRESCRIPTION</h2>
-            <p>Certified 4R Nutrient Stewardship & Field Application Dossier</p>
-            <p style="color:#64748B !important; font-weight:normal;">Dossier ID: SK-{datetime.now().strftime('%Y%m%d')}-{str(st.session_state.user_mobile)[-4:]} | Generated: {local_time}</p>
-        </div>
-        
-        <div class="pres-section-title">1. FARMER & LAND PROFILE</div>
-        <table class="pres-table">
-            <tr>
-                <td><b>Farmer Mobile:</b></td><td>+91 {st.session_state.user_mobile}</td>
-                <td><b>Field / Parcel ID:</b></td><td>{st.session_state.plot_id}</td>
-            </tr>
-            <tr>
-                <td><b>Target Crop:</b></td><td>{st.session_state.sel_crop}</td>
-                <td><b>Target Harvest:</b></td><td>{st.session_state.target_yield} t/acre</td>
-            </tr>
-            <tr>
-                <td><b>Land Area:</b></td><td>{st.session_state.raw_land_val:.2f} {st.session_state.land_unit.split()[0]}</td>
-                <td><b>Standard Area:</b></td><td>{st.session_state.land_area:.3f} Hectares</td>
-            </tr>
-            <tr>
-                <td><b>Farmer Budget:</b></td><td>Rs. {st.session_state.budget_cap:,.0f}</td>
-                <td><b>Optimization Cost:</b></td><td>Rs. {opt.get('total_cost', 0):,.0f}</td>
-            </tr>
-        </table>
-        
-        <div class="pres-section-title">2. SOIL PROFILE & MEASURED ATTRIBUTES</div>
-        <table class="pres-table">
-            <tr>
-                <td><b>Nitrogen (N):</b></td><td>{st.session_state.soil_n:.1f} mg/kg</td>
-                <td><b>Soil pH:</b></td><td>{st.session_state.soil_ph:.1f}</td>
-                <td><b>Ambient Temp:</b></td><td>{st.session_state.temp:.1f} °C</td>
-            </tr>
-            <tr>
-                <td><b>Phosphorus (P):</b></td><td>{st.session_state.soil_p:.1f} mg/kg</td>
-                <td><b>Organic Carbon:</b></td><td>{st.session_state.soc:.2f} %</td>
-                <td><b>Relative Humidity:</b></td><td>{st.session_state.humidity:.0f} %</td>
-            </tr>
-            <tr>
-                <td><b>Potash (K):</b></td><td>{st.session_state.soil_k:.1f} mg/kg</td>
-                <td><b>Soil Moisture:</b></td><td>{st.session_state.soil_moist:.1f} %</td>
-                <td><b>Precipitation:</b></td><td>{st.session_state.rainfall:.0f} mm</td>
-            </tr>
-        </table>
-
-        <div class="pres-section-title">3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)</div>
-        <table class="pres-table">
-            <tr>
-                <th>Fertilizer Product</th><th>Nutrient Category</th><th>Total Mass (kg)</th><th>50kg Bags Required</th>
-            </tr>
-            <tr>
-                <td>Urea</td><td>Synthetic Nitrogen (46% N)</td><td>{opt.get('urea_kg', 0)} kg</td><td><b>{max(1, round(opt.get('urea_kg', 0) / 50.0)) if opt.get('urea_kg', 0) > 0 else 0} Bags</b></td>
-            </tr>
-            <tr>
-                <td>DAP</td><td>Phosphatic (18% N + 46% P)</td><td>{opt.get('dap_kg',0)} kg</td><td><b>{max(1, round(opt.get('dap_kg', 0) / 50.0)) if opt.get('dap_kg', 0) > 0 else 0} Bags</b></td>
-            </tr>
-            <tr>
-                <td>MOP</td><td>Potash (60% K2O)</td><td>{opt.get('mop_kg',0)} kg</td><td><b>{max(1, round(opt.get('mop_kg', 0) / 50.0)) if opt.get('mop_kg', 0) > 0 else 0} Bags</b></td>
-            </tr>
-            <tr>
-                <td>Complex 14-35-14</td><td>Balanced N-P-K Mineral</td><td>{opt.get('complex_kg',0)} kg</td><td><b>{max(1, round(opt.get('complex_kg', 0) / 50.0)) if opt.get('complex_kg', 0) > 0 else 0} Bags</b></td>
-            </tr>
-            <tr>
-                <td>Bio-Compost / Manure</td><td>Organic Humus Restorer</td><td>{opt.get('compost_kg',0)} kg</td><td><b>{round(opt.get('compost_kg', 0) / 50.0) if opt.get('compost_kg', 0) > 0 else 0} Bags</b></td>
-            </tr>
-        </table>
-
-        <div class="pres-section-title">4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS</div>
-        <table class="pres-table">
-            <tr>
-                <th>Time Period</th><th>Nutrient Blend</th><th>Specific Application Method for Farmer</th>
-            </tr>
-            <tr>
-                <td><b>Stage 1: Basal Dressing (At Sowing / Transplanting - Day 0)</b></td>
-                <td>100% Bio-Compost + 100% DAP<br/>+ 1/3 MOP + 1/4 Urea</td>
-                <td>Incorporate compost and broadcast full DAP and 1/3 MOP. Place 5-7 cm below seed furrow; do not leave on dry surface.</td>
-            </tr>
-            <tr>
-                <td><b>Stage 2: Vegetative Growth (20 - 25 Days Post Sowing)</b></td>
-                <td>1/2 Urea + 1/3 MOP<br/><i>(Vegetative Dose)</i></td>
-                <td>Side-dress 1/2 urea dose + 1/3 MOP along plant rows. Ensure adequate soil moisture or irrigate within 24 hours.</td>
-            </tr>
-            <tr>
-                <td><b>Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)</b></td>
-                <td>Remaining 1/4 Urea<br/>+ Remaining 1/3 MOP</td>
-                <td>Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.</td>
-            </tr>
-        </table>
-        
-        <div class="pres-footer">
-            <span>Smart Kishan • Digital Farming Solutions • ISO 9001:2015 Standard</span>
-            <span>Page 1 of 1</span>
-        </div>
+    html_content = f"""
+<div class="prescription-container">
+    <div class="pres-header">
+        {"<img src='" + logo_base64 + "' alt='Smart Kishan Logo'>" if logo_base64 else ""}
+        <h2>SMART KISHAN • OFFICIAL CROP PRESCRIPTION</h2>
+        <p>Certified 4R Nutrient Stewardship & Field Application Dossier</p>
+        <p style="color:#64748B !important; font-weight:normal;">Dossier ID: SK-{datetime.now().strftime('%Y%m%d')}-{str(st.session_state.user_mobile)[-4:]} | Generated: {local_time}</p>
     </div>
-    <br>
-    """, unsafe_allow_html=True)
+    <div class="pres-section-title">1. FARMER & LAND PROFILE</div>
+    <table class="pres-table">
+        <tr><td><b>Farmer Mobile:</b></td><td>+91 {st.session_state.user_mobile}</td><td><b>Field / Parcel ID:</b></td><td>{st.session_state.plot_id}</td></tr>
+        <tr><td><b>Target Crop:</b></td><td>{st.session_state.sel_crop}</td><td><b>Target Harvest:</b></td><td>{st.session_state.target_yield} t/acre</td></tr>
+        <tr><td><b>Land Area:</b></td><td>{st.session_state.raw_land_val:.2f} {st.session_state.land_unit.split()[0]}</td><td><b>Standard Area:</b></td><td>{st.session_state.land_area:.3f} Hectares</td></tr>
+        <tr><td><b>Farmer Budget:</b></td><td>Rs. {st.session_state.budget_cap:,.0f}</td><td><b>Optimization Cost:</b></td><td>Rs. {opt.get('total_cost', 0):,.0f}</td></tr>
+    </table>
+    <div class="pres-section-title">2. SOIL PROFILE & MEASURED ATTRIBUTES</div>
+    <table class="pres-table">
+        <tr><td><b>Nitrogen (N):</b></td><td>{st.session_state.soil_n:.1f} mg/kg</td><td><b>Soil pH:</b></td><td>{st.session_state.soil_ph:.1f}</td><td><b>Ambient Temp:</b></td><td>{st.session_state.temp:.1f} °C</td></tr>
+        <tr><td><b>Phosphorus (P):</b></td><td>{st.session_state.soil_p:.1f} mg/kg</td><td><b>Organic Carbon:</b></td><td>{st.session_state.soc:.2f} %</td><td><b>Relative Humidity:</b></td><td>{st.session_state.humidity:.0f} %</td></tr>
+        <tr><td><b>Potash (K):</b></td><td>{st.session_state.soil_k:.1f} mg/kg</td><td><b>Soil Moisture:</b></td><td>{st.session_state.soil_moist:.1f} %</td><td><b>Precipitation:</b></td><td>{st.session_state.rainfall:.0f} mm</td></tr>
+    </table>
+    <div class="pres-section-title">3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)</div>
+    <table class="pres-table">
+        <tr><th>Fertilizer Product</th><th>Nutrient Category</th><th>Total Mass (kg)</th><th>50kg Bags Required</th></tr>
+        <tr><td>Urea</td><td>Synthetic Nitrogen (46% N)</td><td>{opt.get('urea_kg', 0)} kg</td><td><b>{max(1, round(opt.get('urea_kg', 0) / 50.0)) if opt.get('urea_kg', 0) > 0 else 0} Bags</b></td></tr>
+        <tr><td>DAP</td><td>Phosphatic (18% N + 46% P)</td><td>{opt.get('dap_kg',0)} kg</td><td><b>{max(1, round(opt.get('dap_kg', 0) / 50.0)) if opt.get('dap_kg', 0) > 0 else 0} Bags</b></td></tr>
+        <tr><td>MOP</td><td>Potash (60% K2O)</td><td>{opt.get('mop_kg',0)} kg</td><td><b>{max(1, round(opt.get('mop_kg', 0) / 50.0)) if opt.get('mop_kg', 0) > 0 else 0} Bags</b></td></tr>
+        <tr><td>Complex 14-35-14</td><td>Balanced N-P-K Mineral</td><td>{opt.get('complex_kg',0)} kg</td><td><b>{max(1, round(opt.get('complex_kg', 0) / 50.0)) if opt.get('complex_kg', 0) > 0 else 0} Bags</b></td></tr>
+        <tr><td>Bio-Compost / Manure</td><td>Organic Humus Restorer</td><td>{opt.get('compost_kg',0)} kg</td><td><b>{round(opt.get('compost_kg', 0) / 50.0) if opt.get('compost_kg', 0) > 0 else 0} Bags</b></td></tr>
+    </table>
+    <div class="pres-section-title">4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS</div>
+    <table class="pres-table">
+        <tr><th>Time Period</th><th>Nutrient Blend</th><th>Specific Application Method for Farmer</th></tr>
+        <tr><td><b>Stage 1: Basal Dressing (At Sowing / Transplanting - Day 0)</b></td><td>100% Bio-Compost + 100% DAP<br/>+ 1/3 MOP + 1/4 Urea</td><td>Incorporate compost and broadcast full DAP and 1/3 MOP. Place 5-7 cm below seed furrow; do not leave on dry surface.</td></tr>
+        <tr><td><b>Stage 2: Vegetative Growth (20 - 25 Days Post Sowing)</b></td><td>1/2 Urea + 1/3 MOP<br/><i>(Vegetative Dose)</i></td><td>Side-dress 1/2 urea dose + 1/3 MOP along plant rows. Ensure adequate soil moisture or irrigate within 24 hours.</td></tr>
+        <tr><td><b>Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)</b></td><td>Remaining 1/4 Urea<br/>+ Remaining 1/3 MOP</td><td>Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.</td></tr>
+    </table>
+    <div class="pres-footer">
+        <span>Smart Kishan • Digital Farming Solutions • ISO 9001:2015 Standard</span>
+        <span>Page 1 of 1</span>
+    </div>
+</div>
+<br>
+"""
+    st.html(html_content)
 
     pdf_bytes = generate_english_pdf(
-        user_mobile=st.session_state.user_mobile,
-        plot_id=st.session_state.plot_id,
-        raw_land=st.session_state.raw_land_val,
-        land_unit=st.session_state.land_unit,
-        crop=st.session_state.sel_crop,
-        target_yield=st.session_state.target_yield,
-        budget=st.session_state.budget_cap,
-        opt=opt,
-        n=st.session_state.soil_n,
-        p=st.session_state.soil_p,
-        k=st.session_state.soil_k,
-        ph=st.session_state.soil_ph,
-        soc=st.session_state.soc,
-        moist=st.session_state.soil_moist,
-        temp=st.session_state.temp,
-        humid=st.session_state.humidity,
-        rain=st.session_state.rainfall
+        user_mobile=st.session_state.user_mobile, plot_id=st.session_state.plot_id,
+        raw_land=st.session_state.raw_land_val, land_unit=st.session_state.land_unit,
+        crop=st.session_state.sel_crop, target_yield=st.session_state.target_yield,
+        budget=st.session_state.budget_cap, opt=opt,
+        n=st.session_state.soil_n, p=st.session_state.soil_p, k=st.session_state.soil_k,
+        ph=st.session_state.soil_ph, soc=st.session_state.soc, moist=st.session_state.soil_moist,
+        temp=st.session_state.temp, humid=st.session_state.humidity, rain=st.session_state.rainfall
     )
-
-    pdf_filename = f"SmartKishan_Prescription_{st.session_state.user_mobile}.pdf"
 
     p_col1, p_col2 = st.columns([2, 2])
     with p_col1:
         st.download_button(
             label="📄 Download PDF Prescription",
             data=pdf_bytes,
-            file_name=pdf_filename,
+            file_name=f"SmartKishan_Prescription_{st.session_state.user_mobile}.pdf",
             mime="application/pdf"
         )
     with p_col2:
@@ -1176,8 +1033,8 @@ elif st.session_state.step == 8:
     .sk-star { font-family: Arial, sans-serif; font-size: 58px; line-height: 1; display: inline-block; }
     .sk-star-empty { color: #D3D3D3; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75); }
     .sk-star-selected { color: #39FF88; text-shadow: 0 0 6px #39FF88, 0 0 14px #39FF88, 0 0 22px rgba(57, 255, 136, 0.85), 0 0 32px rgba(57, 255, 136, 0.6); }
-    .sk-star-label-text { font-size: 14px; font-weight: 700; color: #A7F3D0; margin-top: 6px; }
-    .sk-rating-result { margin-top: 10px; color: #39FF88; font-size: 19px; font-weight: 700; text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85); }
+    .sk-star-label-text { font-size: 14px; font-weight: 700; color: #A7F3D0; margin-top: 6px; font-family: 'Plus Jakarta Sans', Arial, sans-serif; }
+    .sk-rating-result { margin-top: 10px; color: #39FF88; font-size: 19px; font-weight: 700; text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85); font-family: Arial, sans-serif;}
     
     .sk-star-button-area div[data-testid="stButton"] > button {
         background: linear-gradient(135deg, #0B3D2E, #145A32) !important;
@@ -1187,12 +1044,11 @@ elif st.session_state.step == 8:
         transition: all 0.2s ease !important;
     }
     .sk-star-button-area div[data-testid="stButton"] > button:hover {
-        background: rgba(57, 255, 136, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px) !important;
+        background: rgba(57, 255, 136, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px) !important; border-color: #66FFAA !important; box-shadow: 0 0 12px rgba(57, 255, 136, 0.6) !important;
     }
     </style>
     """)
 
-    # Render Visual Stars matching your preferred layout
     star_items_html = ""
     for s_val, s_lbl in [(1,"Worst"), (2,"Bad"), (3,"Good"), (4,"Better"), (5,"Best")]:
         cls = "sk-star-selected" if s_val <= current_rating else "sk-star-empty"
@@ -1205,7 +1061,8 @@ elif st.session_state.step == 8:
     </div>
     """)
 
-    st.write("Click your rating level below:")
+    st.html("<div style='text-align:center; color:#FFFFFF; font-size:14px; font-weight:600; margin-bottom:10px;'>Click your rating level below:</div>")
+
     st.markdown('<div class="sk-star-button-area">', unsafe_allow_html=True)
     bc1, bc2, bc3, bc4, bc5 = st.columns(5, gap="small")
     if bc1.button("1 - Worst", use_container_width=True): st.session_state.rating = 1; st.rerun()
@@ -1224,11 +1081,13 @@ elif st.session_state.step == 8:
             st.rerun()
     with b_fb_sub:
         if st.button("Submit & Exit Dashboard ➔", use_container_width=True):
-            if not feedback_comments.strip():
-                st.error("⚠️ Mandatory Feedback Required. Please enter your feedback comments before exiting.")
+            if current_rating == 0:
+                st.error("⭐ Please select a star rating level before exiting.")
+            elif not feedback_comments.strip():
+                st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
             else:
-                save_feedback(st.session_state.user_mobile, st.session_state.rating, rating_names[st.session_state.rating], feedback_comments.strip())
-                st.success("✅ Thank you! Exit session...")
+                save_feedback(st.session_state.user_mobile, current_rating, current_rating_text, feedback_comments.strip())
+                st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
                 st.session_state.logged_in = False
                 st.session_state.step = 1
                 st.session_state.rating = 5
