@@ -2,10 +2,6 @@ import numpy as np
 from scipy.optimize import linprog
 
 def optimize_fertilizer_blend(req_n, req_p, req_k, budget_cap, land_area, soil_texture="Loamy", rainfall_mm=100.0, soc=0.75):
-    """
-    Multi-Objective Linear Programming Solver for Precision Agronomy.
-    Ensures optimal nutrient coverage bounded strictly by farmer budget.
-    """
     nutrient_matrix = np.array([
         [0.46, 0.00, 0.00, 0.00],  # Urea
         [0.18, 0.46, 0.00, 0.00],  # DAP
