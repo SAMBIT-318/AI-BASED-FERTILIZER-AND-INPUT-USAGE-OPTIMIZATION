@@ -10,3 +10,4 @@ Pillow>=9.5.0
 reportlab>=4.0.0
 SQLAlchemy>=2.0.0
 psycopg2-binary>=2.9.6
+google-generativeai>=0.4.0
