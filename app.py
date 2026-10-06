@@ -136,9 +136,6 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif; color: #FFFFFF !important; }
     
-    .glass-login-card { background: rgba(11, 61, 46, 0.94) !important; backdrop-filter: blur(18px) !important; border: 1px solid rgba(57, 255, 136, 0.6) !important; border-radius: 20px !important; padding: 32px !important; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important; }
-    .metric-card { background: rgba(11, 61, 46, 0.90) !important; border-radius: 14px !important; padding: 16px 18px !important; border-left: 6px solid #39FF88 !important; border: 1px solid rgba(57, 255, 136, 0.3); border-right: 1px solid rgba(57, 255, 136, 0.3); border-bottom: 1px solid rgba(57, 255, 136, 0.3); box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important; margin-bottom: 12px; }
-    
     div.stButton > button { background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important; color: #39FF88 !important; font-weight: 700 !important; border-radius: 10px !important; border: 1px solid #39FF88 !important; box-shadow: 0 4px 12px rgba(57, 255, 136, 0.3) !important; }
     div.stDownloadButton > button { background: linear-gradient(180deg, #145A32 0%, #0B3D2E 100%) !important; color: #39FF88 !important; font-weight: 700 !important; border-radius: 10px !important; border: 1px solid #39FF88 !important; }
     
