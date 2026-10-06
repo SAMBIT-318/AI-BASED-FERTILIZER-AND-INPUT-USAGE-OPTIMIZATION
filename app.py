@@ -202,6 +202,15 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
+    .glass-login-card {
+        background: rgba(11, 61, 46, 0.94) !important;
+        backdrop-filter: blur(18px) !important;
+        border: 1px solid rgba(57, 255, 136, 0.6) !important;
+        border-radius: 20px !important;
+        padding: 32px !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95) !important;
+    }
+
     .metric-card {
         background: rgba(11, 61, 46, 0.90) !important;
         border-radius: 14px !important;
@@ -252,7 +261,7 @@ MODELS_DIR = "saved_models"
 REQUIRED_MODELS = [
     "crop_model.pkl", "crop_encoder.pkl", "fert_model.pkl", "soil_encoder.pkl",
     "crop_type_encoder.pkl", "fert_encoder.pkl", "yield_model.pkl", 
-    "yield_features.pkl", "irrigation_model.pkl", "price_model.pkl"
+    "yield_features.pkl", "yield_crop_encoder.pkl", "irrigation_model.pkl", "price_model.pkl"
 ]
 
 def force_retrain():
@@ -281,6 +290,7 @@ def load_all_models():
         fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
         yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
         yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
+        yield_c_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
         irrig_m = joblib.load(os.path.join(MODELS_DIR, "irrigation_model.pkl"))
         price_m = joblib.load(os.path.join(MODELS_DIR, "price_model.pkl"))
     except (ModuleNotFoundError, AttributeError, EOFError, ImportError, ValueError):
@@ -293,11 +303,12 @@ def load_all_models():
         fert_enc = joblib.load(os.path.join(MODELS_DIR, "fert_encoder.pkl"))
         yield_m = joblib.load(os.path.join(MODELS_DIR, "yield_model.pkl"))
         yield_feat = joblib.load(os.path.join(MODELS_DIR, "yield_features.pkl"))
+        yield_c_enc = joblib.load(os.path.join(MODELS_DIR, "yield_crop_encoder.pkl"))
         irrig_m = joblib.load(os.path.join(MODELS_DIR, "irrigation_model.pkl"))
         price_m = joblib.load(os.path.join(MODELS_DIR, "price_model.pkl"))
-    return (crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, irrig_m, price_m)
+    return (crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_c_enc, irrig_m, price_m)
 
-(crop_model, crop_encoder, fert_model, soil_encoder, crop_type_encoder, fert_enc, yield_model, yield_features, irrig_model, price_model) = load_all_models()
+(crop_model, crop_encoder, fert_model, soil_encoder, crop_type_encoder, fert_enc, yield_model, yield_features, yield_crop_encoder, irrig_model, price_model) = load_all_models()
 
 # -------------------------------------------------------------
 # DATABASE CONNECTION & AUTHENTICATION
@@ -642,7 +653,7 @@ if st.session_state.step == 1:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# ADMIN DASHBOARD (STEP 90)
+# SUB-PAGES: ADMIN & NOTIFICATION ROUTES
 # -------------------------------------------------------------
 elif st.session_state.step == 90 and st.session_state.user_role == "admin":
     st.markdown("## SMART KISHAN : ADMIN COMMAND CENTER")
@@ -652,8 +663,6 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
         st.rerun()
     st.info(f"Logged in Admin: +91 {st.session_state.user_mobile}")
     
-    # Simple Admin View rendering based on Database data (Similar to previous working logic)
-    st.write("Database connected. Use the tabs below to manage platform.")
     admin_t1, admin_t2 = st.tabs(["Users", "Feedback"])
     with admin_t1:
         if engine:
@@ -668,6 +677,34 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
                     st.dataframe(pd.read_sql(text("SELECT * FROM feedback"), conn))
             except: pass
 
+elif st.session_state.step == 21:
+    st.subheader("🆘 Help & Account Requests")
+    h_type = st.selectbox("Category:", ["Delete My Account", "General Inquiry"])
+    h_details = st.text_area("Details:")
+    if st.button("⬅️ Back"): st.session_state.step = 2; st.rerun()
+    if st.button("Submit ➔"):
+        if engine:
+            with engine.connect() as conn:
+                conn.execute(text("INSERT INTO help_requests (mobile, request_type, query_text) VALUES (:m, :rt, :q)"), {"m": str(st.session_state.user_mobile), "rt": h_type, "q": h_details.strip()})
+                conn.commit()
+        st.success("Sent to admin!")
+
+elif st.session_state.step == 22:
+    st.subheader("🔔 Notifications")
+    if st.button("⬅️ Back"): st.session_state.step = 2; st.rerun()
+    if engine:
+        with engine.connect() as conn:
+            notifs = pd.read_sql(text("SELECT * FROM help_requests WHERE mobile = :m ORDER BY id DESC"), conn, params={"m": str(st.session_state.user_mobile)})
+            st.dataframe(notifs, use_container_width=True)
+
+elif st.session_state.step == 23:
+    st.subheader("📜 Activity History")
+    if st.button("⬅️ Back"): st.session_state.step = 2; st.rerun()
+    if engine:
+        with engine.connect() as conn:
+            act = pd.read_sql(text("SELECT * FROM user_activity WHERE mobile = :m ORDER BY created_at DESC"), conn, params={"m": str(st.session_state.user_mobile)})
+            st.dataframe(act, use_container_width=True)
+
 # -------------------------------------------------------------
 # SCREEN 2: FARMER DASHBOARD WITH REAL-TIME TABS
 # -------------------------------------------------------------
@@ -679,49 +716,84 @@ elif st.session_state.step == 2:
     </div><br>
     """, unsafe_allow_html=True)
 
-    if st.button("🚪 Sign Out / Exit Profile"):
-        st.session_state.logged_in = False
-        st.session_state.step = 1
-        st.rerun()
+    c_b1, c_b2, c_b3, c_b4 = st.columns(4)
+    if c_b1.button("🆘 Help Desk", use_container_width=True): st.session_state.step = 21; st.rerun()
+    if c_b2.button("🔔 Notifications", use_container_width=True): st.session_state.step = 22; st.rerun()
+    if c_b3.button("📜 Activity", use_container_width=True): st.session_state.step = 23; st.rerun()
+    if c_b4.button("🚪 Sign Out", use_container_width=True): st.session_state.logged_in = False; st.session_state.step = 1; st.rerun()
 
     # REAL TIME DASHBOARD TABS
-    tab_calc, tab_live_weather, tab_market_risk = st.tabs([
+    tab_calc, tab_diag, tab_live_weather, tab_market_risk = st.tabs([
         "📍 1. Farm Details & Soil Input (Optimizer)", 
-        "🌍 2. Live Weather & Global Seed DB", 
-        "📈 3. Market Forecast & Risk Dashboard"
+        "🔬 2. Crop Disease Diagnosis",
+        "🌍 3. Live Weather & Global Seed DB", 
+        "📈 4. Market Forecast & Risk Dashboard"
     ])
 
     with tab_calc:
         st.subheader("Land Size, Budget & Soil Telemetry")
-        c1, c2, c3 = st.columns(3)
-        st.session_state.raw_land_val = c1.number_input("Land Size", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
-        st.session_state.land_unit = c2.selectbox("Unit", list(UNIT_TO_HECTARE.keys()), index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit))
-        st.session_state.budget_cap = c3.number_input("Max Budget (₹)", 1000.0, 1000000.0, float(st.session_state.budget_cap), 500.0)
+        tab_cam, tab_man = st.tabs(["📷 Soil Scanner", "🧪 Manual Soil Entry"])
+        
+        with tab_cam:
+            c_s1, c_s2 = st.columns(2)
+            soil_cam = c_s1.camera_input("Scan Soil Live")
+            soil_file = c_s2.file_uploader("Upload Soil Image", type=["jpg", "png"])
+            if soil_cam or soil_file:
+                s_img = Image.open(soil_cam or soil_file)
+                st.image(s_img, width=250)
+                eval_res = verify_genuine_agricultural_soil(s_img)
+                if eval_res["detected"]:
+                    st.success("Soil verified! Applied metrics.")
+                    st.session_state.soil_n = eval_res["metrics"]["n"]
+                    st.session_state.soil_p = eval_res["metrics"]["p"]
+                    st.session_state.soil_k = eval_res["metrics"]["k"]
+                    st.session_state.soil_ph = eval_res["metrics"]["ph"]
+                    st.session_state.soc = eval_res["metrics"]["soc"]
+                    st.session_state.soil_moist = eval_res["metrics"]["moist"]
+                    st.session_state.soil_source = "scanner"
+                else: st.error(eval_res["reason"])
 
-        ha_base = st.session_state.raw_land_val * UNIT_TO_HECTARE[st.session_state.land_unit]
-        st.session_state.land_area = ha_base
-        st.info(f"Standardized computational area: **{ha_base:.3f} Hectares**")
+        with tab_man:
+            c1, c2, c3 = st.columns(3)
+            st.session_state.raw_land_val = c1.number_input("Land Size", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
+            st.session_state.land_unit = c2.selectbox("Unit", list(UNIT_TO_HECTARE.keys()), index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit))
+            st.session_state.budget_cap = c3.number_input("Max Budget (₹)", 1000.0, 1000000.0, float(st.session_state.budget_cap), 500.0)
 
-        st.markdown("##### Manual Soil Test Report Input")
-        s1, s2, s3 = st.columns(3)
-        st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n))
-        st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
-        st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k))
+            ha_base = st.session_state.raw_land_val * UNIT_TO_HECTARE[st.session_state.land_unit]
+            st.session_state.land_area = ha_base
 
-        s4, s5, s6 = st.columns(3)
-        st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1)
-        st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05)
-        st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0)
+            s1, s2, s3 = st.columns(3)
+            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n))
+            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
+            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k))
+
+            s4, s5, s6 = st.columns(3)
+            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1)
+            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05)
+            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0)
+            st.session_state.soil_source = "manual"
 
         if st.button("Save Variables & Proceed to ML Assessment ➔"):
-            st.session_state.soil_source = "manual"
             st.session_state.step = 3
             st.rerun()
+
+    with tab_diag:
+        c_cam, c_up = st.columns(2)
+        cam_p = c_cam.camera_input("📷 Realtime Leaf Scanner")
+        file_p = c_up.file_uploader("📂 Upload Leaf Image", type=["jpg", "jpeg", "png"])
+        active_img = cam_p or file_p
+        if active_img:
+            img = Image.open(active_img)
+            st.image(img, caption="Scanned Specimen", width=300)
+            res = analyze_plant_disease_image(img)
+            st.session_state.scanned_diag = res
+            st.success(f"Health Status: {res['health']}")
+            st.write(f"**Pathogen**: {res['disease']}")
+            st.write(f"**Remedy**: {res['medicine']}")
 
     with tab_live_weather:
         st.markdown("### 🌍 Real-Time Weather Integration & World Seed Prescriptions")
         st.info("Fetching real-time weather API metrics based on your IP location...")
-        # Simulated Real-time API Fetch
         lw1, lw2, lw3 = st.columns(3)
         lw1.metric("Current Farm Temp", "28.5 °C", "1.2 °C")
         lw2.metric("Relative Humidity", "65 %", "-2 %")
@@ -740,14 +812,12 @@ elif st.session_state.step == 2:
         st.markdown("### 📈 Market Forecast & Live Farm Risk Engine")
         st.warning("Current Alerts: High probability of late-blight fungus due to incoming humidity front.")
         
-        # Real-time simulated price trend
         dates = pd.date_range(end=pd.Timestamp.now(), periods=10)
         prices = np.random.uniform(2200, 2600, 10)
         trend_df = pd.DataFrame({"Date": dates, "Price Per Quintal (₹)": prices})
         
         chart = alt.Chart(trend_df).mark_line(color="#39FF88", point=True).encode(
-            x='Date:T',
-            y=alt.Y('Price Per Quintal (₹):Q', scale=alt.Scale(domain=[2000, 3000]))
+            x='Date:T', y=alt.Y('Price Per Quintal (₹):Q', scale=alt.Scale(domain=[2000, 3000]))
         ).properties(height=250)
         st.altair_chart(chart, use_container_width=True)
 
@@ -808,7 +878,7 @@ elif st.session_state.step == 4:
         st.altair_chart(build_labeled_bar_chart("Potash", st.session_state.soil_k * 2.24, 150.0, "#FFD700"), use_container_width=True)
 
     b1, b2 = st.columns([1, 5])
-    if b1.button("⬅️️ Back"):
+    if b1.button("⬅ Back"):
         st.session_state.step = 3
         st.rerun()
     if b2.button("Continue to Crop Analytics ➔"):
@@ -905,50 +975,66 @@ elif st.session_state.step == 7:
     </div>
     """, unsafe_allow_html=True)
 
-    b1, b2 = st.columns([1, 5])
-    if b1.button("⬅️ Back"):
-        st.session_state.step = 6
-        st.rerun()
-    if b2.button("Proceed to Exit & Feedback ➔"):
-        st.session_state.step = 8
-        st.rerun()
+    pdf_bytes = generate_english_pdf(st.session_state.user_mobile, st.session_state.plot_id, st.session_state.raw_land_val, st.session_state.land_unit, st.session_state.sel_crop, st.session_state.target_yield, st.session_state.budget_cap, opt, {}, st.session_state.soil_n, st.session_state.soil_p, st.session_state.soil_k, st.session_state.soil_ph, st.session_state.soc, st.session_state.soil_moist, st.session_state.temp, st.session_state.humidity, st.session_state.rainfall)
+
+    c1, c2 = st.columns([2,2])
+    with c1:
+        st.download_button("📄 Download PDF Prescription", data=pdf_bytes, file_name=f"SmartKishan_Prescription_{st.session_state.user_mobile}.pdf", mime="application/pdf")
+    with c2:
+        if st.button("Proceed to Exit & Feedback ➔"):
+            st.session_state.step = 8
+            st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: MANDATORY FARMER FEEDBACK & PROFESSIONAL STAR RATING
+# SCREEN 8: GLOWING STAR RATING (NO RADIO BUTTONS)
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     st.markdown("## Farmer Feedback & Star Rating")
     if "rating" not in st.session_state: st.session_state.rating = 5
 
-    # Glowing stars html logic
+    rating_names = {1: "Worst", 2: "Bad", 3: "Good", 4: "Better", 5: "Best"}
+    
     st.html("""
     <style>
-    .sk-star-selected { color: #39FF88; text-shadow: 0 0 10px #39FF88; font-size: 48px; }
-    .sk-star-empty { color: #D3D3D3; font-size: 48px; }
+    .sk-star-selected { color: #39FF88; text-shadow: 0 0 10px #39FF88; font-size: 58px; }
+    .sk-star-empty { color: #D3D3D3; font-size: 58px; }
     .sk-star-button-area div[data-testid="stButton"] > button {
         background: linear-gradient(135deg, #0B3D2E, #145A32) !important;
         border: 1px solid #39FF88 !important; border-radius: 10px !important;
         color: #39FF88 !important; font-weight: 700 !important; font-size: 14px !important;
+        min-height: 48px;
+    }
+    .sk-star-button-area div[data-testid="stButton"] > button:hover {
+        background: rgba(57, 255, 136, 0.15) !important; color: #FFFFFF !important;
     }
     </style>
     """)
 
+    # Render Visual Stars
+    star_items_html = ""
+    for s_val, s_lbl in [(1,"Worst"), (2,"Bad"), (3,"Good"), (4,"Better"), (5,"Best")]:
+        cls = "sk-star-selected" if s_val <= st.session_state.rating else "sk-star-empty"
+        star_items_html += f"<div style='text-align:center;'><span class='{cls}'>★</span><br><span style='color:#A7F3D0; font-weight:bold;'>{s_lbl}</span></div>"
+    
+    st.html(f"<div style='display:flex; justify-content:center; gap:20px; padding:20px; background:rgba(11, 61, 46, 0.94); border:1px solid rgba(57, 255, 136, 0.38); border-radius:14px; margin-bottom:20px;'>{star_items_html}</div>")
+
     st.write("Click your rating level below:")
+    st.markdown('<div class="sk-star-button-area">', unsafe_allow_html=True)
     bc1, bc2, bc3, bc4, bc5 = st.columns(5, gap="small")
     if bc1.button("1 - Worst", use_container_width=True): st.session_state.rating = 1; st.rerun()
     if bc2.button("2 - Bad", use_container_width=True): st.session_state.rating = 2; st.rerun()
     if bc3.button("3 - Good", use_container_width=True): st.session_state.rating = 3; st.rerun()
     if bc4.button("4 - Better", use_container_width=True): st.session_state.rating = 4; st.rerun()
     if bc5.button("5 - Best", use_container_width=True): st.session_state.rating = 5; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.write(f"### Current Rating: {st.session_state.rating}/5")
     feedback_comments = st.text_area("Your Comments / Suggestions:")
 
     if st.button("Submit & Exit Dashboard ➔", use_container_width=True):
         if not feedback_comments.strip():
             st.error("⚠️ Mandatory Feedback Required.")
         else:
-            save_feedback(st.session_state.user_mobile, st.session_state.rating, "Feedback", feedback_comments.strip())
+            save_feedback(st.session_state.user_mobile, st.session_state.rating, rating_names[st.session_state.rating], feedback_comments.strip())
             st.success("✅ Thank you! Exit session...")
             st.session_state.logged_in = False
             st.session_state.step = 1
