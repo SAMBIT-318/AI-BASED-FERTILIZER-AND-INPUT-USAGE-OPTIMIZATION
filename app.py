@@ -256,8 +256,32 @@ st.markdown("""
     .badge-pass { background-color: rgba(57, 255, 136, 0.25); color: #39FF88; padding: 5px 14px; border-radius: 8px; font-weight: 700; border: 1px solid #39FF88; }
     .badge-warn { background-color: rgba(239, 68, 68, 0.25); color: #F87171; padding: 5px 14px; border-radius: 8px; font-weight: 700; border: 1px solid #EF4444; }
     
-    .ai-bubble-user { background: rgba(20, 90, 50, 0.90); border: 1px solid rgba(57, 255, 136, 0.5); border-radius: 14px 14px 2px 14px; padding: 12px 16px; margin-bottom: 10px; font-size: 14px; color: #242424 !important; }
-    .ai-bubble-bot { background: rgba(6, 35, 25, 0.96); border-left: 5px solid #39FF88; border-top: 1px solid rgba(57,255,136,0.25); border-right: 1px solid rgba(57,255,136,0.25); border-bottom: 1px solid rgba(57,255,136,0.25); border-radius: 14px 14px 14px 2px; padding: 14px 18px; margin-bottom: 12px; font-size: 14px; color: #E2F8EC; line-height: 1.6; }
+/* Chat Message Bubbles (User = Bright White text on dark green, Bot = Mint text) */
+    .ai-bubble-user { 
+        background: rgba(20, 90, 50, 0.90) !important; 
+        border: 1px solid rgba(57, 255, 136, 0.5) !important; 
+        border-radius: 14px 14px 2px 14px !important; 
+        padding: 12px 16px !important; 
+        margin-bottom: 10px !important; 
+        font-size: 14px !important; 
+        color: #FFFFFF !important; 
+        -webkit-text-fill-color: #FFFFFF !important;
+        font-weight: 600 !important;
+    }
+    .ai-bubble-bot { 
+        background: rgba(6, 35, 25, 0.96) !important; 
+        border-left: 5px solid #39FF88 !important; 
+        border-top: 1px solid rgba(57,255,136,0.25) !important; 
+        border-right: 1px solid rgba(57,255,136,0.25) !important; 
+        border-bottom: 1px solid rgba(57,255,136,0.25) !important; 
+        border-radius: 14px 14px 14px 2px !important; 
+        padding: 14px 18px !important; 
+        margin-bottom: 12px !important; 
+        font-size: 14px !important; 
+        color: #E2F8EC !important; 
+        -webkit-text-fill-color: #E2F8EC !important;
+        line-height: 1.6 !important; 
+    }
 
     #vg-tooltip-element * { color: #000000 !important; }
     div[data-baseweb="menu"] *, ul[data-baseweb="menu"] *, [role="listbox"] * { color: #000000 !important; }
