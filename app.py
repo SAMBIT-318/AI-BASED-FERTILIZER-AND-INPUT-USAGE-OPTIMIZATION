@@ -245,7 +245,7 @@ if HERO_BG_DATA:
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif; color: #FFFFFF !important; }
+    html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif; color: #242424 !important; }
     
     /* Hide the default left Streamlit sidebar completely so login & dashboard are full-width */
     [data-testid="stSidebar"], [data-testid="collapsedControl"] { display: none !important; }
@@ -256,7 +256,7 @@ st.markdown("""
     .badge-pass { background-color: rgba(57, 255, 136, 0.25); color: #39FF88; padding: 5px 14px; border-radius: 8px; font-weight: 700; border: 1px solid #39FF88; }
     .badge-warn { background-color: rgba(239, 68, 68, 0.25); color: #F87171; padding: 5px 14px; border-radius: 8px; font-weight: 700; border: 1px solid #EF4444; }
     
-    .ai-bubble-user { background: rgba(20, 90, 50, 0.90); border: 1px solid rgba(57, 255, 136, 0.5); border-radius: 14px 14px 2px 14px; padding: 12px 16px; margin-bottom: 10px; font-size: 14px; color: #FFFFFF; }
+    .ai-bubble-user { background: rgba(20, 90, 50, 0.90); border: 1px solid rgba(57, 255, 136, 0.5); border-radius: 14px 14px 2px 14px; padding: 12px 16px; margin-bottom: 10px; font-size: 14px; color: #242424; }
     .ai-bubble-bot { background: rgba(6, 35, 25, 0.96); border-left: 5px solid #39FF88; border-top: 1px solid rgba(57,255,136,0.25); border-right: 1px solid rgba(57,255,136,0.25); border-bottom: 1px solid rgba(57,255,136,0.25); border-radius: 14px 14px 14px 2px; padding: 14px 18px; margin-bottom: 12px; font-size: 14px; color: #E2F8EC; line-height: 1.6; }
 
     #vg-tooltip-element * { color: #000000 !important; }
