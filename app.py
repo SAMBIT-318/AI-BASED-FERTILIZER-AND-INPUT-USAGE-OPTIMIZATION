@@ -1148,24 +1148,20 @@ with tab_market_risk:
         st.markdown("### 📈 Market Forecast & Live Farm Risk Engine")
         st.warning("Current Alerts: High probability of late-blight fungus due to incoming humidity front.")
         
-        # Interactive Crop Selector Filter for the Market Forecast
         selected_forecast_crop = st.selectbox(
             "Select Crop for Price Trend Analysis:",
             ["Maize (Corn)", "Rice (Paddy)", "Chickpea", "Wheat (Durum)", "Cotton"],
             key="market_forecast_crop_sel"
         )
-        
-        # Adjust base price multipliers depending on the selected crop
         base_multiplier = {"Maize (Corn)": 2300, "Rice (Paddy)": 2800, "Chickpea": 5400, "Wheat (Durum)": 2500, "Cotton": 6200}.get(selected_forecast_crop, 2400)
 
         dates = pd.date_range(end=pd.Timestamp.now(), periods=10)
-        np.random.seed(42)  # Keeps the trend line smooth and consistent
+        np.random.seed(42)
         prices = np.random.uniform(base_multiplier - 150, base_multiplier + 250, 10)
         trend_df = pd.DataFrame({"Date": dates, "Price Per Quintal (₹)": prices})
         
         st.markdown(f"##### 📊 10-Day Projected Price Trend for *{selected_forecast_crop}*")
         
-        # Enhanced Altair Chart with Clear Dark Axis Labels
         chart = alt.Chart(trend_df).mark_line(
             color="#39FF88", 
             strokeWidth=3, 
@@ -1184,6 +1180,7 @@ with tab_market_risk:
         
         st.altair_chart(chart, use_container_width=True)
 
+    render_floating_ai_chat_launcher()
 # -------------------------------------------------------------
 # SCREEN 3: SOIL HEALTH, WATER & RISK EVALUATION
 # -------------------------------------------------------------
