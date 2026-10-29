@@ -1155,8 +1155,6 @@ elif st.session_state.step == 2:
         st.altair_chart(chart, use_container_width=True)
 
     render_floating_ai_chat_launcher()
-
-update and give 
 # -------------------------------------------------------------
 # SCREEN 3: SOIL HEALTH, WATER & RISK EVALUATION
 # -------------------------------------------------------------
