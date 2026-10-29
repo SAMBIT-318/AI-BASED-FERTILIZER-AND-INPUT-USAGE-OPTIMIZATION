@@ -690,7 +690,7 @@ if st.session_state.step == 1:
         st.markdown('<div class="glass-login-card">', unsafe_allow_html=True)
         st.markdown("<div class='login-title'>🔐 Welcome Back</div>", unsafe_allow_html=True)
 
-        t_login, t_admin, t_reg, t_forgot = st.tabs(["Farmer Sign In", "Admin Sign In", "Registration", "🔑 Forgot Password"])
+        t_login, t_admin, t_reg, t_forgot = st.tabs(["Farmer Sign In", "Admin Sign In", "Farmer Registration", "🔑 Forgot Password"])
 
         with t_login:
             m = st.text_input("Mobile Number", max_chars=10, key="log_m")
