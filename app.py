@@ -1062,101 +1062,126 @@ elif st.session_state.step == 2:
         "🌍 3. Live Weather & Global Seed DB", 
         "📈 4. Market Forecast & Risk Dashboard"
     ])
-    with tab_calc:
-        st.subheader("Land Size, Budget & Soil Telemetry")
-        tab_cam, tab_man = st.tabs(["📷 Soil Scanner", "🧪 Manual Soil Entry"])
-        
-        with tab_cam:
-            c_s1, c_s2 = st.columns(2)
-            soil_cam = c_s1.camera_input("Scan Soil Live")
-            soil_file = c_s2.file_uploader("Upload Soil Image", type=["jpg", "png"])
-            if soil_cam or soil_file:
-                s_img = Image.open(soil_cam or soil_file)
-                st.image(s_img, width=250)
-                eval_res = verify_genuine_agricultural_soil(s_img)
-                if eval_res["detected"]:
-                    st.success("Soil verified! Applied metrics.")
-                    st.session_state.soil_n = eval_res["metrics"]["n"]
-                    st.session_state.soil_p = eval_res["metrics"]["p"]
-                    st.session_state.soil_k = eval_res["metrics"]["k"]
-                    st.session_state.soil_ph = eval_res["metrics"]["ph"]
-                    st.session_state.soc = eval_res["metrics"]["soc"]
-                    st.session_state.soil_moist = eval_res["metrics"]["moist"]
-                    st.session_state.soil_source = "scanner"
-                    log_activity(st.session_state.user_mobile, "Soil Scanned", f"Detected: {eval_res['soil_type']}")
-                else: st.error(eval_res["reason"])
 
-        with tab_man:
-            c1, c2, c3 = st.columns(3)
-            st.session_state.raw_land_val = c1.number_input("Land Size", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
-            st.session_state.land_unit = c2.selectbox("Unit", list(UNIT_TO_HECTARE.keys()), index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit))
-            st.session_state.budget_cap = c3.number_input("Max Budget (₹)", 1000.0, 1000000.0, float(st.session_state.budget_cap), 500.0)
+    with tab_calc:
+        st.subheader("Land Size, Budget & Soil Telemetry")
+        tab_cam, tab_man = st.tabs(["📷 Soil Scanner", "🧪 Manual Soil Entry"])
+        
+        with tab_cam:
+            c_s1, c_s2 = st.columns(2)
+            soil_cam = c_s1.camera_input("Scan Soil Live")
+            soil_file = c_s2.file_uploader("Upload Soil Image", type=["jpg", "png"])
+            if soil_cam or soil_file:
+                s_img = Image.open(soil_cam or soil_file)
+                st.image(s_img, width=250)
+                eval_res = verify_genuine_agricultural_soil(s_img)
+                if eval_res["detected"]:
+                    st.success("Soil verified! Applied metrics.")
+                    st.session_state.soil_n = eval_res["metrics"]["n"]
+                    st.session_state.soil_p = eval_res["metrics"]["p"]
+                    st.session_state.soil_k = eval_res["metrics"]["k"]
+                    st.session_state.soil_ph = eval_res["metrics"]["ph"]
+                    st.session_state.soc = eval_res["metrics"]["soc"]
+                    st.session_state.soil_moist = eval_res["metrics"]["moist"]
+                    st.session_state.soil_source = "scanner"
+                    log_activity(st.session_state.user_mobile, "Soil Scanned", f"Detected: {eval_res['soil_type']}")
+                else: st.error(eval_res["reason"])
 
-            ha_base = st.session_state.raw_land_val * UNIT_TO_HECTARE[st.session_state.land_unit]
-            st.session_state.land_area = ha_base
+        with tab_man:
+            c1, c2, c3 = st.columns(3)
+            st.session_state.raw_land_val = c1.number_input("Land Size", 0.1, 1000.0, float(st.session_state.raw_land_val), 0.5)
+            st.session_state.land_unit = c2.selectbox("Unit", list(UNIT_TO_HECTARE.keys()), index=list(UNIT_TO_HECTARE.keys()).index(st.session_state.land_unit))
+            st.session_state.budget_cap = c3.number_input("Max Budget (₹)", 1000.0, 1000000.0, float(st.session_state.budget_cap), 500.0)
 
-            s1, s2, s3 = st.columns(3)
-            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n))
-            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
-            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k))
+            ha_base = st.session_state.raw_land_val * UNIT_TO_HECTARE[st.session_state.land_unit]
+            st.session_state.land_area = ha_base
 
-            s4, s5, s6 = st.columns(3)
-            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1)
-            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05)
-            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0)
-            st.session_state.soil_source = "manual"
+            s1, s2, s3 = st.columns(3)
+            st.session_state.soil_n = s1.number_input("Nitrogen (N) [mg/kg]", 0.0, 300.0, float(st.session_state.soil_n))
+            st.session_state.soil_p = s2.number_input("Phosphorus (P) [mg/kg]", 0.0, 150.0, float(st.session_state.soil_p))
+            st.session_state.soil_k = s3.number_input("Potash (K) [mg/kg]", 0.0, 350.0, float(st.session_state.soil_k))
 
-        if st.button("Save Variables & Proceed to ML Assessment ➔"):
-            log_activity(st.session_state.user_mobile, "Soil Telemetry Saved", f"Land: {st.session_state.raw_land_val} {st.session_state.land_unit}")
-            st.session_state.step = 3
-            st.rerun()
+            s4, s5, s6 = st.columns(3)
+            st.session_state.soil_ph = s4.slider("Soil pH", 4.0, 9.5, float(st.session_state.soil_ph), 0.1)
+            st.session_state.soc = s5.slider("Organic Carbon (%)", 0.1, 2.5, float(st.session_state.soc), 0.05)
+            st.session_state.soil_moist = s6.slider("Moisture (%)", 10.0, 90.0, float(st.session_state.soil_moist), 1.0)
+            st.session_state.soil_source = "manual"
 
-    with tab_diag:
-        c_cam, c_up = st.columns(2)
-        cam_p = c_cam.camera_input("📷 Realtime Leaf Scanner")
-        file_p = c_up.file_uploader("📂 Upload Leaf Image", type=["jpg", "jpeg", "png"])
-        active_img = cam_p or file_p
-        if active_img:
-            img = Image.open(active_img)
-            st.image(img, caption="Scanned Specimen", width=300)
-            res = analyze_plant_disease_image(img)
-            st.session_state.scanned_diag = res
-            st.success(f"Health Status: {res['health']}")
-            st.write(f"**Pathogen**: {res['disease']}")
-            st.write(f"**Remedy**: {res['medicine']}")
-            log_activity(st.session_state.user_mobile, "Leaf Disease Scanned", f"Diagnosis: {res['health']}")
+        if st.button("Save Variables & Proceed to ML Assessment ➔"):
+            log_activity(st.session_state.user_mobile, "Soil Telemetry Saved", f"Land: {st.session_state.raw_land_val} {st.session_state.land_unit}")
+            st.session_state.step = 3
+            st.rerun()
 
-    with tab_live_weather:
-        st.markdown("### 🌍 Real-Time Weather Integration & World Seed Prescriptions")
-        st.info("Fetching real-time weather API metrics based on your IP location...")
-        lw1, lw2, lw3 = st.columns(3)
-        lw1.metric("Current Farm Temp", "28.5 °C", "1.2 °C")
-        lw2.metric("Relative Humidity", "65 %", "-2 %")
-        lw3.metric("Rainfall Probability", "12 mm Forecast", "Low")
-        
-        st.markdown("#### 🌾 Global Seed Recommendation Matrix")
-        seed_df = pd.DataFrame({
-            "Crop Type": ["Rice (Basmati)", "Maize (Hybrid)", "Wheat (Durum)", "Cotton (Bt)"],
-            "Recommended Seed Variant": ["Pusa-1121", "Pioneer 30V92", "HI-8713", "Bollgard II"],
-            "Global Origin": ["India/Pakistan", "USA/Global", "Mediterranean", "India/USA"],
-            "Suitability Match": ["98%", "85%", "92%", "78%"]
-        })
-        st.dataframe(seed_df, use_container_width=True)
+    with tab_diag:
+        c_cam, c_up = st.columns(2)
+        cam_p = c_cam.camera_input("📷 Realtime Leaf Scanner")
+        file_p = c_up.file_uploader("📂 Upload Leaf Image", type=["jpg", "jpeg", "png"])
+        active_img = cam_p or file_p
+        if active_img:
+            img = Image.open(active_img)
+            st.image(img, caption="Scanned Specimen", width=300)
+            res = analyze_plant_disease_image(img)
+            st.session_state.scanned_diag = res
+            st.success(f"Health Status: {res['health']}")
+            st.write(f"**Pathogen**: {res['disease']}")
+            st.write(f"**Remedy**: {res['medicine']}")
+            log_activity(st.session_state.user_mobile, "Leaf Disease Scanned", f"Diagnosis: {res['health']}")
 
-    with tab_market_risk:
-        st.markdown("### 📈 Market Forecast & Live Farm Risk Engine")
-        st.warning("Current Alerts: High probability of late-blight fungus due to incoming humidity front.")
-        
-        dates = pd.date_range(end=pd.Timestamp.now(), periods=10)
-        prices = np.random.uniform(2200, 2600, 10)
-        trend_df = pd.DataFrame({"Date": dates, "Price Per Quintal (₹)": prices})
-        
-        chart = alt.Chart(trend_df).mark_line(color="#39FF88", point=True).encode(
-            x='Date:T', y=alt.Y('Price Per Quintal (₹):Q', scale=alt.Scale(domain=[2000, 3000]))
-        ).properties(height=250)
-        st.altair_chart(chart, use_container_width=True)
+    with tab_live_weather:
+        st.markdown("### 🌍 Real-Time Weather Integration & World Seed Prescriptions")
+        st.info("Fetching real-time weather API metrics based on your IP location...")
+        lw1, lw2, lw3 = st.columns(3)
+        lw1.metric("Current Farm Temp", "28.5 °C", "1.2 °C")
+        lw2.metric("Relative Humidity", "65 %", "-2 %")
+        lw3.metric("Rainfall Probability", "12 mm Forecast", "Low")
+        
+        st.markdown("#### 🌾 Global Seed Recommendation Matrix")
+        seed_df = pd.DataFrame({
+            "Crop Type": ["Rice (Basmati)", "Maize (Hybrid)", "Wheat (Durum)", "Cotton (Bt)"],
+            "Recommended Seed Variant": ["Pusa-1121", "Pioneer 30V92", "HI-8713", "Bollgard II"],
+            "Global Origin": ["India/Pakistan", "USA/Global", "Mediterranean", "India/USA"],
+            "Suitability Match": ["98%", "85%", "92%", "78%"]
+        })
+        st.dataframe(seed_df, use_container_width=True)
 
-    render_floating_ai_chat_launcher()
+    with tab_market_risk:
+        st.markdown("### 📈 Market Forecast & Live Farm Risk Engine")
+        st.warning("Current Alerts: High probability of late-blight fungus due to incoming humidity front.")
+        
+        selected_forecast_crop = st.selectbox(
+            "Select Crop for Price Trend Analysis:",
+            ["Maize (Corn)", "Rice (Paddy)", "Chickpea", "Wheat (Durum)", "Cotton"],
+            key="market_forecast_crop_sel_tab2"
+        )
+        
+        base_multiplier = {"Maize (Corn)": 2300, "Rice (Paddy)": 2800, "Chickpea": 5400, "Wheat (Durum)": 2500, "Cotton": 6200}.get(selected_forecast_crop, 2400)
+
+        dates = pd.date_range(end=pd.Timestamp.now(), periods=10)
+        np.random.seed(42)
+        prices = np.random.uniform(base_multiplier - 150, base_multiplier + 250, 10)
+        trend_df = pd.DataFrame({"Date": dates, "Price Per Quintal (₹)": prices})
+        
+        st.markdown(f"##### 📊 10-Day Projected Price Trend for *{selected_forecast_crop}*")
+        
+        chart = alt.Chart(trend_df).mark_line(
+            color="#39FF88", 
+            strokeWidth=3, 
+            point=alt.OverlayMarkDef(color="#39FF88", size=80, filled=True)
+        ).encode(
+            x=alt.X('Date:T', axis=alt.Axis(labelColor="#FFFFFF", titleColor="#39FF88", labelAngle=-20, title="Date & Time")),
+            y=alt.Y('Price Per Quintal (₹):Q', scale=alt.Scale(domain=[base_multiplier - 400, base_multiplier + 600]), axis=alt.Axis(labelColor="#FFFFFF", titleColor="#39FF88", title="Price (₹ / Quintal)"))
+        ).properties(
+            height=280,
+            background='transparent'
+        ).configure_view(
+            stroke=None
+        ).configure_axis(
+            gridColor="rgba(57, 255, 136, 0.15)"
+        )
+        
+        st.altair_chart(chart, use_container_width=True)
+
+    render_floating_ai_chat_launcher()
 # -------------------------------------------------------------
 # SCREEN 3: SOIL HEALTH, WATER & RISK EVALUATION
 # -------------------------------------------------------------
