@@ -1148,13 +1148,38 @@ elif st.session_state.step == 2:
         st.markdown("### 📈 Market Forecast & Live Farm Risk Engine")
         st.warning("Current Alerts: High probability of late-blight fungus due to incoming humidity front.")
         
+        # Interactive Crop Selector Filter for Market Forecast
+        selected_forecast_crop = st.selectbox(
+            "Select Crop for Price Trend Analysis:",
+            ["Maize (Corn)", "Rice (Paddy)", "Chickpea", "Wheat (Durum)", "Cotton"],
+            key="market_forecast_crop_sel_tab2"
+        )
+        
+        base_multiplier = {"Maize (Corn)": 2300, "Rice (Paddy)": 2800, "Chickpea": 5400, "Wheat (Durum)": 2500, "Cotton": 6200}.get(selected_forecast_crop, 2400)
+
         dates = pd.date_range(end=pd.Timestamp.now(), periods=10)
-        prices = np.random.uniform(2200, 2600, 10)
+        np.random.seed(42)
+        prices = np.random.uniform(base_multiplier - 150, base_multiplier + 250, 10)
         trend_df = pd.DataFrame({"Date": dates, "Price Per Quintal (₹)": prices})
         
-        chart = alt.Chart(trend_df).mark_line(color="#39FF88", point=True).encode(
-            x='Date:T', y=alt.Y('Price Per Quintal (₹):Q', scale=alt.Scale(domain=[2000, 3000]))
-        ).properties(height=250)
+        st.markdown(f"##### 📊 10-Day Projected Price Trend for *{selected_forecast_crop}*")
+        
+        chart = alt.Chart(trend_df).mark_line(
+            color="#39FF88", 
+            strokeWidth=3, 
+            point=alt.OverlayMarkDef(color="#39FF88", size=80, filled=True)
+        ).encode(
+            x=alt.X('Date:T', axis=alt.Axis(labelColor="#FFFFFF", titleColor="#39FF88", labelAngle=-20, title="Date & Time")),
+            y=alt.Y('Price Per Quintal (₹):Q', scale=alt.Scale(domain=[base_multiplier - 400, base_multiplier + 600]), axis=alt.Axis(labelColor="#FFFFFF", titleColor="#39FF88", title="Price (₹ / Quintal)"))
+        ).properties(
+            height=280,
+            background='transparent'
+        ).configure_view(
+            stroke=None
+        ).configure_axis(
+            gridColor="rgba(57, 255, 136, 0.15)"
+        )
+        
         st.altair_chart(chart, use_container_width=True)
 
     render_floating_ai_chat_launcher()
