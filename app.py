@@ -24,6 +24,11 @@ from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_all_models
 
 # -------------------------------------------------------------
+# USER CONFIGURATION - EMBEDDED GEMINI API KEY (DEFINED FIRST)
+# -------------------------------------------------------------
+GEMINI_API_KEY = "AQ.Ab8RN6LdcF9d53JTlfbkKJ2h9Qg7UZEQjjQb1j6ImA2t5dzA-w"
+
+# -------------------------------------------------------------
 # PAGE CONFIGURATION & THEME STYLING
 # -------------------------------------------------------------
 st.set_page_config(page_title="Smart Kishan | AgriTech Control Center", page_icon="🌱", layout="wide", initial_sidebar_state="expanded")
@@ -52,7 +57,6 @@ def get_db_engine():
             conn.commit()
         return engine
     except Exception:
-        # Fallback to local SQLite for 100% reliability if cloud pooler is unreachable
         sqlite_path = "smart_kishan_local.db"
         sqlite_engine = create_engine(f"sqlite:///{sqlite_path}", pool_pre_ping=True)
         with sqlite_engine.connect() as conn:
@@ -71,8 +75,7 @@ def log_activity(mobile, activity_type, details):
             with engine.connect() as conn:
                 conn.execute(text("INSERT INTO user_activity (mobile, activity_type, details) VALUES (:m, :a, :d)"), {"m": str(mobile), "a": activity_type, "d": details})
                 conn.commit()
-        except Exception as e:
-            print(f"Log activity error: {e}")
+        except: pass
 
 def register_user(mobile, password, role="farmer"):
     if not engine: return False, "Database connection unavailable."
@@ -101,7 +104,7 @@ def reset_user_password_direct(mobile, new_password):
         return True, "Password updated successfully!"
     except Exception as e: return False, f"Reset error: {e}"
 
-def verify_user(mobile, password, selected_role="admin"):
+def verify_user(mobile, password, selected_role="farmer"):
     fixed_admins = {
         "9348315602": hashlib.sha256("Sambit@123".encode()).hexdigest(),
         "7735402865": hashlib.sha256("Swastidhar@123".encode()).hexdigest(),
@@ -130,8 +133,7 @@ def save_feedback(mobile, rating, rating_text, comments):
                 conn.execute(text("INSERT INTO feedback (mobile, rating, rating_text, comments) VALUES (:m, :r, :rt, :c)"), {"m": str(mobile), "r": rating, "rt": rating_text, "c": comments})
                 conn.commit()
             log_activity(mobile, "Feedback Given", f"Rated {rating_text} ({rating}/5)")
-        except Exception as e:
-            print(f"Feedback save error: {e}")
+        except: pass
 
 # -------------------------------------------------------------
 # LAND CONVERSIONS & CORE MATH ENGINES
@@ -477,8 +479,6 @@ def render_ai_chatbot_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        user_gemini_key = st.text_input("Enter Gemini API Key:", type="password", value="" if GEMINI_API_KEY=="AQ.Ab8RN6LdcF9d53JTlfbkKJ2h9Qg7UZEQjjQb1j6ImA2t5dzA-w" else GEMINI_API_KEY, key="sidebar_gemini_api_key")
-
         chat_container = st.container()
         with chat_container:
             st.markdown('<div style="background-color: #062319; padding: 14px; border-radius: 12px; border: 1px solid rgba(57,255,136,0.3); max-height: 400px; overflow-y: auto; margin-bottom: 12px;">', unsafe_allow_html=True)
@@ -494,23 +494,13 @@ def render_ai_chatbot_sidebar():
             if user_q.strip():
                 st.session_state.chat_messages.append({"role": "user", "content": user_q})
                 
-                active_key = user_gemini_key.strip() if user_gemini_key.strip() else GEMINI_API_KEY
-                if active_key and active_key != "AQ.Ab8RN6LdcF9d53JTlfbkKJ2h9Qg7UZEQjjQb1j6ImA2t5dzA-w":
-                    try:
-                        genai.configure(api_key=active_key)
-                        model = genai.GenerativeModel('gemini-1.5-flash')
-                        response = model.generate_content(f"You are an expert Indian Agronomist AI named Smart Kishan. Answer this farming question concisely and helpfully: {user_q}")
-                        reply = response.text
-                    except Exception as e:
-                        reply = f"⚠️ Gemini API Error: {str(e)}. (Falling back to local logic)."
-                else:
-                    q_lower = user_q.lower()
-                    if "disease" in q_lower or "pest" in q_lower or "rust" in q_lower or "blight" in q_lower:
-                        reply = "🔬 **Plant Pathology AI**: For fungal infections (like Early Blight or Rust), apply Mancozeb 75% WP @ 2.5g/L or Hexaconazole 5% EC. Ensure spray is done during cool morning hours."
-                    elif "urea" in q_lower or "nitrogen" in q_lower or "npk" in q_lower or "fertilizer" in q_lower:
-                        reply = "🧪 **Nutrient Advisory**: Split your nitrogen doses across basal, tillering, and flowering stages. Avoid applying urea on dry soils to prevent ammonia volatilization."
-                    else:
-                        reply = f"🌱 **Agronomy AI**: I analyzed your query about '{user_q}'. Make sure your soil pH is maintained between 6.0 and 7.2 for optimal nutrient uptake!"
+                try:
+                    genai.configure(api_key=GEMINI_API_KEY)
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    response = model.generate_content(f"You are an expert Indian Agronomist AI named Smart Kishan. Answer this farming question concisely and helpfully: {user_q}")
+                    reply = response.text
+                except Exception as e:
+                    reply = f"⚠️ Gemini API Error: {str(e)}. (Falling back to local logic)."
 
                 st.session_state.chat_messages.append({"role": "assistant", "content": reply})
                 st.rerun()
