@@ -1046,17 +1046,17 @@ elif st.session_state.step == 2:
         <p style="color: #FFFFFF; margin: 0; font-size: 14px; font-weight: 600;">Control Center &mdash; Role: <strong>{st.session_state.user_role.upper()}</strong> (+91 {st.session_state.user_mobile})</p>
     </div><br>
     """, unsafe_allow_html=True)
-    c_b1, c_b2, c_b3, c_b4 = st.columns(4)
+c_b1, c_b2, c_b3, c_b4 = st.columns(4)
     if c_b1.button("🆘 Help Desk", use_container_width=True): st.session_state.step = 21; st.rerun()
     if c_b2.button("🔔 Notifications", use_container_width=True): st.session_state.step = 22; st.rerun()
     if c_b3.button("📜 Activity", use_container_width=True): st.session_state.step = 23; st.rerun()
     if c_b4.button("🚪 Sign Out", use_container_width=True): st.session_state.logged_in = False; st.session_state.step = 1; st.rerun()
-    tab_calc, tab_diag, tab_live_weather, tab_market_risk = st.tabs([
-        "📍 1. Farm Details & Soil Input (Optimizer)", 
-        "🔬 2. Crop Disease Diagnosis",
-        "🌍 3. Live Weather & Global Seed DB", 
-        "📈 4. Market Forecast & Risk Dashboard"
-    ])
+    tab_calc, tab_diag, tab_live_weather, tab_market_risk = st.tabs([
+        "📍 1. Farm Details & Soil Input (Optimizer)",
+        "🔬 2. Crop Disease Diagnosis",
+        "🌍 3. Live Weather & Global Seed DB",
+        "📈 4. Market Forecast & Risk Dashboard"
+    ])
 
     with tab_calc:
         st.subheader("Land Size, Budget & Soil Telemetry")
