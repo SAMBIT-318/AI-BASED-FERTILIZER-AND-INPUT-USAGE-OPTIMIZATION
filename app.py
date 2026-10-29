@@ -1051,7 +1051,6 @@ elif st.session_state.step == 2:
     if c_b2.button("🔔 Notifications", use_container_width=True): st.session_state.step = 22; st.rerun()
     if c_b3.button("📜 Activity", use_container_width=True): st.session_state.step = 23; st.rerun()
     if c_b4.button("🚪 Sign Out", use_container_width=True): st.session_state.logged_in = False; st.session_state.step = 1; st.rerun()
-
     tab_calc, tab_diag, tab_live_weather, tab_market_risk = st.tabs([
         "📍 1. Farm Details & Soil Input (Optimizer)", 
         "🔬 2. Crop Disease Diagnosis",
