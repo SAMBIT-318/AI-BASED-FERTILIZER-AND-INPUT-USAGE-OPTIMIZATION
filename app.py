@@ -24,9 +24,114 @@ from optimizer import optimize_fertilizer_blend
 from train_pipeline import train_all_models
 
 # -------------------------------------------------------------
-# USER CONFIGURATION - HIDDEN GEMINI API KEY
+# PAGE CONFIGURATION & THEME STYLING
 # -------------------------------------------------------------
-GEMINI_API_KEY = "ENTER_YOUR_GEMINI_API_KEY_HERE"  # Replace with your actual key
+st.set_page_config(page_title="Smart Kishan | AgriTech Control Center", page_icon="🌱", layout="wide", initial_sidebar_state="expanded")
+
+# -------------------------------------------------------------
+# UNIFIED DATABASE ENGINE (Robust SQLite Fallback + Supabase Support)
+# -------------------------------------------------------------
+@st.cache_resource
+def get_db_engine():
+    try:
+        db_user = "postgres.ivshypgnhsprrkhkzkkx"
+        db_password = "SambitSwain2005"
+        db_host = "aws-0-ap-northeast-1.pooler.supabase.com"
+        db_port = 6543
+        db_name = "postgres"
+        cfg_user = urllib.parse.quote_plus(db_user)
+        cfg_password = urllib.parse.quote_plus(db_password)
+        db_uri = f"postgresql+psycopg2://{cfg_user}:{cfg_password}@{db_host}:{db_port}/{db_name}?sslmode=require"
+        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 5})
+        
+        with engine.connect() as conn:
+            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile TEXT PRIMARY KEY, password TEXT NOT NULL, role TEXT DEFAULT 'farmer')"))
+            conn.execute(text("CREATE TABLE IF NOT EXISTS feedback (id SERIAL PRIMARY KEY, mobile TEXT, rating INT, rating_text TEXT, comments TEXT, admin_reply TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"))
+            conn.execute(text("CREATE TABLE IF NOT EXISTS help_requests (id SERIAL PRIMARY KEY, mobile TEXT, request_type TEXT, query_text TEXT, status TEXT DEFAULT 'Pending', admin_reply TEXT, attended_by TEXT, user_feedback TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"))
+            conn.execute(text("CREATE TABLE IF NOT EXISTS user_activity (id SERIAL PRIMARY KEY, mobile TEXT, activity_type TEXT, details TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"))
+            conn.commit()
+        return engine
+    except Exception:
+        # Fallback to local SQLite for 100% reliability if cloud pooler is unreachable
+        sqlite_path = "smart_kishan_local.db"
+        sqlite_engine = create_engine(f"sqlite:///{sqlite_path}", pool_pre_ping=True)
+        with sqlite_engine.connect() as conn:
+            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile TEXT PRIMARY KEY, password TEXT NOT NULL, role TEXT DEFAULT 'farmer')"))
+            conn.execute(text("CREATE TABLE IF NOT EXISTS feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, mobile TEXT, rating INT, rating_text TEXT, comments TEXT, admin_reply TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"))
+            conn.execute(text("CREATE TABLE IF NOT EXISTS help_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, mobile TEXT, request_type TEXT, query_text TEXT, status TEXT DEFAULT 'Pending', admin_reply TEXT, attended_by TEXT, user_feedback TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"))
+            conn.execute(text("CREATE TABLE IF NOT EXISTS user_activity (id INTEGER PRIMARY KEY AUTOINCREMENT, mobile TEXT, activity_type TEXT, details TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"))
+            conn.commit()
+        return sqlite_engine
+
+engine = get_db_engine()
+
+def log_activity(mobile, activity_type, details):
+    if engine and mobile:
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("INSERT INTO user_activity (mobile, activity_type, details) VALUES (:m, :a, :d)"), {"m": str(mobile), "a": activity_type, "d": details})
+                conn.commit()
+        except Exception as e:
+            print(f"Log activity error: {e}")
+
+def register_user(mobile, password, role="farmer"):
+    if not engine: return False, "Database connection unavailable."
+    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
+    try:
+        with engine.connect() as conn:
+            if conn.execute(text("SELECT mobile FROM users WHERE mobile = :m"), {"m": str(mobile)}).fetchone():
+                return False, "This mobile number is already registered."
+            conn.execute(text("INSERT INTO users (mobile, password, role) VALUES (:m, :p, :r)"), {"m": str(mobile), "p": hashed_pw, "r": role})
+            conn.commit()
+        log_activity(mobile, "Account Created", f"Registered as {role}.")
+        return True, "Registration successful!"
+    except Exception as e:
+        return False, f"Registration error: {e}"
+
+def reset_user_password_direct(mobile, new_password):
+    if not engine: return False, "Database connection unavailable."
+    hashed_pw = hashlib.sha256(new_password.encode()).hexdigest()
+    try:
+        with engine.connect() as conn:
+            if not conn.execute(text("SELECT mobile FROM users WHERE mobile = :m"), {"m": str(mobile)}).fetchone():
+                return False, "Mobile number not registered."
+            conn.execute(text("UPDATE users SET password = :p WHERE mobile = :m"), {"p": hashed_pw, "m": str(mobile)})
+            conn.commit()
+        log_activity(mobile, "Password Reset", "User password changed successfully.")
+        return True, "Password updated successfully!"
+    except Exception as e: return False, f"Reset error: {e}"
+
+def verify_user(mobile, password, selected_role="admin"):
+    fixed_admins = {
+        "9348315602": hashlib.sha256("Sambit@123".encode()).hexdigest(),
+        "7735402865": hashlib.sha256("Swastidhar@123".encode()).hexdigest(),
+        "9692904951": hashlib.sha256("Prabhu@123".encode()).hexdigest(),
+    }
+    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
+    
+    if selected_role == "admin":
+        return (True, "admin") if mobile in fixed_admins and fixed_admins[mobile] == hashed_pw else (False, "admin")
+    if mobile in fixed_admins and fixed_admins[mobile] == hashed_pw:
+        return True, "farmer"
+    if not engine: return False, "farmer"
+    try:
+        with engine.connect() as conn:
+            res = conn.execute(text("SELECT password, role FROM users WHERE mobile = :m"), {"m": str(mobile)}).fetchone()
+            if res and res[0] == hashed_pw:
+                log_activity(mobile, "Sign In", "User signed in successfully.")
+                return True, (res[1] or "farmer")
+    except: pass
+    return False, "farmer"
+
+def save_feedback(mobile, rating, rating_text, comments):
+    if engine:
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("INSERT INTO feedback (mobile, rating, rating_text, comments) VALUES (:m, :r, :rt, :c)"), {"m": str(mobile), "r": rating, "rt": rating_text, "c": comments})
+                conn.commit()
+            log_activity(mobile, "Feedback Given", f"Rated {rating_text} ({rating}/5)")
+        except Exception as e:
+            print(f"Feedback save error: {e}")
 
 # -------------------------------------------------------------
 # LAND CONVERSIONS & CORE MATH ENGINES
@@ -115,8 +220,6 @@ def analyze_plant_disease_image(image_obj):
 # -------------------------------------------------------------
 # PAGE CONFIGURATION & THEME STYLING
 # -------------------------------------------------------------
-st.set_page_config(page_title="Smart Kishan | AgriTech Control Center", page_icon="🌱", layout="wide", initial_sidebar_state="expanded")
-
 HERO_BG_FILE = "agritech_hero_bg.jpg"
 HERO_BG_DATA = ""
 if os.path.exists(HERO_BG_FILE):
@@ -203,100 +306,6 @@ def load_all_models():
     return (crop_m, crop_enc, fert_m, soil_enc, crop_type_enc, fert_enc, yield_m, yield_feat, yield_c_enc, irrig_m, price_m)
 
 (crop_model, crop_encoder, fert_model, soil_encoder, crop_type_encoder, fert_enc, yield_model, yield_features, yield_crop_encoder, irrig_model, price_model) = load_all_models()
-
-# -------------------------------------------------------------
-# DATABASE CONNECTION & AUTHENTICATION
-# -------------------------------------------------------------
-@st.cache_resource
-def get_db_engine():
-    try:
-        db_user = "postgres.ivshypgnhsprrkhkzkkx"
-        db_password = "SambitSwain2005"
-        db_host = "aws-0-ap-northeast-1.pooler.supabase.com"
-        db_port = 6543
-        db_name = "postgres"
-        cfg_user = urllib.parse.quote_plus(db_user)
-        cfg_password = urllib.parse.quote_plus(db_password)
-        db_uri = f"postgresql+psycopg2://{cfg_user}:{cfg_password}@{db_host}:{db_port}/{db_name}?sslmode=require"
-        engine = create_engine(db_uri, pool_pre_ping=True, pool_recycle=300, connect_args={"connect_timeout": 10})
-        
-        with engine.connect() as conn:
-            conn.execute(text("CREATE TABLE IF NOT EXISTS users (mobile_number TEXT PRIMARY KEY, password TEXT NOT NULL, role TEXT DEFAULT 'farmer')"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS feedback (id SERIAL PRIMARY KEY, mobile TEXT, rating INT, rating_text TEXT, comments TEXT, admin_reply TEXT)"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS help_requests (id SERIAL PRIMARY KEY, mobile TEXT, request_type TEXT, query_text TEXT, status TEXT DEFAULT 'Pending', admin_reply TEXT, attended_by TEXT, user_feedback TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"))
-            conn.execute(text("CREATE TABLE IF NOT EXISTS user_activity (id SERIAL PRIMARY KEY, mobile TEXT, activity_type TEXT, details TEXT, is_deleted INT DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"))
-            conn.commit()
-        return engine
-    except Exception:
-        return None
-
-engine = get_db_engine()
-
-def log_activity(mobile, activity_type, details):
-    if engine and mobile:
-        try:
-            with engine.connect() as conn:
-                conn.execute(text("INSERT INTO user_activity (mobile, activity_type, details, is_deleted) VALUES (:m, :a, :d, 0)"), {"m": str(mobile), "a": activity_type, "d": details})
-                conn.commit()
-        except: pass
-
-def register_user(mobile, password, role="farmer"):
-    if not engine: return False, "Database connection unavailable."
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
-    try:
-        with engine.connect() as conn:
-            if conn.execute(text("SELECT mobile_number FROM users WHERE mobile_number = :m"), {"m": str(mobile)}).fetchone():
-                return False, "This mobile number is already registered."
-            conn.execute(text("INSERT INTO users (mobile_number, password, role) VALUES (:m, :p, :r)"), {"m": str(mobile), "p": hashed_pw, "r": role})
-            conn.commit()
-        log_activity(mobile, "Account Created", f"Registered as {role}.")
-        return True, "Registration successful!"
-    except Exception as e:
-        return False, f"Registration error: {e}"
-
-def reset_user_password_direct(mobile, new_password):
-    if not engine: return False, "Database connection unavailable."
-    hashed_pw = hashlib.sha256(new_password.encode()).hexdigest()
-    try:
-        with engine.connect() as conn:
-            if not conn.execute(text("SELECT mobile_number FROM users WHERE mobile_number = :m"), {"m": str(mobile)}).fetchone():
-                return False, "Mobile number not registered."
-            conn.execute(text("UPDATE users SET password = :p WHERE mobile_number = :m"), {"p": hashed_pw, "m": str(mobile)})
-            conn.commit()
-        log_activity(mobile, "Password Reset", "User password changed successfully.")
-        return True, "Password updated successfully!"
-    except Exception as e: return False, f"Reset error: {e}"
-
-def verify_user(mobile, password, selected_role="farmer"):
-    fixed_admins = {
-        "9348315602": hashlib.sha256("Sambit@123".encode()).hexdigest(),
-        "7735402865": hashlib.sha256("Swastidhar@123".encode()).hexdigest(),
-        "9692904951": hashlib.sha256("Prabhu@123".encode()).hexdigest(),
-    }
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
-    
-    if selected_role == "admin":
-        return (True, "admin") if mobile in fixed_admins and fixed_admins[mobile] == hashed_pw else (False, "admin")
-    if mobile in fixed_admins and fixed_admins[mobile] == hashed_pw:
-        return True, "farmer"
-    if not engine: return False, "farmer"
-    try:
-        with engine.connect() as conn:
-            res = conn.execute(text("SELECT password, role FROM users WHERE mobile_number = :m"), {"m": str(mobile)}).fetchone()
-            if res and res[0] == hashed_pw:
-                log_activity(mobile, "Sign In", "User signed in successfully.")
-                return True, (res[1] or "farmer")
-    except: pass
-    return False, "farmer"
-
-def save_feedback(mobile, rating, rating_text, comments):
-    if engine:
-        try:
-            with engine.connect() as conn:
-                conn.execute(text("INSERT INTO feedback (mobile, rating, rating_text, comments) VALUES (:m, :r, :rt, :c)"), {"m": str(mobile), "r": rating, "rt": rating_text, "c": comments})
-                conn.commit()
-            log_activity(mobile, "Feedback Given", f"Rated {rating_text} ({rating}/5)")
-        except: pass
 
 # -------------------------------------------------------------
 # SESSION STATE INITIALIZATION
@@ -455,7 +464,7 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     return buffer.getvalue()
 
 # -------------------------------------------------------------
-# GOOGLE GEMINI AI INTEGRATION SIDEBAR (ALWAYS ACTIVE)
+# GOOGLE GEMINI AI INTEGRATION SIDEBAR (LIVE API KEY INPUT)
 # -------------------------------------------------------------
 def render_ai_chatbot_sidebar():
     with st.sidebar:
@@ -467,6 +476,8 @@ def render_ai_chatbot_sidebar():
             <p style="color: #FFFFFF; font-size: 13px; margin: 0;">Live chat support for farming, NPK calculations, and disease management.</p>
         </div>
         """, unsafe_allow_html=True)
+
+        user_gemini_key = st.text_input("Enter Gemini API Key:", type="password", value="" if GEMINI_API_KEY=="AQ.Ab8RN6LdcF9d53JTlfbkKJ2h9Qg7UZEQjjQb1j6ImA2t5dzA-w" else GEMINI_API_KEY, key="sidebar_gemini_api_key")
 
         chat_container = st.container()
         with chat_container:
@@ -483,10 +494,11 @@ def render_ai_chatbot_sidebar():
             if user_q.strip():
                 st.session_state.chat_messages.append({"role": "user", "content": user_q})
                 
-                if GEMINI_API_KEY and GEMINI_API_KEY != "ENTER_YOUR_GEMINI_API_KEY_HERE":
+                active_key = user_gemini_key.strip() if user_gemini_key.strip() else GEMINI_API_KEY
+                if active_key and active_key != "AQ.Ab8RN6LdcF9d53JTlfbkKJ2h9Qg7UZEQjjQb1j6ImA2t5dzA-w":
                     try:
-                        genai.configure(api_key=GEMINI_API_KEY)
-                        model = genai.GenerativeModel('gemini-pro')
+                        genai.configure(api_key=active_key)
+                        model = genai.GenerativeModel('gemini-1.5-flash')
                         response = model.generate_content(f"You are an expert Indian Agronomist AI named Smart Kishan. Answer this farming question concisely and helpfully: {user_q}")
                         reply = response.text
                     except Exception as e:
@@ -581,7 +593,7 @@ if st.session_state.step == 1:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# SUB-PAGES: ADMIN COMMAND CENTER & NOTIFICATION SHADE WITH CONCURRENCY LOCK
+# SUB-PAGES: ADMIN COMMAND CENTER WITH CONCURRENCY LOCK
 # -------------------------------------------------------------
 elif st.session_state.step == 90 and st.session_state.user_role == "admin":
     st.markdown("## SMART KISHAN : ADMIN COMMAND CENTER")
@@ -592,20 +604,29 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
     st.info(f"Logged in Admin: +91 {st.session_state.user_mobile}")
     
     admin_t1, admin_t2, admin_t3 = st.tabs(["Users", "Feedback", "🔔 Help Request Triage"])
+    
     with admin_t1:
+        st.subheader("Registered Users & Active Details")
         if engine:
             try:
                 with engine.connect() as conn:
-                    st.dataframe(pd.read_sql(text("SELECT * FROM users"), conn))
-            except: pass
+                    users_df = pd.read_sql(text("SELECT * FROM users"), conn)
+                    st.dataframe(users_df, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error loading users: {e}")
+
     with admin_t2:
+        st.subheader("Farmer Feedback Submissions")
         if engine:
             try:
                 with engine.connect() as conn:
-                    st.dataframe(pd.read_sql(text("SELECT * FROM feedback"), conn))
-            except: pass
+                    fb_df = pd.read_sql(text("SELECT * FROM feedback ORDER BY id DESC"), conn)
+                    st.dataframe(fb_df, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error loading feedback: {e}")
+
     with admin_t3:
-        st.markdown("### Live User Help Tickets & Concurrency Lock")
+        st.subheader("Live User Help Tickets & Concurrency Lock")
         if engine:
             try:
                 with engine.connect() as conn:
@@ -626,7 +647,6 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
                                 submit_resolve = st.form_submit_button("Attend & Resolve Ticket")
                                 if submit_resolve:
                                     with engine.connect() as conn:
-                                        # Concurrency check
                                         current_ticket = conn.execute(text("SELECT attended_by, status FROM help_requests WHERE id = :id"), {"id": row['id']}).fetchone()
                                         if current_ticket and current_ticket[0] and current_ticket[0] != st.session_state.user_mobile:
                                             st.error(f"❌ Concurrency Lock Active: Ticket already attended/locked by Admin (+91 {current_ticket[0]}).")
@@ -706,7 +726,10 @@ elif st.session_state.step == 23:
     if engine:
         with engine.connect() as conn:
             act = pd.read_sql(text("SELECT activity_type, details, created_at FROM user_activity WHERE mobile = :m ORDER BY created_at DESC"), conn, params={"m": str(st.session_state.user_mobile)})
-            st.dataframe(act, use_container_width=True)
+            if act.empty:
+                st.info("No recorded activity found yet.")
+            else:
+                st.dataframe(act, use_container_width=True)
 
 # -------------------------------------------------------------
 # SCREEN 2: FARMER DASHBOARD WITH REAL-TIME TABS
@@ -753,6 +776,7 @@ elif st.session_state.step == 2:
                     st.session_state.soc = eval_res["metrics"]["soc"]
                     st.session_state.soil_moist = eval_res["metrics"]["moist"]
                     st.session_state.soil_source = "scanner"
+                    log_activity(st.session_state.user_mobile, "Soil Scanned", f"Detected: {eval_res['soil_type']}")
                 else: st.error(eval_res["reason"])
 
         with tab_man:
@@ -776,7 +800,7 @@ elif st.session_state.step == 2:
             st.session_state.soil_source = "manual"
 
         if st.button("Save Variables & Proceed to ML Assessment ➔"):
-            log_activity(st.session_state.user_mobile, "Ran Pipeline Input", f"Land: {st.session_state.raw_land_val} {st.session_state.land_unit}")
+            log_activity(st.session_state.user_mobile, "Soil Telemetry Saved", f"Land: {st.session_state.raw_land_val} {st.session_state.land_unit}")
             st.session_state.step = 3
             st.rerun()
 
@@ -793,7 +817,7 @@ elif st.session_state.step == 2:
             st.success(f"Health Status: {res['health']}")
             st.write(f"**Pathogen**: {res['disease']}")
             st.write(f"**Remedy**: {res['medicine']}")
-            log_activity(st.session_state.user_mobile, "Leaf Disease Scan", f"Result: {res['health']}")
+            log_activity(st.session_state.user_mobile, "Leaf Disease Scanned", f"Diagnosis: {res['health']}")
 
     with tab_live_weather:
         st.markdown("### 🌍 Real-Time Weather Integration & World Seed Prescriptions")
@@ -919,6 +943,7 @@ elif st.session_state.step == 5:
         st.session_state.step = 4
         st.rerun()
     if b2.button("Generate Optimization Engine ➔"):
+        log_activity(st.session_state.user_mobile, "Crop & Yield Predicted", f"Crop: {dynamic_pred_crop.capitalize()}")
         st.session_state.step = 6
         st.rerun()
 
@@ -953,6 +978,7 @@ elif st.session_state.step == 6:
         st.session_state.step = 5
         st.rerun()
     if b2.button("Generate Official Prescription ➔"):
+        log_activity(st.session_state.user_mobile, "4R Optimizer Run", f"Total Cost: ₹{opt['total_cost']}")
         st.session_state.step = 7
         st.rerun()
 
@@ -1020,7 +1046,7 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: GLOWING STAR RATING (OPTIONAL COMMENTS)
+# SCREEN 8: GLOWING STAR RATING (NON-MANDATORY COMMENTS)
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     st.markdown("## Farmer Feedback & Star Rating")
