@@ -109,7 +109,7 @@ def reset_user_password_direct(mobile, new_password):
     except Exception as e:
         return False, f"Reset error: {e}"
 
-def verify_user(mobile, password, selected_role="farmer"):
+def verify_user(mobile, password, selected_role="admin"):
     fixed_admins = {
         "9348315602": hashlib.sha256("Sambit@123".encode()).hexdigest(),
         "7735402865": hashlib.sha256("Swastidhar@123".encode()).hexdigest(),
