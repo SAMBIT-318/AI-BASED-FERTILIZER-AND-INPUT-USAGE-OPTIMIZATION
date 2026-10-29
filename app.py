@@ -256,15 +256,44 @@ st.markdown("""
     .badge-pass { background-color: rgba(57, 255, 136, 0.25); color: #39FF88; padding: 5px 14px; border-radius: 8px; font-weight: 700; border: 1px solid #39FF88; }
     .badge-warn { background-color: rgba(239, 68, 68, 0.25); color: #F87171; padding: 5px 14px; border-radius: 8px; font-weight: 700; border: 1px solid #EF4444; }
     
-    .ai-bubble-user { background: rgba(20, 90, 50, 0.90); border: 1px solid rgba(57, 255, 136, 0.5); border-radius: 14px 14px 2px 14px; padding: 12px 16px; margin-bottom: 10px; font-size: 14px; color: #242424; }
+    .ai-bubble-user { background: rgba(20, 90, 50, 0.90); border: 1px solid rgba(57, 255, 136, 0.5); border-radius: 14px 14px 2px 14px; padding: 12px 16px; margin-bottom: 10px; font-size: 14px; color: #242424 !important; }
     .ai-bubble-bot { background: rgba(6, 35, 25, 0.96); border-left: 5px solid #39FF88; border-top: 1px solid rgba(57,255,136,0.25); border-right: 1px solid rgba(57,255,136,0.25); border-bottom: 1px solid rgba(57,255,136,0.25); border-radius: 14px 14px 14px 2px; padding: 14px 18px; margin-bottom: 12px; font-size: 14px; color: #E2F8EC; line-height: 1.6; }
 
     #vg-tooltip-element * { color: #000000 !important; }
     div[data-baseweb="menu"] *, ul[data-baseweb="menu"] *, [role="listbox"] * { color: #000000 !important; }
     label, p, span, h1, h2, h3, h4, h5, h6 { color: #FFFFFF !important; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+
+    /* GREYISH-BLACK TEXT FOR TYPING, COMMENT & INPUT BOXES */
+    input, textarea, div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea, div[data-baseweb="select"] span {
+        color: #2D3748 !important;
+        -webkit-text-fill-color: #2D3748 !important;
+        caret-color: #0B3D2E !important;
+        text-shadow: none !important;
+        font-weight: 600 !important;
+    }
+    input::placeholder, textarea::placeholder {
+        color: #64748B !important;
+        -webkit-text-fill-color: #64748B !important;
+        text-shadow: none !important;
+    }
+
+    /* GREYISH-BLACK TEXT FOR FILE UPLOADER */
+    [data-testid="stFileUploader"] section *,
+    [data-testid="stFileUploaderDropzone"] *,
+    [data-testid="stFileUploader"] small,
+    [data-testid="stFileUploader"] span,
+    [data-testid="stFileUploader"] button {
+        color: #2D3748 !important;
+        -webkit-text-fill-color: #2D3748 !important;
+        text-shadow: none !important;
+        font-weight: 600 !important;
+    }
+    [data-testid="stFileUploader"] button {
+        background-color: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
-
 # -------------------------------------------------------------
 # SAFE SELF-HEALING MODEL LOADER
 # -------------------------------------------------------------
