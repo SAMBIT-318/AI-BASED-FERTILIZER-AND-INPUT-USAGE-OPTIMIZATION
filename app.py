@@ -349,7 +349,6 @@ class NumberedCanvas(canvas.Canvas):
         self.setLineWidth(1.5)
         self.rect(20, 20, 555, 802)
         
-        # Add badge to bottom right
         self.saveState()
         self.setStrokeColor(colors.HexColor("#145A32"))
         self.setFillColor(colors.HexColor("#333333"))
@@ -386,7 +385,6 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     bold_style = ParagraphStyle('BoldText', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8.5, textColor=colors.HexColor('#0F172A'))
     
     story = []
-    
     if os.path.exists(LOGO_FILE_EXACT):
         try:
             story.append(RLImage(LOGO_FILE_EXACT, width=110, height=110))
@@ -401,7 +399,6 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
     story.append(Spacer(1, 8))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#2E7D32"), spaceBefore=2, spaceAfter=8))
 
-    # 1. FARMER & LAND PROFILE
     story.append(Paragraph("1. FARMER & LAND PROFILE", section_h1))
     profile_data = [
         [Paragraph("<b>Farmer Mobile:</b>", body_style), Paragraph(f"+91 {user_mobile}", bold_style), Paragraph("<b>Field / Parcel ID:</b>", body_style), Paragraph(str(plot_id), bold_style)],
@@ -410,14 +407,9 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
         [Paragraph("<b>Farmer Budget:</b>", body_style), Paragraph(f"Rs. {budget:,.0f}", bold_style), Paragraph("<b>Optimization Cost:</b>", body_style), Paragraph(f"Rs. {opt.get('total_cost', 0):,.0f}", bold_style)]
     ]
     t_prof = Table(profile_data, colWidths=[110, 155, 120, 150])
-    t_prof.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F4FBF5')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#C8E6C9')),
-        ('PADDING', (0,0), (-1,-1), 4),
-    ]))
+    t_prof.setStyle(TableStyle([('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F4FBF5')), ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#C8E6C9')), ('PADDING', (0,0), (-1,-1), 4)]))
     story.append(t_prof)
 
-    # 2. SOIL PROFILE
     story.append(Paragraph("2. SOIL PROFILE & MEASURED ATTRIBUTES", section_h1))
     telemetry_data = [
         [Paragraph("<b>Nitrogen (N):</b>", body_style), Paragraph(f"{n:.1f} mg/kg", bold_style), Paragraph("<b>Soil pH:</b>", body_style), Paragraph(f"{ph:.1f}", bold_style), Paragraph("<b>Ambient Temp:</b>", body_style), Paragraph(f"{temp:.1f} °C", bold_style)],
@@ -425,14 +417,9 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
         [Paragraph("<b>Potash (K):</b>", body_style), Paragraph(f"{k:.1f} mg/kg", bold_style), Paragraph("<b>Soil Moisture:</b>", body_style), Paragraph(f"{moist:.1f} %", bold_style), Paragraph("<b>Precipitation:</b>", body_style), Paragraph(f"{rain:.0f} mm", bold_style)]
     ]
     t_tel = Table(telemetry_data, colWidths=[85, 95, 90, 95, 90, 80])
-    t_tel.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#FFFFFF')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
-        ('PADDING', (0,0), (-1,-1), 4),
-    ]))
+    t_tel.setStyle(TableStyle([('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#FFFFFF')), ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')), ('PADDING', (0,0), (-1,-1), 4)]))
     story.append(t_tel)
 
-    # 3. PURCHASES
     story.append(Paragraph("3. RECOMMENDED FERTILIZER PURCHASES (50KG BAGS)", section_h1))
     urea_bags = max(1, round(opt.get('urea_kg', 0) / 50.0)) if opt.get('urea_kg', 0) > 0 else 0
     dap_bags = max(1, round(opt.get('dap_kg', 0) / 50.0)) if opt.get('dap_kg', 0) > 0 else 0
@@ -449,14 +436,9 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
         [Paragraph("Bio-Compost / Manure", body_style), Paragraph("Organic Humus Restorer", body_style), Paragraph(f"{opt.get('compost_kg',0)} kg", body_style), Paragraph(f"<b>{org_bags} Bags</b>", bold_style)],
     ]
     t_fert = Table(fert_data, colWidths=[150, 160, 110, 115])
-    t_fert.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E2EEDF')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
-        ('PADDING', (0,0), (-1,-1), 4),
-    ]))
+    t_fert.setStyle(TableStyle([('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E2EEDF')), ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')), ('PADDING', (0,0), (-1,-1), 4)]))
     story.append(t_fert)
 
-    # 4. TIMETABLE
     story.append(Paragraph("4. TIMED APPLICATION PERIODS & METHODS FOR FARMERS", section_h1))
     schedule_data = [
         [Paragraph("<b>Time Period</b>", bold_style), Paragraph("<b>Nutrient Blend</b>", bold_style), Paragraph("<b>Specific Application Method for Farmer</b>", bold_style)],
@@ -465,26 +447,9 @@ def generate_english_pdf(user_mobile, plot_id, raw_land, land_unit, crop, target
         [Paragraph("<b>Stage 3: Panicle Initiation / Flowering (45 - 55 Days Post Sowing)</b>", body_style), Paragraph("Remaining 1/4 Urea<br/>+ Remaining 1/3 MOP", body_style), Paragraph("Top-dress remaining 1/4 urea and final MOP. Avoid application during heavy rains to prevent leaching.", body_style)]
     ]
     t_sched = Table(schedule_data, colWidths=[130, 155, 250])
-    t_sched.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E2EEDF')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
-        ('PADDING', (0,0), (-1,-1), 5),
-    ]))
+    t_sched.setStyle(TableStyle([('BACKGROUND', (0,0), (-1,0), colors.HexColor('#E2EEDF')), ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')), ('PADDING', (0,0), (-1,-1), 5)]))
     story.append(t_sched)
 
-    doc.build(story, canvasmaker=NumberedCanvas)
-    buffer.seek(0)
-    return buffer.getvalue()
-
-def generate_disease_pdf(user_mobile, plot_id, crop, diag):
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=30, rightMargin=30, topMargin=30, bottomMargin=45)
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle('DocTitle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=17, textColor=colors.HexColor('#0B3D2E'), leading=21, alignment=1)
-    body_style = ParagraphStyle('BodyText', parent=styles['Normal'], fontName='Helvetica', fontSize=8.5, textColor=colors.HexColor('#1E293B'))
-    bold_style = ParagraphStyle('BoldText', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8.5, textColor=colors.HexColor('#0F172A'))
-    
-    story = [Paragraph("SMART KISHAN • CROP DISEASE & TREATMENT PRESCRIPTION", title_style), Spacer(1, 10)]
     doc.build(story, canvasmaker=NumberedCanvas)
     buffer.seek(0)
     return buffer.getvalue()
@@ -527,7 +492,6 @@ def render_ai_chatbot_sidebar():
                     except Exception as e:
                         reply = f"⚠️ Gemini API Error: {str(e)}. (Falling back to local logic)."
                 else:
-                    # Smart Mock Fallback Logic
                     q_lower = user_q.lower()
                     if "disease" in q_lower or "pest" in q_lower or "rust" in q_lower or "blight" in q_lower:
                         reply = "🔬 **Plant Pathology AI**: For fungal infections (like Early Blight or Rust), apply Mancozeb 75% WP @ 2.5g/L or Hexaconazole 5% EC. Ensure spray is done during cool morning hours."
@@ -539,7 +503,7 @@ def render_ai_chatbot_sidebar():
                 st.session_state.chat_messages.append({"role": "assistant", "content": reply})
                 st.rerun()
 
-render_ai_chatbot_sidebar() # Sidebar rendered globally
+render_ai_chatbot_sidebar()
 
 # -------------------------------------------------------------
 # SCREEN 1: SMART KISHAN CINEMATIC LOGIN & REGISTRATION
@@ -617,7 +581,7 @@ if st.session_state.step == 1:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# SUB-PAGES: ADMIN & NOTIFICATION ROUTES
+# SUB-PAGES: ADMIN COMMAND CENTER & NOTIFICATION SHADE WITH CONCURRENCY LOCK
 # -------------------------------------------------------------
 elif st.session_state.step == 90 and st.session_state.user_role == "admin":
     st.markdown("## SMART KISHAN : ADMIN COMMAND CENTER")
@@ -627,7 +591,7 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
         st.rerun()
     st.info(f"Logged in Admin: +91 {st.session_state.user_mobile}")
     
-    admin_t1, admin_t2 = st.tabs(["Users", "Feedback"])
+    admin_t1, admin_t2, admin_t3 = st.tabs(["Users", "Feedback", "🔔 Help Request Triage"])
     with admin_t1:
         if engine:
             try:
@@ -640,33 +604,108 @@ elif st.session_state.step == 90 and st.session_state.user_role == "admin":
                 with engine.connect() as conn:
                     st.dataframe(pd.read_sql(text("SELECT * FROM feedback"), conn))
             except: pass
+    with admin_t3:
+        st.markdown("### Live User Help Tickets & Concurrency Lock")
+        if engine:
+            try:
+                with engine.connect() as conn:
+                    tickets = pd.read_sql(text("SELECT * FROM help_requests ORDER BY id DESC"), conn)
+                
+                if tickets.empty:
+                    st.info("No active help requests found.")
+                else:
+                    for idx, row in tickets.iterrows():
+                        st.markdown(f"**Ticket ID:** {row['id']} | **Mobile:** +91 {row['mobile']} | **Category:** {row['request_type']}")
+                        st.markdown(f"**Query:** {row['query_text']}")
+                        status_badge = f"🟢 Resolved (Attended by: +91 {row['attended_by']})" if row['status'] == 'Resolved' else "🟡 Pending"
+                        st.markdown(f"**Status:** {status_badge}")
+
+                        if row['status'] == 'Pending':
+                            with st.form(key=f"resolve_form_{row['id']}"):
+                                admin_reply_text = st.text_area("Resolution Reply:", key=f"reply_input_{row['id']}")
+                                submit_resolve = st.form_submit_button("Attend & Resolve Ticket")
+                                if submit_resolve:
+                                    with engine.connect() as conn:
+                                        # Concurrency check
+                                        current_ticket = conn.execute(text("SELECT attended_by, status FROM help_requests WHERE id = :id"), {"id": row['id']}).fetchone()
+                                        if current_ticket and current_ticket[0] and current_ticket[0] != st.session_state.user_mobile:
+                                            st.error(f"❌ Concurrency Lock Active: Ticket already attended/locked by Admin (+91 {current_ticket[0]}).")
+                                        else:
+                                            conn.execute(text("UPDATE help_requests SET status = 'Resolved', admin_reply = :rep, attended_by = :adm WHERE id = :id"), 
+                                                         {"rep": admin_reply_text, "adm": st.session_state.user_mobile, "id": row['id']})
+                                            conn.commit()
+                                            st.success("✅ Ticket successfully resolved and locked!")
+                                            st.rerun()
+                        else:
+                            st.markdown(f"**Admin Reply:** {row['admin_reply']}")
+                        st.divider()
+            except Exception as e:
+                st.error(f"Error loading help tickets: {e}")
 
 elif st.session_state.step == 21:
-    st.subheader("🆘 Help & Account Requests")
-    h_type = st.selectbox("Category:", ["Delete My Account", "General Inquiry"])
-    h_details = st.text_area("Details:")
+    st.subheader("🆘 Help Desk & Request Redirection")
+    help_categories = [
+        "Select Category...",
+        "Fertilizer Dosage Correction",
+        "Soil Scan Verification Issue",
+        "Crop Yield Prediction Query",
+        "Account Password / Login Help",
+        "Delete My Account",
+        "General Inquiry"
+    ]
+    selected_cat = st.selectbox("Select Issue Category:", help_categories)
+    manual_details = st.text_area("Additional Manual Details (Optional):")
+    
     if st.button("⬅️ Back"): st.session_state.step = 2; st.rerun()
-    if st.button("Submit ➔"):
-        if engine:
-            with engine.connect() as conn:
-                conn.execute(text("INSERT INTO help_requests (mobile, request_type, query_text) VALUES (:m, :rt, :q)"), {"m": str(st.session_state.user_mobile), "rt": h_type, "q": h_details.strip()})
-                conn.commit()
-        st.success("Sent to admin!")
+    if st.button("Submit Request ➔"):
+        if selected_cat == "Select Category...":
+            st.warning("Please select a valid issue category.")
+        else:
+            query_final = f"[{selected_cat}] {manual_details.strip()}" if manual_details.strip() else f"[{selected_cat}]"
+            if engine:
+                with engine.connect() as conn:
+                    conn.execute(text("INSERT INTO help_requests (mobile, request_type, query_text) VALUES (:m, :rt, :q)"), 
+                                 {"m": str(st.session_state.user_mobile), "rt": selected_cat, "q": query_final})
+                    conn.commit()
+                log_activity(st.session_state.user_mobile, "Help Requested", f"Category: {selected_cat}")
+            st.success("✅ Request successfully sent to Admin!")
 
 elif st.session_state.step == 22:
-    st.subheader("🔔 Notifications")
+    st.subheader("🔔 Notification Shade & Query Updates")
     if st.button("⬅️ Back"): st.session_state.step = 2; st.rerun()
     if engine:
         with engine.connect() as conn:
             notifs = pd.read_sql(text("SELECT * FROM help_requests WHERE mobile = :m ORDER BY id DESC"), conn, params={"m": str(st.session_state.user_mobile)})
-            st.dataframe(notifs, use_container_width=True)
+            
+        if notifs.empty:
+            st.info("No notifications or query updates found.")
+        else:
+            for idx, row in notifs.iterrows():
+                st.markdown(f"**Request ID:** {row['id']} | **Type:** {row['request_type']}")
+                st.markdown(f"**Your Query:** {row['query_text']}")
+                status_color = "green" if row['status'] == 'Resolved' else "orange"
+                st.markdown(f"**Status:** :{status_color}[{row['status']}]")
+                if row['admin_reply']:
+                    st.markdown(f"**🤖 Admin Resolution:** {row['admin_reply']}")
+                    if not row['user_feedback']:
+                        with st.form(key=f"resolved_feedback_{row['id']}"):
+                            resolved_star = st.slider("Rate Resolution (1-5 Stars):", 1, 5, 5, key=f"res_star_{row['id']}")
+                            resolved_comment = st.text_input("Feedback on resolution (Optional):", key=f"res_comm_{row['id']}")
+                            submit_res_fb = st.form_submit_button("Submit Resolution Feedback")
+                            if submit_res_fb:
+                                with engine.connect() as c_db:
+                                    c_db.execute(text("UPDATE help_requests SET user_feedback = :fb WHERE id = :id"), {"fb": f"{resolved_star} Stars: {resolved_comment}", "id": row['id']})
+                                    c_db.commit()
+                                st.success("Thank you for your feedback!")
+                                st.rerun()
+                st.divider()
 
 elif st.session_state.step == 23:
-    st.subheader("📜 Activity History")
+    st.subheader("📜 Activity History Audit Trail")
     if st.button("⬅️ Back"): st.session_state.step = 2; st.rerun()
     if engine:
         with engine.connect() as conn:
-            act = pd.read_sql(text("SELECT * FROM user_activity WHERE mobile = :m ORDER BY created_at DESC"), conn, params={"m": str(st.session_state.user_mobile)})
+            act = pd.read_sql(text("SELECT activity_type, details, created_at FROM user_activity WHERE mobile = :m ORDER BY created_at DESC"), conn, params={"m": str(st.session_state.user_mobile)})
             st.dataframe(act, use_container_width=True)
 
 # -------------------------------------------------------------
@@ -737,6 +776,7 @@ elif st.session_state.step == 2:
             st.session_state.soil_source = "manual"
 
         if st.button("Save Variables & Proceed to ML Assessment ➔"):
+            log_activity(st.session_state.user_mobile, "Ran Pipeline Input", f"Land: {st.session_state.raw_land_val} {st.session_state.land_unit}")
             st.session_state.step = 3
             st.rerun()
 
@@ -753,6 +793,7 @@ elif st.session_state.step == 2:
             st.success(f"Health Status: {res['health']}")
             st.write(f"**Pathogen**: {res['disease']}")
             st.write(f"**Remedy**: {res['medicine']}")
+            log_activity(st.session_state.user_mobile, "Leaf Disease Scan", f"Result: {res['health']}")
 
     with tab_live_weather:
         st.markdown("### 🌍 Real-Time Weather Integration & World Seed Prescriptions")
@@ -979,7 +1020,7 @@ elif st.session_state.step == 7:
         st.rerun()
 
 # -------------------------------------------------------------
-# SCREEN 8: GLOWING STAR RATING (NO RADIO BUTTONS)
+# SCREEN 8: GLOWING STAR RATING (OPTIONAL COMMENTS)
 # -------------------------------------------------------------
 elif st.session_state.step == 8:
     st.markdown("## Farmer Feedback & Star Rating")
@@ -1050,7 +1091,7 @@ elif st.session_state.step == 8:
     if bc5.button("5 - Best", use_container_width=True): st.session_state.rating = 5; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-    feedback_comments = st.text_area("Your Comments / Suggestions:")
+    feedback_comments = st.text_area("Your Comments / Suggestions (Optional):")
 
     b_fb_back, b_fb_sub = st.columns([1, 5], gap="small")
     with b_fb_back:
@@ -1059,14 +1100,9 @@ elif st.session_state.step == 8:
             st.rerun()
     with b_fb_sub:
         if st.button("Submit & Exit Dashboard ➔", use_container_width=True):
-            if current_rating == 0:
-                st.error("⭐ Please select a star rating level before exiting.")
-            elif not feedback_comments.strip():
-                st.error("⚠️ Mandatory Feedback Required: Please enter your feedback comments before exiting.")
-            else:
-                save_feedback(st.session_state.user_mobile, current_rating, current_rating_text, feedback_comments.strip())
-                st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
-                st.session_state.logged_in = False
-                st.session_state.step = 1
-                st.session_state.rating = 5
-                st.rerun()
+            save_feedback(st.session_state.user_mobile, current_rating, current_rating_text, feedback_comments.strip())
+            st.success("✅ Thank you! Your feedback has been recorded safely. Exit session...")
+            st.session_state.logged_in = False
+            st.session_state.step = 1
+            st.session_state.rating = 5
+            st.rerun()
