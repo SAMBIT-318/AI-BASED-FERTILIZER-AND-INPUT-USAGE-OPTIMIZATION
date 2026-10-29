@@ -245,7 +245,7 @@ if HERO_BG_DATA:
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif; color: #242424 !important; }
+    html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif; color: #FFFFFF !important; }
     
     /* Hide the default left Streamlit sidebar completely so login & dashboard are full-width */
     [data-testid="stSidebar"], [data-testid="collapsedControl"] { display: none !important; }
